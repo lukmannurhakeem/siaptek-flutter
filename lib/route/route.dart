@@ -1,0 +1,77 @@
+import 'package:base_app/screens/dashboard/dashboard_screen.dart';
+import 'package:base_app/screens/forgot_password_screen.dart';
+import 'package:base_app/screens/home_screen.dart';
+import 'package:base_app/screens/login_screen.dart';
+import 'package:base_app/screens/planner_screen.dart';
+import 'package:base_app/screens/splash_screen.dart';
+import 'package:flutter/material.dart';
+
+/// A class that centralizes application routes and provides route generation.
+class AppRoutes {
+  // Route names as constants
+  static const String splash = '/splash';
+  static const String login = '/login';
+  static const String forgotPassword = '/forgot-password';
+  static const String home = '/home';
+  static const String dashboard = '/dashboard';
+  static const String planner = '/planner';
+
+  // Route generator function
+  static Route<dynamic> generateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case splash:
+        return MaterialPageRoute(
+          builder: (_) => const SplashScreen(),
+          settings: settings,
+        );
+
+      case login:
+        return MaterialPageRoute(
+          builder: (_) => const LoginScreen(),
+          settings: settings,
+        );
+
+      case forgotPassword:
+        return MaterialPageRoute(
+          builder: (_) => const ForgotPasswordScreen(),
+          settings: settings,
+        );
+
+      case home:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => HomeScreen(
+            showWelcomeDialog: args?['showWelcomeDialog'] ?? false,
+            userName: args?['userName'],
+          ),
+          settings: settings,
+        );
+
+      case dashboard:
+        return MaterialPageRoute(
+          builder: (_) => const DashboardScreen(),
+          settings: settings,
+        );
+
+      case planner:
+        return MaterialPageRoute(
+          builder: (_) => const PlannerScreen(),
+          settings: settings,
+        );
+
+      default:
+        // If the route is not defined, show an error page
+        return MaterialPageRoute(
+          builder: (_) => Scaffold(
+            appBar: AppBar(
+              title: const Text('Error'),
+            ),
+            body: const Center(
+              child: Text('Route not found'),
+            ),
+          ),
+          settings: settings,
+        );
+    }
+  }
+}
