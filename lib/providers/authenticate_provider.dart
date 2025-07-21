@@ -1,4 +1,4 @@
-import 'dart:developer';
+
 
 import 'package:base_app/core/service/local_storage.dart';
 import 'package:base_app/core/service/navigation_service.dart';
@@ -43,8 +43,9 @@ class AuthenticateProvider extends ChangeNotifier {
 
        if (storageAccessToken.isNotEmpty){
         final data = await _userRepository.userVerifyToken();
+
         if (data.valid == true) {
-          NavigationService().navigateToAndRemoveUntil(AppRoutes.home,);
+          NavigationService().navigateToAndRemoveUntil(AppRoutes.home);
         } else {
           await _userRepository.userRefreshToken();
           NavigationService().navigateToAndRemoveUntil(AppRoutes.home);
@@ -52,9 +53,18 @@ class AuthenticateProvider extends ChangeNotifier {
       }
 
     } catch (e) {
-      NavigationService().navigateToAndRemoveUntil(AppRoutes.login);
-      CommonSnackbar.showError(context, '$e');
-      log('$e');
+      final data = await _userRepository.userRefreshToken();
+
+      if(data.accessToken?.isNotEmpty == true){
+        await LocalStorageService.setString('access_token', '${data.accessToken}');
+        await LocalStorageService.setString('refresh_token', '${data.refreshToken}');
+        NavigationService().navigateToAndRemoveUntil(AppRoutes.home);
+      }
+      else{
+        NavigationService().navigateToAndRemoveUntil(AppRoutes.login);
+        CommonSnackbar.showError(context, '$e');
+      }
+
     }
   }
 
