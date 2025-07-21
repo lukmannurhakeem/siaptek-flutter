@@ -22,6 +22,10 @@ class UserImpl implements UserRepository {
     _api.setAccessToken(response.data['access_token']);
     _api.setRefreshToken(response.data['refresh_token']);
 
+    print('User Login');
+    print('Log : access token ${ _api.accessToken}');
+    print('Log : refresh token ${ _api.refreshToken}');
+
     return UserLoginModel.fromJson(response.data);
   }
 
@@ -31,6 +35,9 @@ class UserImpl implements UserRepository {
       Endpoint.verifyToken,
       requiresAuth: true,
     );
+    print('Verify Token');
+    print('Log : access token ${ _api.accessToken}');
+    print('Log : refresh token ${ _api.refreshToken}');
     return UserVerifyTokenModel.fromRawJson(response.data);
   }
 

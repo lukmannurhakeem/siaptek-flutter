@@ -3,7 +3,7 @@ import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/model/menu_item.dart';
 import 'package:base_app/providers/authenticate_provider.dart';
 import 'package:base_app/screens/dashboard/dashboard_screen.dart';
-import 'package:base_app/screens/planner_screen.dart';
+import 'package:base_app/screens/planner/planner_screen.dart';
 import 'package:base_app/widget/welcome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

@@ -45,7 +45,7 @@ class AuthenticateProvider extends ChangeNotifier {
       final data = await _userRepository.userVerifyToken();
 
       if (data.valid == true) {
-        NavigationService().navigateToAndRemoveUntil(AppRoutes.home);
+        NavigationService().navigateToAndRemoveUntil(AppRoutes.home,);
       } else {
         await _userRepository.userRefreshToken();
         NavigationService().navigateToAndRemoveUntil(AppRoutes.home);
