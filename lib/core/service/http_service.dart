@@ -1,3 +1,4 @@
+import 'package:base_app/core/service/local_storage.dart';
 import 'package:dio/dio.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
@@ -51,12 +52,14 @@ class ApiClient {
   Options _createOptionsWithAuth({Options? options}) {
     final newOptions = options ?? Options();
 
-    if (_accessToken != null) {
+    if(LocalStorageService.getString('access_token').isNotEmpty){
       newOptions.headers = {
         ...?newOptions.headers,
-        'Authorization': 'Bearer $_accessToken',
+        'Authorization': 'Bearer ${LocalStorageService.getString('access_token')}',
       };
     }
+
+
 
     return newOptions;
   }

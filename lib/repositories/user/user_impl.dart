@@ -1,4 +1,5 @@
 import 'package:base_app/core/service/http_service.dart';
+import 'package:base_app/core/service/local_storage.dart';
 import 'package:base_app/model/user_login_model.dart';
 import 'package:base_app/model/user_refresh_token.dart';
 import 'package:base_app/model/user_verify_token.dart';
@@ -20,7 +21,9 @@ class UserImpl implements UserRepository {
     );
 
     _api.setAccessToken(response.data['access_token']);
+    await LocalStorageService.setString('access_token', '${_api.accessToken}');
     _api.setRefreshToken(response.data['refresh_token']);
+    await LocalStorageService.setString('refresh_token', '${_api.refreshToken}');
 
     return UserLoginModel.fromJson(response.data);
   }
@@ -31,7 +34,7 @@ class UserImpl implements UserRepository {
       Endpoint.verifyToken,
       requiresAuth: true,
     );
-    return UserVerifyTokenModel.fromRawJson(response.data);
+    return UserVerifyTokenModel.fromJson(response.data);
   }
 
   @override
@@ -39,12 +42,14 @@ class UserImpl implements UserRepository {
     final response = await _api.post(
       Endpoint.refreshToken,
       data: {
-        'refresh_token': _api.refreshToken,
+        'refresh_token':  LocalStorageService.getString('refresh_token'),
       },
     );
 
     _api.setAccessToken(response.data['access_token']);
+    await LocalStorageService.setString('access_token', '${_api.accessToken}');
     _api.setRefreshToken(response.data['refresh_token']);
+    await LocalStorageService.setString('refresh_token', '${_api.refreshToken}');
 
     return UserRefreshTokenModel.fromJson(response.data);
   }

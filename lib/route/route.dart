@@ -1,8 +1,8 @@
+import 'package:base_app/screens/auth/login_screen.dart';
 import 'package:base_app/screens/dashboard/dashboard_screen.dart';
-import 'package:base_app/screens/forgot_password_screen.dart';
+import 'package:base_app/screens/auth/forgot_password_screen.dart';
 import 'package:base_app/screens/home_screen.dart';
-import 'package:base_app/screens/login_screen.dart';
-import 'package:base_app/screens/planner_screen.dart';
+import 'package:base_app/screens/planner/planner_screen.dart';
 import 'package:base_app/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -15,6 +15,7 @@ class AppRoutes {
   static const String home = '/home';
   static const String dashboard = '/dashboard';
   static const String planner = '/planner';
+  static const String plannerDetail = '/plannerDetail';
 
   // Route generator function
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -58,6 +59,7 @@ class AppRoutes {
           builder: (_) => const PlannerScreen(),
           settings: settings,
         );
+
 
       default:
         // If the route is not defined, show an error page

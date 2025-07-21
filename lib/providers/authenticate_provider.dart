@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:base_app/core/service/local_storage.dart';
 import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/core/service/service_locator.dart';
 import 'package:base_app/model/user_login_model.dart';
@@ -35,24 +38,23 @@ class AuthenticateProvider extends ChangeNotifier {
 
   Future<void> verifyToken(BuildContext context) async {
     try {
-      final token = _userRepository.getAccessToken();
 
-      if (token == null || token.isEmpty) {
-        NavigationService().navigateToAndRemoveUntil(AppRoutes.login);
-        return;
+      final storageAccessToken = LocalStorageService.getString('access_token');
+
+       if (storageAccessToken.isNotEmpty){
+        final data = await _userRepository.userVerifyToken();
+        if (data.valid == true) {
+          NavigationService().navigateToAndRemoveUntil(AppRoutes.home,);
+        } else {
+          await _userRepository.userRefreshToken();
+          NavigationService().navigateToAndRemoveUntil(AppRoutes.home);
+        }
       }
 
-      final data = await _userRepository.userVerifyToken();
-
-      if (data.valid == true) {
-        NavigationService().navigateToAndRemoveUntil(AppRoutes.home);
-      } else {
-        await _userRepository.userRefreshToken();
-        NavigationService().navigateToAndRemoveUntil(AppRoutes.home);
-      }
     } catch (e) {
       NavigationService().navigateToAndRemoveUntil(AppRoutes.login);
-      CommonSnackbar.showError(context, 'Session expired. Please log in again.');
+      CommonSnackbar.showError(context, '$e');
+      log('$e');
     }
   }
 
