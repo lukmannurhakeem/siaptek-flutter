@@ -1,4 +1,3 @@
-// Create a data class for menu items
 import 'package:flutter/material.dart';
 
 class MenuItem {
@@ -6,11 +5,13 @@ class MenuItem {
   final IconData icon;
   final int index;
   final Widget? screen;
+  final List<MenuItem>? children;
 
   const MenuItem({
     required this.title,
     required this.icon,
     required this.index,
     this.screen,
+    this.children,
   });
 }

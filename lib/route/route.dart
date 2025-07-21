@@ -3,6 +3,7 @@ import 'package:base_app/screens/dashboard/dashboard_screen.dart';
 import 'package:base_app/screens/auth/forgot_password_screen.dart';
 import 'package:base_app/screens/home_screen.dart';
 import 'package:base_app/screens/planner/planner_screen.dart';
+import 'package:base_app/screens/planner/team_planner_screen.dart';
 import 'package:base_app/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +16,7 @@ class AppRoutes {
   static const String home = '/home';
   static const String dashboard = '/dashboard';
   static const String planner = '/planner';
-  static const String plannerDetail = '/plannerDetail';
+  static const String teamPlanner = '/teamPlanner';
 
   // Route generator function
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -57,6 +58,12 @@ class AppRoutes {
       case planner:
         return MaterialPageRoute(
           builder: (_) => const PlannerScreen(),
+          settings: settings,
+        );
+
+      case teamPlanner:
+        return MaterialPageRoute(
+          builder: (_) => const TeamPlannerScreen(),
           settings: settings,
         );
 
