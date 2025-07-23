@@ -5,6 +5,7 @@ import 'package:base_app/providers/authenticate_provider.dart';
 import 'package:base_app/screens/dashboard/dashboard_screen.dart';
 import 'package:base_app/screens/job/job_screen.dart';
 import 'package:base_app/screens/personnel/personnel_screen.dart';
+import 'package:base_app/screens/personnel/personnel_team_screen.dart';
 import 'package:base_app/screens/planner/planner_screen.dart';
 import 'package:base_app/screens/planner/team_planner_screen.dart';
 import 'package:base_app/widget/welcome_dialog.dart';
@@ -63,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
           index: 14,
           screen: PersonnelScreen(),
         ),
-        MenuItem(title: 'Teams', icon: Icons.add, index: 15, screen: TeamPlannerScreen()),
+        MenuItem(title: 'Teams', icon: Icons.add, index: 15, screen: PersonnelTeamScreen()),
       ],
     ),
     MenuItem(

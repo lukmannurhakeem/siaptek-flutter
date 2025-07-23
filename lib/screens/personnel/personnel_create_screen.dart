@@ -186,7 +186,7 @@ class _PersonnelCreateScreenState extends State<PersonnelCreateScreen> {
             _widgetForm('Job Title'),
             context.vM,
             Text(
-              'GeneralNotesGeneralNotes',
+              'General Notes',
               style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
             ),
             context.vS,

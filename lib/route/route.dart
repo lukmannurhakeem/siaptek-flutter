@@ -5,6 +5,8 @@ import 'package:base_app/screens/home_screen.dart';
 import 'package:base_app/screens/job/job_screen.dart';
 import 'package:base_app/screens/personnel/personnel_create_screen.dart';
 import 'package:base_app/screens/personnel/personnel_screen.dart';
+import 'package:base_app/screens/personnel/personnel_team_create_screen.dart';
+import 'package:base_app/screens/personnel/personnel_team_screen.dart';
 import 'package:base_app/screens/planner/planner_screen.dart';
 import 'package:base_app/screens/planner/team_planner_screen.dart';
 import 'package:base_app/screens/splash_screen.dart';
@@ -22,7 +24,9 @@ class AppRoutes {
   static const String teamPlanner = '/teamPlanner';
   static const String job = '/job';
   static const String personnel = '/personnel';
+  static const String teamPersonnel = '/teamPersonnel';
   static const String createPersonnel = '/createPersonnel';
+  static const String createTeamPersonnel = '/createTeamPersonnel';
 
   // Route generator function
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -64,6 +68,15 @@ class AppRoutes {
 
       case createPersonnel:
         return MaterialPageRoute(builder: (_) => const PersonnelCreateScreen(), settings: settings);
+
+      case teamPersonnel:
+        return MaterialPageRoute(builder: (_) => const PersonnelTeamScreen(), settings: settings);
+
+      case createTeamPersonnel:
+        return MaterialPageRoute(
+          builder: (_) => const PersonnelCreateTeamScreen(),
+          settings: settings,
+        );
 
       default:
         // If the route is not defined, show an error page
