@@ -4,6 +4,7 @@ import 'package:base_app/model/menu_item.dart';
 import 'package:base_app/providers/authenticate_provider.dart';
 import 'package:base_app/screens/dashboard/dashboard_screen.dart';
 import 'package:base_app/screens/job/job_screen.dart';
+import 'package:base_app/screens/personnel/personnel_screen.dart';
 import 'package:base_app/screens/planner/planner_screen.dart';
 import 'package:base_app/screens/planner/team_planner_screen.dart';
 import 'package:base_app/widget/welcome_dialog.dart';
@@ -14,11 +15,7 @@ class HomeScreen extends StatefulWidget {
   final bool showWelcomeDialog;
   final String? userName;
 
-  const HomeScreen({
-    super.key,
-    this.showWelcomeDialog = false,
-    this.userName,
-  });
+  const HomeScreen({super.key, this.showWelcomeDialog = false, this.userName});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -31,12 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final Set<int> _expandedMenus = {};
 
   final List<MenuItem> _menuItems = [
-    MenuItem(
-      title: 'Dashboard',
-      icon: Icons.home,
-      index: 0,
-      screen: DashboardScreen(),
-    ),
+    MenuItem(title: 'Dashboard', icon: Icons.home, index: 0, screen: DashboardScreen()),
     MenuItem(
       title: 'Planner',
       icon: Icons.calendar_month,
@@ -48,12 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
           index: 10,
           screen: PlannerScreen(),
         ),
-        MenuItem(
-          title: 'Team Planner',
-          icon: Icons.groups,
-          index: 11,
-          screen: TeamPlannerScreen(),
-        ),
+        MenuItem(title: 'Team Planner', icon: Icons.groups, index: 11, screen: TeamPlannerScreen()),
       ],
     ),
     MenuItem(
@@ -61,25 +48,23 @@ class _HomeScreenState extends State<HomeScreen> {
       icon: Icons.work,
       index: 2,
       children: [
-        MenuItem(
-          title: 'View All',
-          icon: Icons.view_array,
-          index: 12,
-          screen: JobScreen(),
-        ),
-        MenuItem(
-          title: 'Add New',
-          icon: Icons.add,
-          index: 13,
-          screen: TeamPlannerScreen(),
-        ),
+        MenuItem(title: 'View All', icon: Icons.view_array, index: 12, screen: JobScreen()),
+        MenuItem(title: 'Add New', icon: Icons.add, index: 13, screen: TeamPlannerScreen()),
       ],
     ),
     MenuItem(
       title: 'Personnel',
       icon: Icons.card_membership_rounded,
       index: 3,
-      screen: Center(child: Text("Personnel Content")),
+      children: [
+        MenuItem(
+          title: 'Personnel Records',
+          icon: Icons.view_array,
+          index: 14,
+          screen: PersonnelScreen(),
+        ),
+        MenuItem(title: 'Teams', icon: Icons.add, index: 15, screen: TeamPlannerScreen()),
+      ],
     ),
     MenuItem(
       title: 'Customer',
@@ -130,10 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.showWelcomeDialog) {
-        WelcomeDialog.show(
-          context,
-          userName: widget.userName,
-        );
+        WelcomeDialog.show(context, userName: widget.userName);
       }
     });
   }
@@ -144,13 +126,10 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text(
           _currentMenuItem?.title ?? '',
-          style: context.topology.textTheme.titleLarge
-              ?.copyWith(color: context.colors.onPrimary),
+          style: context.topology.textTheme.titleLarge?.copyWith(color: context.colors.onPrimary),
         ),
         centerTitle: true,
-        iconTheme: IconThemeData(
-          color: context.colors.onPrimary,
-        ),
+        iconTheme: IconThemeData(color: context.colors.onPrimary),
         backgroundColor: context.colors.primary,
       ),
       drawer: Drawer(
@@ -165,21 +144,13 @@ class _HomeScreenState extends State<HomeScreen> {
               Consumer<AuthenticateProvider>(
                 builder: (context, provider, child) {
                   return ListTile(
-                    splashColor: context.colors.primary
-                        .withOpacity(0.5),
-                    leading: Icon(
-                      Icons.logout,
-                      color: context.colors.primary,
-                    ),
+                    splashColor: context.colors.primary.withOpacity(0.5),
+                    leading: Icon(Icons.logout, color: context.colors.primary),
                     title: Text(
                       'Logout',
-                      style: context
-                          .topology
-                          .textTheme
-                          .bodyLarge
-                          ?.copyWith(
-                            color: context.colors.primary,
-                          ),
+                      style: context.topology.textTheme.bodyLarge?.copyWith(
+                        color: context.colors.primary,
+                      ),
                     ),
                     onTap: () {
                       provider.logout(context);
@@ -191,45 +162,29 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      body: SafeArea(
-        top: true,
-        child: SingleChildScrollView(
-          child: _getBodyContent(),
-        ),
-      ),
+      body: SafeArea(top: true, child: SingleChildScrollView(child: _getBodyContent())),
     );
   }
 
   List<Widget> _buildMenuList(List<MenuItem> items) {
     return items.expand((item) {
       final bool isSelected = _selectedIndex == item.index;
-      final bool isExpanded = _expandedMenus.contains(
-        item.index,
-      );
+      final bool isExpanded = _expandedMenus.contains(item.index);
 
       List<Widget> tiles = [
         ListTile(
-          splashColor: context.colors.primary.withOpacity(
-            0.5,
-          ),
-          leading: Icon(
-            item.icon,
-            color: context.colors.primary,
-          ),
+          splashColor: context.colors.primary.withOpacity(0.5),
+          leading: Icon(item.icon, color: context.colors.primary),
           title: Text(
             item.title,
-            style: context.topology.textTheme.bodyLarge
-                ?.copyWith(color: context.colors.primary),
+            style: context.topology.textTheme.bodyLarge?.copyWith(color: context.colors.primary),
           ),
           selected: isSelected,
-          selectedTileColor: context.colors.primary
-              .withOpacity(0.1),
+          selectedTileColor: context.colors.primary.withOpacity(0.1),
           trailing:
               item.children != null
                   ? Icon(
-                    isExpanded
-                        ? Icons.expand_less
-                        : Icons.expand_more,
+                    isExpanded ? Icons.expand_less : Icons.expand_more,
                     color: context.colors.primary,
                   )
                   : null,
@@ -256,27 +211,17 @@ class _HomeScreenState extends State<HomeScreen> {
             return Padding(
               padding: const EdgeInsets.only(left: 32.0),
               child: ListTile(
-                leading: Icon(
-                  subItem.icon,
-                  color: context.colors.primary,
-                ),
+                leading: Icon(subItem.icon, color: context.colors.primary),
                 title: Text(
                   subItem.title,
-                  style: context
-                      .topology
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(
-                        color: context.colors.primary,
-                      ),
+                  style: context.topology.textTheme.bodyMedium?.copyWith(
+                    color: context.colors.primary,
+                  ),
                 ),
                 selected: _selectedIndex == subItem.index,
-                selectedTileColor: context.colors.primary
-                    .withOpacity(0.1),
+                selectedTileColor: context.colors.primary.withOpacity(0.1),
                 onTap: () {
-                  setState(
-                    () => _selectedIndex = subItem.index,
-                  );
+                  setState(() => _selectedIndex = subItem.index);
                   NavigationService().goBack();
                 },
               ),
@@ -291,9 +236,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _getBodyContent() {
-    return _currentMenuItem?.screen ??
-        Center(
-          child: Text("${_currentMenuItem?.title} Content"),
-        );
+    return _currentMenuItem?.screen ?? Center(child: Text("${_currentMenuItem?.title} Content"));
   }
 }
