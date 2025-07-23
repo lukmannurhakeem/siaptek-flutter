@@ -2,6 +2,7 @@ import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/model/menu_item.dart';
 import 'package:base_app/providers/authenticate_provider.dart';
+import 'package:base_app/screens/customer/customer_screen.dart';
 import 'package:base_app/screens/dashboard/dashboard_screen.dart';
 import 'package:base_app/screens/job/job_screen.dart';
 import 'package:base_app/screens/personnel/personnel_screen.dart';
@@ -71,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
       title: 'Customer',
       icon: Icons.dashboard_customize_rounded,
       index: 4,
-      screen: Center(child: Text("Customer Content")),
+      screen: Center(child: CustomerScreen()),
     ),
     MenuItem(
       title: 'Sites',
