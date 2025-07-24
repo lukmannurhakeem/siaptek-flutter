@@ -1,5 +1,6 @@
 import 'package:base_app/screens/auth/forgot_password_screen.dart';
 import 'package:base_app/screens/auth/login_screen.dart';
+import 'package:base_app/screens/categories/categories_screen.dart';
 import 'package:base_app/screens/dashboard/dashboard_screen.dart';
 import 'package:base_app/screens/home_screen.dart';
 import 'package:base_app/screens/job/job_screen.dart';
@@ -29,6 +30,7 @@ class AppRoutes {
   static const String createPersonnel = '/createPersonnel';
   static const String createTeamPersonnel = '/createTeamPersonnel';
   static const String site = '/site';
+  static const String categories = '/categories';
 
   // Route generator function
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -82,6 +84,9 @@ class AppRoutes {
 
       case site:
         return MaterialPageRoute(builder: (_) => const SiteScreen(), settings: settings);
+
+      case categories:
+        return MaterialPageRoute(builder: (_) => const CategoriesScreen(), settings: settings);
 
       default:
         // If the route is not defined, show an error page

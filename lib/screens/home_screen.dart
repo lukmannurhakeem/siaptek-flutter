@@ -2,6 +2,7 @@ import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/model/menu_item.dart';
 import 'package:base_app/providers/authenticate_provider.dart';
+import 'package:base_app/screens/categories/categories_screen.dart';
 import 'package:base_app/screens/customer/customer_screen.dart';
 import 'package:base_app/screens/dashboard/dashboard_screen.dart';
 import 'package:base_app/screens/job/job_screen.dart';
@@ -80,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
       title: 'Categories',
       icon: Icons.category,
       index: 6,
-      screen: Center(child: Text("Categories Content")),
+      screen: Center(child: CategoriesScreen()),
     ),
     MenuItem(
       title: 'Profile',
