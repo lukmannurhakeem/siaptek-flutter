@@ -87,7 +87,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             right: 30,
             child: FloatingActionButton(
               onPressed: () {
-                NavigationService().navigateTo(AppRoutes.createTeamPersonnel);
+                NavigationService().navigateTo(AppRoutes.createCategories);
               },
               tooltip: 'Add New',
               child: const Icon(Icons.add),
