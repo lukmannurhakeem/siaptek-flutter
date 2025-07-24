@@ -9,6 +9,7 @@ import 'package:base_app/screens/personnel/personnel_screen.dart';
 import 'package:base_app/screens/personnel/personnel_team_screen.dart';
 import 'package:base_app/screens/planner/planner_screen.dart';
 import 'package:base_app/screens/planner/team_planner_screen.dart';
+import 'package:base_app/screens/site/site_screen.dart';
 import 'package:base_app/widget/welcome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -74,12 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
       index: 4,
       screen: Center(child: CustomerScreen()),
     ),
-    MenuItem(
-      title: 'Sites',
-      icon: Icons.apartment,
-      index: 5,
-      screen: Center(child: Text("Sites Content")),
-    ),
+    MenuItem(title: 'Sites', icon: Icons.apartment, index: 5, screen: Center(child: SiteScreen())),
     MenuItem(
       title: 'Categories',
       icon: Icons.category,

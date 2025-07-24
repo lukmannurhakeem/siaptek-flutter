@@ -9,6 +9,7 @@ import 'package:base_app/screens/personnel/personnel_team_create_screen.dart';
 import 'package:base_app/screens/personnel/personnel_team_screen.dart';
 import 'package:base_app/screens/planner/planner_screen.dart';
 import 'package:base_app/screens/planner/team_planner_screen.dart';
+import 'package:base_app/screens/site/site_screen.dart';
 import 'package:base_app/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -27,6 +28,7 @@ class AppRoutes {
   static const String teamPersonnel = '/teamPersonnel';
   static const String createPersonnel = '/createPersonnel';
   static const String createTeamPersonnel = '/createTeamPersonnel';
+  static const String site = '/site';
 
   // Route generator function
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -77,6 +79,9 @@ class AppRoutes {
           builder: (_) => const PersonnelCreateTeamScreen(),
           settings: settings,
         );
+
+      case site:
+        return MaterialPageRoute(builder: (_) => const SiteScreen(), settings: settings);
 
       default:
         // If the route is not defined, show an error page
