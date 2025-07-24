@@ -11,6 +11,7 @@ import 'package:base_app/screens/personnel/personnel_team_create_screen.dart';
 import 'package:base_app/screens/personnel/personnel_team_screen.dart';
 import 'package:base_app/screens/planner/planner_screen.dart';
 import 'package:base_app/screens/planner/team_planner_screen.dart';
+import 'package:base_app/screens/profile/profile_screen.dart';
 import 'package:base_app/screens/site/site_screen.dart';
 import 'package:base_app/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +34,7 @@ class AppRoutes {
   static const String site = '/site';
   static const String categories = '/categories';
   static const String createCategories = '/createCategories';
+  static const String profile = '/profile';
 
   // Route generator function
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -89,6 +91,9 @@ class AppRoutes {
 
       case categories:
         return MaterialPageRoute(builder: (_) => const CategoriesScreen(), settings: settings);
+
+      case profile:
+        return MaterialPageRoute(builder: (_) => const ProfileScreen(), settings: settings);
 
       case createCategories:
         return MaterialPageRoute(

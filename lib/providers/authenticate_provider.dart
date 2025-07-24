@@ -1,6 +1,5 @@
-
-
 import 'package:base_app/core/service/local_storage.dart';
+import 'package:base_app/core/service/local_storage_constant.dart';
 import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/core/service/service_locator.dart';
 import 'package:base_app/model/user_login_model.dart';
@@ -13,6 +12,7 @@ class AuthenticateProvider extends ChangeNotifier {
   final UserRepository _userRepository = ServiceLocator().userRepository;
 
   UserLoginModel? _user;
+
   UserLoginModel? get user => _user;
 
   Future<UserLoginModel?> login(BuildContext context, String name, String password) async {
@@ -21,6 +21,19 @@ class AuthenticateProvider extends ChangeNotifier {
     } else {
       try {
         _user = await _userRepository.userLogin(name, password);
+
+        await LocalStorageService.setString(
+          LocalStorageConstant.userFirstName,
+          _user!.user!.firstName ?? '',
+        );
+        await LocalStorageService.setString(
+          LocalStorageConstant.userLastName,
+          _user!.user!.lastName ?? '',
+        );
+        await LocalStorageService.setString(
+          LocalStorageConstant.userEmail,
+          _user!.user!.email ?? '',
+        );
         NavigationService().replaceTo(
           AppRoutes.home,
           arguments: {
@@ -38,10 +51,9 @@ class AuthenticateProvider extends ChangeNotifier {
 
   Future<void> verifyToken(BuildContext context) async {
     try {
+      final storageAccessToken = LocalStorageService.getString(LocalStorageConstant.accessToken);
 
-      final storageAccessToken = LocalStorageService.getString('access_token');
-
-       if (storageAccessToken.isNotEmpty){
+      if (storageAccessToken.isNotEmpty) {
         final data = await _userRepository.userVerifyToken();
 
         if (data.valid == true) {
@@ -51,20 +63,23 @@ class AuthenticateProvider extends ChangeNotifier {
           NavigationService().navigateToAndRemoveUntil(AppRoutes.home);
         }
       }
-
     } catch (e) {
       final data = await _userRepository.userRefreshToken();
 
-      if(data.accessToken?.isNotEmpty == true){
-        await LocalStorageService.setString('access_token', '${data.accessToken}');
-        await LocalStorageService.setString('refresh_token', '${data.refreshToken}');
+      if (data.accessToken?.isNotEmpty == true) {
+        await LocalStorageService.setString(
+          LocalStorageConstant.accessToken,
+          '${data.accessToken}',
+        );
+        await LocalStorageService.setString(
+          LocalStorageConstant.refreshToken,
+          '${data.refreshToken}',
+        );
         NavigationService().navigateToAndRemoveUntil(AppRoutes.home);
-      }
-      else{
+      } else {
         NavigationService().navigateToAndRemoveUntil(AppRoutes.login);
         CommonSnackbar.showError(context, '$e');
       }
-
     }
   }
 

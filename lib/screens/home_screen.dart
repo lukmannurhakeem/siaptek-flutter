@@ -10,6 +10,7 @@ import 'package:base_app/screens/personnel/personnel_screen.dart';
 import 'package:base_app/screens/personnel/personnel_team_screen.dart';
 import 'package:base_app/screens/planner/planner_screen.dart';
 import 'package:base_app/screens/planner/team_planner_screen.dart';
+import 'package:base_app/screens/profile/profile_screen.dart';
 import 'package:base_app/screens/site/site_screen.dart';
 import 'package:base_app/widget/welcome_dialog.dart';
 import 'package:flutter/material.dart';
@@ -87,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
       title: 'Profile',
       icon: Icons.person,
       index: 7,
-      screen: Center(child: Text("Profile Content")),
+      screen: Center(child: ProfileScreen()),
     ),
     MenuItem(
       title: 'Settings',
