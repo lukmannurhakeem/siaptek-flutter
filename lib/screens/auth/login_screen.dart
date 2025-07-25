@@ -148,6 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: context.topology.textTheme.bodyMedium?.copyWith(
                           color: context.colors.primary,
                         ),
+                        suffixIcon: Icon(Icons.email, color: context.colors.primary),
                       ),
                       context.vM,
                       CommonTextField(
@@ -156,6 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: context.topology.textTheme.bodyMedium?.copyWith(
                           color: context.colors.primary,
                         ),
+                        suffixIcon: Icon(Icons.lock, color: context.colors.primary),
                       ),
                       context.vL,
                       Consumer<AuthenticateProvider>(
