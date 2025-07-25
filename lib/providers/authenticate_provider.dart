@@ -53,6 +53,10 @@ class AuthenticateProvider extends ChangeNotifier {
     try {
       final storageAccessToken = LocalStorageService.getString(LocalStorageConstant.accessToken);
 
+      if (storageAccessToken.isEmpty) {
+        NavigationService().navigateToAndRemoveUntil(AppRoutes.login);
+      }
+
       if (storageAccessToken.isNotEmpty) {
         final data = await _userRepository.userVerifyToken();
 
@@ -86,6 +90,8 @@ class AuthenticateProvider extends ChangeNotifier {
   Future<void> logout(BuildContext context) async {
     try {
       await _userRepository.userLogout();
+      await LocalStorageService.remove(LocalStorageConstant.accessToken);
+      await LocalStorageService.remove(LocalStorageConstant.refreshToken);
       NavigationService().navigateToAndRemoveUntil(AppRoutes.login);
     } catch (e) {
       CommonSnackbar.showError(context, e.toString());
