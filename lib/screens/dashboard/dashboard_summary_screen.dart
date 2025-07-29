@@ -12,167 +12,250 @@ class SummaryScreen extends StatefulWidget {
 class _SummaryScreenState extends State<SummaryScreen> {
   int _touchedIndex = -1;
 
-  final List<String> _labels = ['Completed', 'In Progress', 'Pending', 'Cancelled'];
-  final List<Color> _colors = [Colors.blue, Colors.orange, Colors.green, Colors.red];
-  final List<double> _values = [40, 30, 15, 15];
+  final List<String> _labels = [
+    'Fail',
+    'Quarantine',
+    'Rejected',
+    'CAR',
+    'Unsatisfactory',
+    'Satisfactory',
+    'Pass',
+    'Accepted',
+    'Fir for use at time of inspection',
+    'Items with No Status',
+  ];
+  final List<Color> _colors = [
+    Colors.red,
+    Colors.brown,
+    Colors.grey,
+    Colors.orange,
+    Colors.cyan,
+    Colors.indigo,
+    Colors.lime,
+    Colors.green,
+    Colors.teal,
+    Colors.amber,
+  ];
+  final List<double> _values = [1, 0, 4, 0, 1, 6, 13, 11, 50, 11];
 
   @override
   Widget build(BuildContext context) {
     return (context.isTablet)
         ? Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              context.vS,
-              Container(
-                width: MediaQuery.of(context).size.width,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Card(
-                      margin: const EdgeInsets.all(0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Items Under Management',
-                              style: context.topology.textTheme.bodyLarge?.copyWith(
-                                color: context.colors.primary,
-                              ),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            context.vS,
+            Text(
+              'Report Status',
+              style: context.topology.textTheme.titleMedium?.copyWith(
+                color: context.colors.primary,
+              ),
+            ),
+            Container(
+              width: MediaQuery.of(context).size.width,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Card(
+                    margin: const EdgeInsets.all(0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Items Under Management',
+                            style: context.topology.textTheme.bodyLarge?.copyWith(
+                              color: context.colors.primary,
                             ),
-                            context.vS,
-                            Text(
-                              '49405',
-                              style: context.topology.textTheme.titleLarge?.copyWith(
-                                color: context.colors.primary,
-                              ),
+                          ),
+                          context.vS,
+                          Text(
+                            '49405',
+                            style: context.topology.textTheme.titleLarge?.copyWith(
+                              color: context.colors.primary,
                             ),
-                            context.vS,
-                            Text(
-                              'Total Items',
-                              style: context.topology.textTheme.bodyMedium?.copyWith(
-                                color: context.colors.primary,
-                              ),
+                          ),
+                          context.vS,
+                          Text(
+                            'Total Items',
+                            style: context.topology.textTheme.bodyMedium?.copyWith(
+                              color: context.colors.primary,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
-                    Card(
-                      margin: const EdgeInsets.all(0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Items Under Management',
-                              style: context.topology.textTheme.bodyLarge?.copyWith(
-                                color: context.colors.primary,
-                              ),
+                  ),
+                  Card(
+                    margin: const EdgeInsets.all(0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Items Under Management',
+                            style: context.topology.textTheme.bodyLarge?.copyWith(
+                              color: context.colors.primary,
                             ),
-                            context.vS,
-                            Text(
-                              '49405',
-                              style: context.topology.textTheme.titleLarge?.copyWith(
-                                color: context.colors.primary,
-                              ),
+                          ),
+                          context.vS,
+                          Text(
+                            '49405',
+                            style: context.topology.textTheme.titleLarge?.copyWith(
+                              color: context.colors.primary,
                             ),
-                            context.vS,
-                            Text(
-                              'Total Items',
-                              style: context.topology.textTheme.bodyMedium?.copyWith(
-                                color: context.colors.primary,
-                              ),
+                          ),
+                          context.vS,
+                          Text(
+                            'Total Items',
+                            style: context.topology.textTheme.bodyMedium?.copyWith(
+                              color: context.colors.primary,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
-                    Card(
-                      margin: const EdgeInsets.all(0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Items Under Management',
-                              style: context.topology.textTheme.bodyLarge?.copyWith(
-                                color: context.colors.primary,
-                              ),
+                  ),
+                  Card(
+                    margin: const EdgeInsets.all(0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Items Under Management',
+                            style: context.topology.textTheme.bodyLarge?.copyWith(
+                              color: context.colors.primary,
                             ),
-                            context.vS,
-                            Text(
-                              '49405',
-                              style: context.topology.textTheme.titleLarge?.copyWith(
-                                color: context.colors.primary,
-                              ),
+                          ),
+                          context.vS,
+                          Text(
+                            '49405',
+                            style: context.topology.textTheme.titleLarge?.copyWith(
+                              color: context.colors.primary,
                             ),
-                            context.vS,
-                            Text(
-                              'Total Items',
-                              style: context.topology.textTheme.bodyMedium?.copyWith(
-                                color: context.colors.primary,
-                              ),
+                          ),
+                          context.vS,
+                          Text(
+                            'Total Items',
+                            style: context.topology.textTheme.bodyMedium?.copyWith(
+                              color: context.colors.primary,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
-                    Card(
-                      margin: const EdgeInsets.all(0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Items Under Management',
-                              style: context.topology.textTheme.bodyLarge?.copyWith(
-                                color: context.colors.primary,
-                              ),
+                  ),
+                  Card(
+                    margin: const EdgeInsets.all(0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Items Under Management',
+                            style: context.topology.textTheme.bodyLarge?.copyWith(
+                              color: context.colors.primary,
                             ),
-                            context.vS,
-                            Text(
-                              '49405',
-                              style: context.topology.textTheme.titleLarge?.copyWith(
-                                color: context.colors.primary,
-                              ),
+                          ),
+                          context.vS,
+                          Text(
+                            '49405',
+                            style: context.topology.textTheme.titleLarge?.copyWith(
+                              color: context.colors.primary,
                             ),
-                            context.vS,
-                            Text(
-                              'Total Items',
-                              style: context.topology.textTheme.bodyMedium?.copyWith(
-                                color: context.colors.primary,
-                              ),
+                          ),
+                          context.vS,
+                          Text(
+                            'Total Items',
+                            style: context.topology.textTheme.bodyMedium?.copyWith(
+                              color: context.colors.primary,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: context.paddingAll,
+              child: Text(
+                'Status Comparison',
+                style: context.topology.textTheme.titleLarge?.copyWith(
+                  color: context.colors.primary,
                 ),
               ),
-              Padding(
-                padding: context.paddingAll,
-                child: Text(
-                  'Status Comparison',
-                  style: context.topology.textTheme.titleLarge?.copyWith(
+            ),
+            context.divider,
+            context.vS,
+            SizedBox(
+              height: MediaQuery.of(context).size.height / 3,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start, // Align to top
+                children: [
+                  Expanded(
+                    child: AspectRatio(
+                      aspectRatio: 1.5,
+                      child: PieChart(
+                        PieChartData(
+                          sectionsSpace: 2,
+
+                          centerSpaceRadius: 40,
+                          pieTouchData: PieTouchData(
+                            touchCallback: (event, response) {
+                              setState(() {
+                                if (!event.isInterestedForInteractions ||
+                                    response == null ||
+                                    response.touchedSection == null) {
+                                  _touchedIndex = -1;
+                                  return;
+                                }
+                                _touchedIndex = response.touchedSection!.touchedSectionIndex;
+                              });
+                            },
+                          ),
+                          sections: _getSections(),
+                        ),
+                      ),
+                    ),
+                  ),
+                  context.hL,
+                  Expanded(
+                    child: Container(alignment: Alignment.topCenter, child: _buildIndicators()),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        )
+        : ListView(
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Pie Chart Section
+                context.vS,
+                Text(
+                  'Report Status',
+                  style: context.topology.textTheme.titleMedium?.copyWith(
                     color: context.colors.primary,
                   ),
                 ),
-              ),
-              context.divider,
-              context.vS,
-              SizedBox(
-                height: MediaQuery.of(context).size.height / 3,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start, // Align to top
-                  children: [
-                    Expanded(
-                      child: AspectRatio(
+                context.vS,
+                context.divider,
+                context.vS,
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      AspectRatio(
                         aspectRatio: 1.5,
                         child: PieChart(
                           PieChartData(
@@ -195,204 +278,325 @@ class _SummaryScreenState extends State<SummaryScreen> {
                           ),
                         ),
                       ),
-                    ),
-                    context.hL,
-                    Expanded(
-                      child: Container(
-                        alignment: Alignment.topCenter,
-                        child: _buildIndicators(),
-                      ),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      // Indicators/Legend
+                      _buildIndicators(),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          )
-        : ListView(
-            children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  // Pie Chart Section
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
+                context.vS,
+                context.divider,
+                context.vS,
+                // Cards Section
+                SizedBox(
+                  width: double.infinity,
+                  child: Card(
+                    margin: EdgeInsets.zero,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+                    ),
+                    elevation: 8,
+                    color: context.colors.secondary,
+                    // Light background for contrast
+                    child: Stack(
                       children: [
-                        AspectRatio(
-                          aspectRatio: 1.5,
-                          child: PieChart(
-                            PieChartData(
-                              sectionsSpace: 2,
-                              centerSpaceRadius: 40,
-                              pieTouchData: PieTouchData(
-                                touchCallback: (event, response) {
-                                  setState(() {
-                                    if (!event.isInterestedForInteractions ||
-                                        response == null ||
-                                        response.touchedSection == null) {
-                                      _touchedIndex = -1;
-                                      return;
-                                    }
-                                    _touchedIndex = response.touchedSection!.touchedSectionIndex;
-                                  });
-                                },
+                        // 🔵 Background decorative icon (overlayed)
+                        Positioned(
+                          top: -10,
+                          right: -10,
+                          child: Icon(
+                            Icons.inventory_2_rounded,
+                            size: 120,
+                            color: context.colors.primary.withOpacity(0.08),
+                          ),
+                        ),
+
+                        // 🔷 Colored side bar
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: 6,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: context.colors.primary,
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(16),
                               ),
-                              sections: _getSections(),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        // Indicators/Legend
-                        _buildIndicators(),
+
+                        // 🔤 Main content
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 24.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Items Under Management',
+                                style: context.topology.textTheme.bodySmall?.copyWith(
+                                  color: context.colors.primary,
+                                ),
+                              ),
+                              context.vS,
+                              Text(
+                                '49,405',
+                                style: context.topology.textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: context.colors.primary,
+                                ),
+                              ),
+                              context.vS,
+                              Text(
+                                'Total Items',
+                                style: context.topology.textTheme.bodySmall?.copyWith(
+                                  color: context.colors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
+                ),
 
-                  // Cards Section
-                  SizedBox(
-                    width: double.infinity,
-                    child: Card(
-                      margin: const EdgeInsets.all(0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Items Under Management',
-                              style: context.topology.textTheme.bodySmall?.copyWith(
-                                color: context.colors.primary,
-                              ),
-                            ),
-                            context.vS,
-                            Text(
-                              '49405',
-                              style: context.topology.textTheme.titleMedium?.copyWith(
-                                color: context.colors.primary,
-                              ),
-                            ),
-                            context.vS,
-                            Text(
-                              'Total Items',
-                              style: context.topology.textTheme.bodySmall?.copyWith(
-                                color: context.colors.primary,
-                              ),
-                            ),
-                          ],
+                context.vS,
+
+                SizedBox(
+                  width: double.infinity,
+                  child: Card(
+                    margin: EdgeInsets.zero,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+                    ),
+                    elevation: 8,
+                    color: context.colors.secondary,
+                    // Light background for contrast
+                    child: Stack(
+                      children: [
+                        // 🔵 Background decorative icon (overlayed)
+                        Positioned(
+                          top: -10,
+                          right: -10,
+                          child: Icon(
+                            Icons.work,
+                            size: 120,
+                            color: context.colors.primary.withOpacity(0.08),
+                          ),
                         ),
-                      ),
+
+                        // 🔷 Colored side bar
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: 6,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: context.colors.primary,
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(16),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // 🔤 Main content
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 24.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Jobs This Month',
+                                style: context.topology.textTheme.bodySmall?.copyWith(
+                                  color: context.colors.primary,
+                                ),
+                              ),
+                              context.vS,
+                              Text(
+                                '0',
+                                style: context.topology.textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: context.colors.primary,
+                                ),
+                              ),
+                              context.vS,
+                              Text(
+                                'Job',
+                                style: context.topology.textTheme.bodySmall?.copyWith(
+                                  color: context.colors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  context.vS,
-                  SizedBox(
-                    width: double.infinity,
-                    child: Card(
-                      margin: const EdgeInsets.all(0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Jobs This Month',
-                              style: context.topology.textTheme.bodySmall?.copyWith(
-                                color: context.colors.primary,
-                              ),
-                            ),
-                            context.vS,
-                            Text(
-                              '0',
-                              style: context.topology.textTheme.titleMedium?.copyWith(
-                                color: context.colors.primary,
-                              ),
-                            ),
-                            context.vS,
-                            Text(
-                              'Job',
-                              style: context.topology.textTheme.bodySmall?.copyWith(
-                                color: context.colors.primary,
-                              ),
-                            ),
-                          ],
+                ),
+
+                context.vS,
+
+                SizedBox(
+                  width: double.infinity,
+                  child: Card(
+                    margin: EdgeInsets.zero,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+                    ),
+                    elevation: 8,
+                    color: context.colors.secondary,
+                    // Light background for contrast
+                    child: Stack(
+                      children: [
+                        // 🔵 Background decorative icon (overlayed)
+                        Positioned(
+                          top: -10,
+                          right: -10,
+                          child: Icon(
+                            Icons.calendar_month,
+                            size: 120,
+                            color: context.colors.primary.withOpacity(0.08),
+                          ),
                         ),
-                      ),
+
+                        // 🔷 Colored side bar
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: 6,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: context.colors.primary,
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(16),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // 🔤 Main content
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 24.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Jobs Next Month',
+                                style: context.topology.textTheme.bodySmall?.copyWith(
+                                  color: context.colors.primary,
+                                ),
+                              ),
+                              context.vS,
+                              Text(
+                                '0',
+                                style: context.topology.textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: context.colors.primary,
+                                ),
+                              ),
+                              context.vS,
+                              Text(
+                                'Job',
+                                style: context.topology.textTheme.bodySmall?.copyWith(
+                                  color: context.colors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  context.vS,
-                  SizedBox(
-                    width: double.infinity,
-                    child: Card(
-                      margin: const EdgeInsets.all(0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Jobs Next Month',
-                              style: context.topology.textTheme.bodySmall?.copyWith(
-                                color: context.colors.primary,
-                              ),
-                            ),
-                            context.vS,
-                            Text(
-                              '0',
-                              style: context.topology.textTheme.titleMedium?.copyWith(
-                                color: context.colors.primary,
-                              ),
-                            ),
-                            context.vS,
-                            Text(
-                              'Job',
-                              style: context.topology.textTheme.bodySmall?.copyWith(
-                                color: context.colors.primary,
-                              ),
-                            ),
-                          ],
+                ),
+
+                context.vS,
+                SizedBox(
+                  width: double.infinity,
+                  child: Card(
+                    margin: EdgeInsets.zero,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+                    ),
+                    elevation: 8,
+                    color: context.colors.secondary,
+                    // Light background for contrast
+                    child: Stack(
+                      children: [
+                        // 🔵 Background decorative icon (overlayed)
+                        Positioned(
+                          top: -10,
+                          right: -10,
+                          child: Icon(
+                            Icons.all_out,
+                            size: 120,
+                            color: context.colors.primary.withOpacity(0.08),
+                          ),
                         ),
-                      ),
+
+                        // 🔷 Colored side bar
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: 6,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: context.colors.primary,
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(16),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // 🔤 Main content
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 24.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Overdue',
+                                style: context.topology.textTheme.bodySmall?.copyWith(
+                                  color: context.colors.primary,
+                                ),
+                              ),
+                              context.vS,
+                              Text(
+                                '21,562',
+                                style: context.topology.textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: context.colors.primary,
+                                ),
+                              ),
+                              context.vS,
+                              Text(
+                                'Total Items',
+                                style: context.topology.textTheme.bodySmall?.copyWith(
+                                  color: context.colors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  context.vS,
-                  SizedBox(
-                    width: double.infinity,
-                    child: Card(
-                      margin: const EdgeInsets.all(0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Overdue',
-                              style: context.topology.textTheme.bodySmall?.copyWith(
-                                color: context.colors.primary,
-                              ),
-                            ),
-                            context.vS,
-                            Text(
-                              '21562',
-                              style: context.topology.textTheme.titleMedium?.copyWith(
-                                color: context.colors.primary,
-                              ),
-                            ),
-                            context.vS,
-                            Text(
-                              'Total Items',
-                              style: context.topology.textTheme.bodySmall?.copyWith(
-                                color: context.colors.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  context.vS,
-                ],
-              ),
-            ],
-          );
+                ),
+                context.vXxl,
+              ],
+            ),
+          ],
+        );
   }
 
   Widget _buildIndicators() {
@@ -421,15 +625,13 @@ class _SummaryScreenState extends State<SummaryScreen> {
               Container(
                 width: 12,
                 height: 12,
-                decoration: BoxDecoration(
-                  color: _colors[index],
-                  shape: BoxShape.circle,
-                ),
+                decoration: BoxDecoration(color: _colors[index], shape: BoxShape.circle),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   '${_labels[index]} (${_values[index]}%)',
+                  maxLines: 3,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
@@ -457,6 +659,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
         title: '${_values[i]}%',
         titleStyle: TextStyle(fontSize: fontSize, color: Colors.white),
         radius: radius,
+        showTitle: false,
       );
     });
   }

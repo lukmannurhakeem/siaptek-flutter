@@ -56,11 +56,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
             height: MediaQuery.of(context).size.height - kToolbarHeight - 70,
             child: TabBarView(
               controller: _tabController,
-              children: [
-                SummaryScreen(),
-                OpenJobsScreen(),
-                SiteReportScreen(),
-              ],
+              children: [SummaryScreen(), OpenJobsScreen(), SiteReportScreen()],
             ),
           ),
         ],

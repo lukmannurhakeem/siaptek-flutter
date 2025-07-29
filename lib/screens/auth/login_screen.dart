@@ -5,7 +5,6 @@ import 'package:base_app/route/route.dart';
 import 'package:base_app/widget/common_button.dart';
 import 'package:base_app/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -102,33 +101,13 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Stack(
               children: [
                 Positioned.fill(
-                  child: SvgPicture.asset(
-                    'assets/images/blob-background.svg',
+                  child: Image.asset(
+                    'assets/images/oil-rig-bg.png',
                     fit: BoxFit.contain,
                     // Covers the screen while keeping aspect ratio
                     width: double.infinity,
                     height: double.infinity,
-                    alignment: Alignment.topCenter,
-                  ),
-                ),
-                Positioned.fill(
-                  child: SvgPicture.asset(
-                    'assets/images/circle-background.svg',
-                    fit: BoxFit.contain,
-                    // Covers the screen while keeping aspect ratio
-                    width: double.infinity,
-                    height: double.infinity,
-                    alignment: Alignment.bottomLeft,
-                  ),
-                ),
-                Positioned.fill(
-                  child: SvgPicture.asset(
-                    'assets/images/circle-background-secondary.svg',
-                    fit: BoxFit.contain,
-                    // Covers the screen while keeping aspect ratio
-                    width: double.infinity,
-                    height: double.infinity,
-                    alignment: Alignment.bottomLeft,
+                    alignment: Alignment.bottomCenter,
                   ),
                 ),
                 Padding(
