@@ -148,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     leading: Icon(Icons.logout, color: context.colors.primary),
                     title: Text(
                       'Logout',
-                      style: context.topology.textTheme.bodyLarge?.copyWith(
+                      style: context.topology.textTheme.titleSmall?.copyWith(
                         color: context.colors.primary,
                       ),
                     ),
@@ -177,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
           leading: Icon(item.icon, color: context.colors.primary),
           title: Text(
             item.title,
-            style: context.topology.textTheme.bodyLarge?.copyWith(color: context.colors.primary),
+            style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
           ),
           selected: isSelected,
           selectedTileColor: context.colors.primary.withOpacity(0.1),
@@ -214,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 leading: Icon(subItem.icon, color: context.colors.primary),
                 title: Text(
                   subItem.title,
-                  style: context.topology.textTheme.bodyMedium?.copyWith(
+                  style: context.topology.textTheme.bodySmall?.copyWith(
                     color: context.colors.primary,
                   ),
                 ),
