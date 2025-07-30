@@ -24,6 +24,18 @@ class _SummaryScreenState extends State<SummaryScreen> {
     'Fir for use at time of inspection',
     'Items with No Status',
   ];
+  final List<String> _value = [
+    '567',
+    '229',
+    '2032',
+    '176',
+    '596',
+    '3053',
+    '6595',
+    '5949',
+    '25364',
+    '5644',
+  ];
   final List<Color> _colors = [
     Colors.red,
     Colors.brown,
@@ -47,9 +59,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
             context.vS,
             Text(
               'Report Status',
-              style: context.topology.textTheme.titleMedium?.copyWith(
-                color: context.colors.primary,
-              ),
+              style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
             ),
             Container(
               width: MediaQuery.of(context).size.width,
@@ -240,11 +250,244 @@ class _SummaryScreenState extends State<SummaryScreen> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Pie Chart Section
                 context.vS,
+
+                IntrinsicHeight(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 8,
+                          color: context.colors.secondary,
+                          child: Padding(
+                            padding: context.paddingAll,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Overdue',
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                                context.vS,
+                                Text(
+                                  '3',
+                                  style: context.topology.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                                context.vS,
+                                Text(
+                                  'Total Items',
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      context.hS, // Add spacing between cards
+                      Expanded(
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 8,
+                          color: context.colors.secondary,
+                          child: Padding(
+                            padding: context.paddingAll,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Active Locations', // Different content for second card
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                                context.vS,
+                                Text(
+                                  '1,247', // Different value
+                                  style: context.topology.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                                context.vS,
+                                Text(
+                                  'Locations',
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ), // Cards Section
+
+                context.vS,
+
+                IntrinsicHeight(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 8,
+                          color: context.colors.secondary,
+                          child: Padding(
+                            padding: context.paddingAll,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Jobs This Month',
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                                context.vS,
+                                Text(
+                                  '100',
+                                  style: context.topology.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                                context.vS,
+                                Text(
+                                  'Job',
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      context.hS, // Add spacing between cards
+                      Expanded(
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 8,
+                          color: context.colors.secondary,
+                          child: Padding(
+                            padding: context.paddingAll,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Jobs Next Month', // Different content for second card
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                                context.vS,
+                                Text(
+                                  '500', // Different value
+                                  style: context.topology.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                                context.vS,
+                                Text(
+                                  'Job',
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ), // Cards Section
+
+                context.vS,
+
+                SizedBox(
+                  width: double.infinity,
+                  child: Card(
+                    margin: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 8,
+                    color: context.colors.secondary,
+                    // Light background for contrast
+                    child: Stack(
+                      children: [
+                        // 🔵 Background decorative icon (overlayed)
+                        Positioned(
+                          top: -10,
+                          right: -10,
+                          child: Icon(
+                            Icons.work,
+                            size: 120,
+                            color: context.colors.primary.withOpacity(0.08),
+                          ),
+                        ),
+
+                        // 🔤 Main content
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 24.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Items Under Management',
+                                style: context.topology.textTheme.bodySmall?.copyWith(
+                                  color: context.colors.primary,
+                                ),
+                              ),
+                              context.vS,
+                              Text(
+                                '49,405',
+                                style: context.topology.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: context.colors.primary,
+                                ),
+                              ),
+                              context.vS,
+                              Text(
+                                'Total Items',
+                                style: context.topology.textTheme.bodySmall?.copyWith(
+                                  color: context.colors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                context.vM,
                 Text(
                   'Report Status',
-                  style: context.topology.textTheme.titleMedium?.copyWith(
+                  style: context.topology.textTheme.titleSmall?.copyWith(
                     color: context.colors.primary,
                   ),
                 ),
@@ -278,318 +521,10 @@ class _SummaryScreenState extends State<SummaryScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      context.vS,
                       // Indicators/Legend
                       _buildIndicators(),
                     ],
-                  ),
-                ),
-                context.vS,
-                context.divider,
-                context.vS,
-                // Cards Section
-                SizedBox(
-                  width: double.infinity,
-                  child: Card(
-                    margin: EdgeInsets.zero,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
-                    ),
-                    elevation: 8,
-                    color: context.colors.secondary,
-                    // Light background for contrast
-                    child: Stack(
-                      children: [
-                        // 🔵 Background decorative icon (overlayed)
-                        Positioned(
-                          top: -10,
-                          right: -10,
-                          child: Icon(
-                            Icons.inventory_2_rounded,
-                            size: 120,
-                            color: context.colors.primary.withOpacity(0.08),
-                          ),
-                        ),
-
-                        // 🔷 Colored side bar
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          bottom: 0,
-                          width: 6,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: context.colors.primary,
-                              borderRadius: const BorderRadius.only(
-                                bottomLeft: Radius.circular(16),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // 🔤 Main content
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 24.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Items Under Management',
-                                style: context.topology.textTheme.bodySmall?.copyWith(
-                                  color: context.colors.primary,
-                                ),
-                              ),
-                              context.vS,
-                              Text(
-                                '49,405',
-                                style: context.topology.textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: context.colors.primary,
-                                ),
-                              ),
-                              context.vS,
-                              Text(
-                                'Total Items',
-                                style: context.topology.textTheme.bodySmall?.copyWith(
-                                  color: context.colors.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                context.vS,
-
-                SizedBox(
-                  width: double.infinity,
-                  child: Card(
-                    margin: EdgeInsets.zero,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
-                    ),
-                    elevation: 8,
-                    color: context.colors.secondary,
-                    // Light background for contrast
-                    child: Stack(
-                      children: [
-                        // 🔵 Background decorative icon (overlayed)
-                        Positioned(
-                          top: -10,
-                          right: -10,
-                          child: Icon(
-                            Icons.work,
-                            size: 120,
-                            color: context.colors.primary.withOpacity(0.08),
-                          ),
-                        ),
-
-                        // 🔷 Colored side bar
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          bottom: 0,
-                          width: 6,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: context.colors.primary,
-                              borderRadius: const BorderRadius.only(
-                                bottomLeft: Radius.circular(16),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // 🔤 Main content
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 24.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Jobs This Month',
-                                style: context.topology.textTheme.bodySmall?.copyWith(
-                                  color: context.colors.primary,
-                                ),
-                              ),
-                              context.vS,
-                              Text(
-                                '0',
-                                style: context.topology.textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: context.colors.primary,
-                                ),
-                              ),
-                              context.vS,
-                              Text(
-                                'Job',
-                                style: context.topology.textTheme.bodySmall?.copyWith(
-                                  color: context.colors.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                context.vS,
-
-                SizedBox(
-                  width: double.infinity,
-                  child: Card(
-                    margin: EdgeInsets.zero,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
-                    ),
-                    elevation: 8,
-                    color: context.colors.secondary,
-                    // Light background for contrast
-                    child: Stack(
-                      children: [
-                        // 🔵 Background decorative icon (overlayed)
-                        Positioned(
-                          top: -10,
-                          right: -10,
-                          child: Icon(
-                            Icons.calendar_month,
-                            size: 120,
-                            color: context.colors.primary.withOpacity(0.08),
-                          ),
-                        ),
-
-                        // 🔷 Colored side bar
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          bottom: 0,
-                          width: 6,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: context.colors.primary,
-                              borderRadius: const BorderRadius.only(
-                                bottomLeft: Radius.circular(16),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // 🔤 Main content
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 24.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Jobs Next Month',
-                                style: context.topology.textTheme.bodySmall?.copyWith(
-                                  color: context.colors.primary,
-                                ),
-                              ),
-                              context.vS,
-                              Text(
-                                '0',
-                                style: context.topology.textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: context.colors.primary,
-                                ),
-                              ),
-                              context.vS,
-                              Text(
-                                'Job',
-                                style: context.topology.textTheme.bodySmall?.copyWith(
-                                  color: context.colors.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                context.vS,
-                SizedBox(
-                  width: double.infinity,
-                  child: Card(
-                    margin: EdgeInsets.zero,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
-                    ),
-                    elevation: 8,
-                    color: context.colors.secondary,
-                    // Light background for contrast
-                    child: Stack(
-                      children: [
-                        // 🔵 Background decorative icon (overlayed)
-                        Positioned(
-                          top: -10,
-                          right: -10,
-                          child: Icon(
-                            Icons.all_out,
-                            size: 120,
-                            color: context.colors.primary.withOpacity(0.08),
-                          ),
-                        ),
-
-                        // 🔷 Colored side bar
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          bottom: 0,
-                          width: 6,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: context.colors.primary,
-                              borderRadius: const BorderRadius.only(
-                                bottomLeft: Radius.circular(16),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // 🔤 Main content
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 24.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Overdue',
-                                style: context.topology.textTheme.bodySmall?.copyWith(
-                                  color: context.colors.primary,
-                                ),
-                              ),
-                              context.vS,
-                              Text(
-                                '21,562',
-                                style: context.topology.textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: context.colors.primary,
-                                ),
-                              ),
-                              context.vS,
-                              Text(
-                                'Total Items',
-                                style: context.topology.textTheme.bodySmall?.copyWith(
-                                  color: context.colors.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
                 context.vXxl,
@@ -600,6 +535,9 @@ class _SummaryScreenState extends State<SummaryScreen> {
   }
 
   Widget _buildIndicators() {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -607,20 +545,20 @@ class _SummaryScreenState extends State<SummaryScreen> {
         crossAxisCount: 2,
         crossAxisSpacing: 16.0,
         mainAxisSpacing: 8.0,
-        childAspectRatio: 4.0, // Wide rectangular indicators
+        childAspectRatio: 2.2,
       ),
       itemCount: _labels.length,
       itemBuilder: (context, index) {
         final isSelected = index == _touchedIndex;
+
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
           decoration: BoxDecoration(
             color: isSelected ? _colors[index].withOpacity(0.1) : Colors.transparent,
             borderRadius: BorderRadius.circular(8.0),
-            border: isSelected ? Border.all(color: _colors[index], width: 1.5) : null,
+            border: Border.all(color: isSelected ? _colors[index] : Colors.transparent, width: 1.5),
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 width: 12,
@@ -629,15 +567,26 @@ class _SummaryScreenState extends State<SummaryScreen> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  '${_labels[index]} (${_values[index]}%)',
-                  maxLines: 3,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: isSelected ? _colors[index] : Colors.black87,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${_value[index]} ',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.topology.textTheme.titleSmall?.copyWith(
+                        color: isSelected ? _colors[index] : context.colors.primary,
+                      ),
+                    ),
+                    Text(
+                      '${_labels[index]} (${_values[index]}%)',
+                      maxLines: 2,
+                      style: context.topology.textTheme.bodySmall?.copyWith(
+                        color: isSelected ? _colors[index] : context.colors.primary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -657,6 +606,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
         value: _values[i],
         color: _colors[i],
         title: '${_values[i]}%',
+
         titleStyle: TextStyle(fontSize: fontSize, color: Colors.white),
         radius: radius,
         showTitle: false,

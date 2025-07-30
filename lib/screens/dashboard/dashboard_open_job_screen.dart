@@ -31,91 +31,101 @@ class _OpenJobsScreenState extends State<OpenJobsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(children: [
-      Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          // Open Jobs Table
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              sortColumnIndex: sortColumnIndex,
-              columns: [
-                DataColumn(
-                  label: Text(
-                    'Customer',
-                    style: context.topology.textTheme.titleMedium?.copyWith(
-                      color: context.colors.primary,
-                    ),
-                  ),
-                  onSort: (columnIndex, _) {
-                    setState(() {
-                      sortColumnIndex = columnIndex;
-                      jobs.sort((a, b) => a.name.compareTo(b.name));
-                    });
-                  },
-                ),
-                DataColumn(
-                  label: Text(
-                    'Site',
-                    style: context.topology.textTheme.titleMedium?.copyWith(
-                      color: context.colors.primary,
-                    ),
-                  ),
-                  onSort: (columnIndex, _) {
-                    setState(() {
-                      sortColumnIndex = columnIndex;
-                      jobs.sort((a, b) => a.site.compareTo(b.site));
-                    });
-                  },
-                ),
-                DataColumn(
-                  label: Text(
-                    'Job No',
-                    style: context.topology.textTheme.titleMedium?.copyWith(
-                      color: context.colors.primary,
-                    ),
-                  ),
-                  onSort: (columnIndex, _) {
-                    setState(() {
-                      sortColumnIndex = columnIndex;
-                      jobs.sort((a, b) => a.id.compareTo(b.id));
-                    });
-                  },
-                ),
-              ],
-              rows: jobs.map((job) {
-                return DataRow(cells: [
-                  DataCell(
-                    Text(
-                      job.name,
-                      style: context.topology.textTheme.bodySmall?.copyWith(
+    return ListView(
+      children: [
+        Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            // Open Jobs Table
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                sortColumnIndex: sortColumnIndex,
+                columns: [
+                  DataColumn(
+                    label: Text(
+                      'Customer',
+                      style: context.topology.textTheme.titleSmall?.copyWith(
                         color: context.colors.primary,
                       ),
                     ),
+                    onSort: (columnIndex, _) {
+                      setState(() {
+                        sortColumnIndex = columnIndex;
+                        jobs.sort((a, b) => a.name.compareTo(b.name));
+                      });
+                    },
                   ),
-                  DataCell(
-                    Text(
-                      job.site,
-                      style: context.topology.textTheme.bodySmall?.copyWith(
+                  DataColumn(
+                    label: Text(
+                      'Site',
+                      style: context.topology.textTheme.titleSmall?.copyWith(
                         color: context.colors.primary,
                       ),
                     ),
+                    onSort: (columnIndex, _) {
+                      setState(() {
+                        sortColumnIndex = columnIndex;
+                        jobs.sort((a, b) => a.site.compareTo(b.site));
+                      });
+                    },
                   ),
-                  DataCell(
-                    Text(
-                      job.id,
-                      style: context.topology.textTheme.bodySmall?.copyWith(
+                  DataColumn(
+                    label: Text(
+                      'Job No',
+                      style: context.topology.textTheme.titleSmall?.copyWith(
                         color: context.colors.primary,
                       ),
                     ),
+                    onSort: (columnIndex, _) {
+                      setState(() {
+                        sortColumnIndex = columnIndex;
+                        jobs.sort((a, b) => a.id.compareTo(b.id));
+                      });
+                    },
                   ),
-                ]);
-              }).toList(),
+                ],
+                rows: List.generate(jobs.length, (index) {
+                  final data = jobs[index];
+                  final isEven = index % 2 == 0;
+
+                  return DataRow(
+                    color: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+                      return isEven ? context.colors.primary.withOpacity(0.05) : null;
+                    }),
+                    cells: [
+                      DataCell(
+                        Text(
+                          data.name,
+                          style: context.topology.textTheme.bodySmall?.copyWith(
+                            color: context.colors.primary,
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Text(
+                          data.site,
+                          style: context.topology.textTheme.bodySmall?.copyWith(
+                            color: context.colors.primary,
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Text(
+                          data.id,
+                          style: context.topology.textTheme.bodySmall?.copyWith(
+                            color: context.colors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
+              ),
             ),
-          ),
-        ],
-      )
-    ]);
+          ],
+        ),
+      ],
+    );
   }
 }

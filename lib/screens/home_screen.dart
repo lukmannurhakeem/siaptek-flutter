@@ -126,11 +126,11 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text(
           _currentMenuItem?.title ?? '',
-          style: context.topology.textTheme.titleLarge?.copyWith(color: context.colors.onPrimary),
+          style: context.topology.textTheme.titleMedium?.copyWith(color: context.colors.primary),
         ),
         centerTitle: true,
-        iconTheme: IconThemeData(color: context.colors.onPrimary),
-        backgroundColor: context.colors.primary,
+        iconTheme: IconThemeData(color: context.colors.primary),
+        backgroundColor: context.colors.onPrimary,
       ),
       drawer: Drawer(
         child: SafeArea(

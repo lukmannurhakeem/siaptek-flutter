@@ -172,11 +172,12 @@ CommonButton(
 )
  */
 
+import 'dart:ui';
+
 import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/theme/app_color.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart'; // Added for TapGestureRecognizer
-import 'dart:ui';
+import 'package:flutter/material.dart';
 
 class CommonButton extends StatefulWidget {
   final String? text;
@@ -228,9 +229,15 @@ class CommonButton extends StatefulWidget {
     this.glassBorderWidth = 1.5,
     this.glassGradientColors,
     this.enableGlassAnimation = true,
-  })  : assert(text != null || richText != null || icon != null, "Either text, richText, or icon must be provided"),
-        assert(text == null || richText == null, "Cannot provide both text and richText. Use one or the other."),
-        super(key: key);
+  }) : assert(
+         text != null || richText != null || icon != null,
+         "Either text, richText, or icon must be provided",
+       ),
+       assert(
+         text == null || richText == null,
+         "Cannot provide both text and richText. Use one or the other.",
+       ),
+       super(key: key);
 
   // Factory constructor for rich text button
   factory CommonButton.richText({
@@ -305,13 +312,17 @@ class CommonButton extends StatefulWidget {
       textWidthBasis: textWidthBasis,
       textHeightBehavior: textHeightBehavior,
       text: TextSpan(
-        children: spans
-            .map((span) => TextSpan(
-                  text: span.text,
-                  style: span.style,
-                  recognizer: span.onTap != null ? (TapGestureRecognizer()..onTap = span.onTap) : null,
-                ))
-            .toList(),
+        children:
+            spans
+                .map(
+                  (span) => TextSpan(
+                    text: span.text,
+                    style: span.style,
+                    recognizer:
+                        span.onTap != null ? (TapGestureRecognizer()..onTap = span.onTap) : null,
+                  ),
+                )
+                .toList(),
       ),
     );
   }
@@ -419,10 +430,7 @@ class _CommonButtonState extends State<CommonButton> with SingleTickerProviderSt
     _scaleAnimation = Tween<double>(
       begin: 1.0,
       end: 0.95,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
   }
 
   @override
@@ -480,19 +488,20 @@ class _CommonButtonState extends State<CommonButton> with SingleTickerProviderSt
     Widget buttonWidget = SizedBox(
       width: effectiveWidth,
       height: widget.height,
-      child: widget.buttonType == ButtonType.glassmorphism
-          ? _buildGlassmorphismButton(
-              context,
-              effectiveBackgroundColor,
-              effectiveTextColor,
-              effectiveIconColor,
-            )
-          : _buildButton(
-              context,
-              effectiveBackgroundColor,
-              effectiveTextColor,
-              effectiveIconColor,
-            ),
+      child:
+          widget.buttonType == ButtonType.glassmorphism
+              ? _buildGlassmorphismButton(
+                context,
+                effectiveBackgroundColor,
+                effectiveTextColor,
+                effectiveIconColor,
+              )
+              : _buildButton(
+                context,
+                effectiveBackgroundColor,
+                effectiveTextColor,
+                effectiveIconColor,
+              ),
     );
 
     // Apply scale animation only for glassmorphism buttons
@@ -500,10 +509,7 @@ class _CommonButtonState extends State<CommonButton> with SingleTickerProviderSt
       return AnimatedBuilder(
         animation: _scaleAnimation,
         builder: (context, child) {
-          return Transform.scale(
-            scale: _scaleAnimation.value,
-            child: buttonWidget,
-          );
+          return Transform.scale(scale: _scaleAnimation.value, child: buttonWidget);
         },
       );
     }
@@ -518,11 +524,8 @@ class _CommonButtonState extends State<CommonButton> with SingleTickerProviderSt
     Color iconClr,
   ) {
     final defaultGlassBorderColor = widget.glassBorderColor ?? Colors.white.withOpacity(0.2);
-    final defaultGlassGradientColors = widget.glassGradientColors ??
-        [
-          bgColor.withOpacity(0.2),
-          bgColor.withOpacity(0.1),
-        ];
+    final defaultGlassGradientColors =
+        widget.glassGradientColors ?? [bgColor.withOpacity(0.2), bgColor.withOpacity(0.1)];
 
     return GestureDetector(
       onTapDown: _onTapDown,
@@ -531,10 +534,7 @@ class _CommonButtonState extends State<CommonButton> with SingleTickerProviderSt
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(widget.borderRadius),
-          border: Border.all(
-            color: defaultGlassBorderColor,
-            width: widget.glassBorderWidth,
-          ),
+          border: Border.all(color: defaultGlassBorderColor, width: widget.glassBorderWidth),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
@@ -570,9 +570,7 @@ class _CommonButtonState extends State<CommonButton> with SingleTickerProviderSt
                   borderRadius: BorderRadius.circular(widget.borderRadius),
                   child: Container(
                     padding: widget.padding,
-                    child: Center(
-                      child: _buildButtonContent(fgColor, iconClr, context),
-                    ),
+                    child: Center(child: _buildButtonContent(fgColor, iconClr, context)),
                   ),
                 ),
               ),
@@ -583,12 +581,7 @@ class _CommonButtonState extends State<CommonButton> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildButton(
-    BuildContext context,
-    Color bgColor,
-    Color fgColor,
-    Color iconClr,
-  ) {
+  Widget _buildButton(BuildContext context, Color bgColor, Color fgColor, Color iconClr) {
     final buttonStyle = _getButtonStyle(bgColor, fgColor);
     final content = _buildButtonContent(fgColor, iconClr, context);
 
@@ -624,23 +617,21 @@ class _CommonButtonState extends State<CommonButton> with SingleTickerProviderSt
 
   ButtonStyle _getButtonStyle(Color bgColor, Color fgColor) {
     return ButtonStyle(
-      backgroundColor: MaterialStateProperty.resolveWith<Color>(
-        (Set<MaterialState> states) {
-          if (states.contains(MaterialState.disabled)) {
-            return bgColor.withOpacity(0.5);
-          }
-          return bgColor;
-        },
-      ),
+      backgroundColor: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
+        if (states.contains(MaterialState.disabled)) {
+          return bgColor.withOpacity(0.5);
+        }
+        return bgColor;
+      }),
       foregroundColor: MaterialStateProperty.all(fgColor),
       padding: MaterialStateProperty.all(widget.padding),
       shape: MaterialStateProperty.all(
-        RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(widget.borderRadius),
-        ),
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(widget.borderRadius)),
       ),
       elevation:
-          widget.buttonType == ButtonType.elevated ? MaterialStateProperty.all(2.0) : MaterialStateProperty.all(0.0),
+          widget.buttonType == ButtonType.elevated
+              ? MaterialStateProperty.all(2.0)
+              : MaterialStateProperty.all(0.0),
     );
   }
 
@@ -663,20 +654,13 @@ class _CommonButtonState extends State<CommonButton> with SingleTickerProviderSt
 
     // Icon-only button
     if (!hasTextContent && hasIcon) {
-      return Icon(
-        widget.icon,
-        color: iconClr,
-        size: widget.iconSize,
-      );
+      return Icon(widget.icon, color: iconClr, size: widget.iconSize);
     }
     // Text-only button (regular text)
     else if (hasTextContent && !hasIcon && widget.text != null) {
       return Text(
         widget.text!,
-        style: widget.textStyle ??
-            context.topology.textTheme.titleMedium?.copyWith(
-              color: textClr,
-            ),
+        style: widget.textStyle ?? context.topology.textTheme.titleSmall?.copyWith(color: textClr),
         textAlign: TextAlign.center,
       );
     }
@@ -695,10 +679,9 @@ class _CommonButtonState extends State<CommonButton> with SingleTickerProviderSt
           Flexible(
             child: Text(
               widget.text!,
-              style: widget.textStyle ??
-                  context.topology.textTheme.headlineSmall?.copyWith(
-                    color: textClr,
-                  ),
+              style:
+                  widget.textStyle ??
+                  context.topology.textTheme.headlineSmall?.copyWith(color: textClr),
               textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,
             ),
@@ -714,9 +697,7 @@ class _CommonButtonState extends State<CommonButton> with SingleTickerProviderSt
         children: [
           Icon(widget.icon, color: iconClr, size: widget.iconSize),
           const SizedBox(width: 8.0),
-          Flexible(
-            child: widget.richText!,
-          ),
+          Flexible(child: widget.richText!),
         ],
       );
     }
@@ -763,22 +744,11 @@ class InteractiveTextSpan {
   final TextStyle? style;
   final VoidCallback? onTap;
 
-  const InteractiveTextSpan({
-    required this.text,
-    this.style,
-    this.onTap,
-  });
+  const InteractiveTextSpan({required this.text, this.style, this.onTap});
 
   // Helper constructor for clickable spans
-  InteractiveTextSpan.clickable({
-    required this.text,
-    required this.onTap,
-    this.style,
-  });
+  InteractiveTextSpan.clickable({required this.text, required this.onTap, this.style});
 
   // Helper constructor for non-clickable spans
-  InteractiveTextSpan.static({
-    required this.text,
-    this.style,
-  }) : onTap = null;
+  InteractiveTextSpan.static({required this.text, this.style}) : onTap = null;
 }

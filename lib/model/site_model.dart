@@ -5,6 +5,8 @@ class SiteModel {
   final String customerName;
   final String customerCode;
   final String status;
+  final String address;
+  final String division;
 
   SiteModel(
     this.siteName,
@@ -13,5 +15,7 @@ class SiteModel {
     this.customerName,
     this.customerCode,
     this.status,
+    this.address,
+    this.division,
   );
 }
