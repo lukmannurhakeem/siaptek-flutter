@@ -67,7 +67,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               child: FadeTransition(
                 opacity: _animation,
                 child: Image.asset(
-                  'assets/images/oil-rig-bg.png',
+                  'assets/images/bg.png',
                   fit: BoxFit.contain,
                   // Covers the screen while keeping aspect ratio
                   width: double.infinity,

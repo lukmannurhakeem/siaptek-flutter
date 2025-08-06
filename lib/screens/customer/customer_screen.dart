@@ -12,7 +12,7 @@ class CustomerScreen extends StatefulWidget {
 class _CustomerScreenState extends State<CustomerScreen> {
   int sortColumnIndex = 0;
 
-  List<CustomerModel> CustomerModels = [
+  List<CustomerModel> _customer = [
     CustomerModel('Schlumberger (M) Sdn Bhd', 'Malaysia', 'SPK00028', 'Active'),
     CustomerModel('Travailler Energy Sdn Bhd', 'Bintulu', 'QUO/SPT/KLM/2023/VII', 'Active'),
     CustomerModel('Altus Oil & Gas Malaysia', 'Kemaman, Terenganu', 'MO/SPT/ALT', 'Active'),
@@ -85,77 +85,214 @@ class _CustomerScreenState extends State<CustomerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: context.paddingAll,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          sortColumnIndex: sortColumnIndex,
-          columns: [
-            DataColumn(
-              label: Text(
-                'Name',
-                style: context.topology.textTheme.titleMedium?.copyWith(
-                  color: context.colors.primary,
+    return context.isTablet
+        ? LayoutBuilder(
+          builder: (context, constraints) {
+            return Container(
+              padding: context.paddingAll,
+              width: constraints.maxWidth,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: SizedBox(
+                  width: constraints.maxWidth, // This makes table fill the row
+                  child: DataTable(
+                    sortColumnIndex: sortColumnIndex,
+                    showCheckboxColumn: false,
+                    columns: [
+                      DataColumn(
+                        label: Expanded(
+                          child: Text(
+                            'Name',
+                            style: context.topology.textTheme.titleMedium?.copyWith(
+                              color: context.colors.primary,
+                            ),
+                          ),
+                        ),
+                        onSort: (columnIndex, _) {
+                          setState(() {
+                            sortColumnIndex = columnIndex;
+                            _customer.sort((a, b) => a.name.compareTo(b.name));
+                          });
+                        },
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Text(
+                            'Account Code',
+                            style: context.topology.textTheme.titleMedium?.copyWith(
+                              color: context.colors.primary,
+                            ),
+                          ),
+                        ),
+                        onSort: (columnIndex, _) {
+                          setState(() {
+                            sortColumnIndex = columnIndex;
+                            _customer.sort((a, b) => a.accountCode.compareTo(b.accountCode));
+                          });
+                        },
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Text(
+                            'Division',
+                            style: context.topology.textTheme.titleMedium?.copyWith(
+                              color: context.colors.primary,
+                            ),
+                          ),
+                        ),
+                        onSort: (columnIndex, _) {
+                          setState(() {
+                            sortColumnIndex = columnIndex;
+                            _customer.sort((a, b) => a.division.compareTo(b.division));
+                          });
+                        },
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Text(
+                            'Status',
+                            style: context.topology.textTheme.titleMedium?.copyWith(
+                              color: context.colors.primary,
+                            ),
+                          ),
+                        ),
+                        onSort: (columnIndex, _) {
+                          setState(() {
+                            sortColumnIndex = columnIndex;
+                            _customer.sort((a, b) => a.status.compareTo(b.status));
+                          });
+                        },
+                      ),
+                    ],
+                    rows: List.generate(_customer.length, (index) {
+                      final data = _customer[index];
+                      final isEven = index % 2 == 0;
+
+                      return DataRow(
+                        color: MaterialStateProperty.resolveWith<Color?>((
+                          Set<MaterialState> states,
+                        ) {
+                          return isEven ? context.colors.primary.withOpacity(0.05) : null;
+                        }),
+                        cells: [
+                          DataCell(
+                            Text(
+                              data.name,
+                              style: context.topology.textTheme.bodySmall?.copyWith(
+                                color: context.colors.primary,
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            Text(
+                              data.accountCode,
+                              style: context.topology.textTheme.bodySmall?.copyWith(
+                                color: context.colors.primary,
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            Text(
+                              data.division,
+                              style: context.topology.textTheme.bodySmall?.copyWith(
+                                color: context.colors.primary,
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            Text(
+                              data.status,
+                              style: context.topology.textTheme.bodySmall?.copyWith(
+                                color: context.colors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
+                  ),
                 ),
               ),
-              onSort: (columnIndex, _) {
-                setState(() {
-                  sortColumnIndex = columnIndex;
-                  CustomerModels.sort((a, b) => a.name.compareTo(b.name));
-                });
-              },
-            ),
-            DataColumn(
-              label: Text(
-                'Account Code',
-                style: context.topology.textTheme.titleMedium?.copyWith(
-                  color: context.colors.primary,
+            );
+          },
+        )
+        : Container(
+          padding: context.paddingAll,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              sortColumnIndex: sortColumnIndex,
+              showCheckboxColumn: false,
+              columns: [
+                DataColumn(
+                  label: Text(
+                    'Name',
+                    style: context.topology.textTheme.titleMedium?.copyWith(
+                      color: context.colors.primary,
+                    ),
+                  ),
+                  onSort: (columnIndex, _) {
+                    setState(() {
+                      sortColumnIndex = columnIndex;
+                      _customer.sort((a, b) => a.name.compareTo(b.name));
+                    });
+                  },
                 ),
-              ),
-              onSort: (columnIndex, _) {
-                setState(() {
-                  sortColumnIndex = columnIndex;
-                  CustomerModels.sort((a, b) => a.accountCode.compareTo(b.accountCode));
-                });
-              },
-            ),
-            DataColumn(
-              label: Text(
-                'Division',
-                style: context.topology.textTheme.titleMedium?.copyWith(
-                  color: context.colors.primary,
+                DataColumn(
+                  label: Text(
+                    'Account Code',
+                    style: context.topology.textTheme.titleMedium?.copyWith(
+                      color: context.colors.primary,
+                    ),
+                  ),
+                  onSort: (columnIndex, _) {
+                    setState(() {
+                      sortColumnIndex = columnIndex;
+                      _customer.sort((a, b) => a.accountCode.compareTo(b.accountCode));
+                    });
+                  },
                 ),
-              ),
-              onSort: (columnIndex, _) {
-                setState(() {
-                  sortColumnIndex = columnIndex;
-                  CustomerModels.sort((a, b) => a.division.compareTo(b.division));
-                });
-              },
-            ),
-            DataColumn(
-              label: Text(
-                'Status',
-                style: context.topology.textTheme.titleMedium?.copyWith(
-                  color: context.colors.primary,
+                DataColumn(
+                  label: Text(
+                    'Division',
+                    style: context.topology.textTheme.titleMedium?.copyWith(
+                      color: context.colors.primary,
+                    ),
+                  ),
+                  onSort: (columnIndex, _) {
+                    setState(() {
+                      sortColumnIndex = columnIndex;
+                      _customer.sort((a, b) => a.division.compareTo(b.division));
+                    });
+                  },
                 ),
-              ),
-              onSort: (columnIndex, _) {
-                setState(() {
-                  sortColumnIndex = columnIndex;
-                  CustomerModels.sort((a, b) => a.status.compareTo(b.status));
-                });
-              },
-            ),
-          ],
-          rows:
-              CustomerModels.map((CustomerModel) {
+                DataColumn(
+                  label: Text(
+                    'Status',
+                    style: context.topology.textTheme.titleMedium?.copyWith(
+                      color: context.colors.primary,
+                    ),
+                  ),
+                  onSort: (columnIndex, _) {
+                    setState(() {
+                      sortColumnIndex = columnIndex;
+                      _customer.sort((a, b) => a.status.compareTo(b.status));
+                    });
+                  },
+                ),
+              ],
+              rows: List.generate(_customer.length, (index) {
+                final data = _customer[index];
+                final isEven = index % 2 == 0;
+
                 return DataRow(
+                  color: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+                    return isEven ? context.colors.primary.withOpacity(0.05) : null;
+                  }),
                   cells: [
                     DataCell(
                       Text(
-                        CustomerModel.name,
+                        data.name,
                         style: context.topology.textTheme.bodySmall?.copyWith(
                           color: context.colors.primary,
                         ),
@@ -163,7 +300,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                     ),
                     DataCell(
                       Text(
-                        CustomerModel.division,
+                        data.division,
                         style: context.topology.textTheme.bodySmall?.copyWith(
                           color: context.colors.primary,
                         ),
@@ -171,7 +308,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                     ),
                     DataCell(
                       Text(
-                        CustomerModel.accountCode,
+                        data.accountCode,
                         style: context.topology.textTheme.bodySmall?.copyWith(
                           color: context.colors.primary,
                         ),
@@ -179,7 +316,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                     ),
                     DataCell(
                       Text(
-                        CustomerModel.status,
+                        data.status,
                         style: context.topology.textTheme.bodySmall?.copyWith(
                           color: context.colors.primary,
                         ),
@@ -187,9 +324,9 @@ class _CustomerScreenState extends State<CustomerScreen> {
                     ),
                   ],
                 );
-              }).toList(),
-        ),
-      ),
-    );
+              }),
+            ),
+          ),
+        );
   }
 }

@@ -241,26 +241,27 @@ class _SiteScreenState extends State<SiteScreen> {
   Widget build(BuildContext context) {
     final screenHeight = context.screenHeight - (kToolbarHeight * 1.25);
     final screenWidth = context.screenWidth;
-    return SizedBox(
-      width: screenWidth,
-      height: screenHeight,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: context.spacing.l),
+    return context.isTablet
+        ? LayoutBuilder(
+          builder: (context, con) {
+            return Container(
+              width: con.maxWidth,
+              padding: context.paddingHorizontal,
               child: SingleChildScrollView(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
+                scrollDirection: Axis.vertical,
+                child: SizedBox(
+                  width: con.maxWidth, // This makes table fill the row
                   child: DataTable(
                     sortColumnIndex: sortColumnIndex,
                     showCheckboxColumn: false,
                     columns: [
                       DataColumn(
-                        label: Text(
-                          'Site Name',
-                          style: context.topology.textTheme.titleSmall?.copyWith(
-                            color: context.colors.primary,
+                        label: Expanded(
+                          child: Text(
+                            'Site Name',
+                            style: context.topology.textTheme.titleSmall?.copyWith(
+                              color: context.colors.primary,
+                            ),
                           ),
                         ),
                         onSort: (columnIndex, _) {
@@ -271,10 +272,12 @@ class _SiteScreenState extends State<SiteScreen> {
                         },
                       ),
                       DataColumn(
-                        label: Text(
-                          'Site Code',
-                          style: context.topology.textTheme.titleSmall?.copyWith(
-                            color: context.colors.primary,
+                        label: Expanded(
+                          child: Text(
+                            'Site Code',
+                            style: context.topology.textTheme.titleSmall?.copyWith(
+                              color: context.colors.primary,
+                            ),
                           ),
                         ),
                         onSort: (columnIndex, _) {
@@ -285,10 +288,12 @@ class _SiteScreenState extends State<SiteScreen> {
                         },
                       ),
                       DataColumn(
-                        label: Text(
-                          'Area',
-                          style: context.topology.textTheme.titleSmall?.copyWith(
-                            color: context.colors.primary,
+                        label: Expanded(
+                          child: Text(
+                            'Area',
+                            style: context.topology.textTheme.titleSmall?.copyWith(
+                              color: context.colors.primary,
+                            ),
                           ),
                         ),
                         onSort: (columnIndex, _) {
@@ -299,10 +304,12 @@ class _SiteScreenState extends State<SiteScreen> {
                         },
                       ),
                       DataColumn(
-                        label: Text(
-                          'Customer Name',
-                          style: context.topology.textTheme.titleSmall?.copyWith(
-                            color: context.colors.primary,
+                        label: Expanded(
+                          child: Text(
+                            'Customer Name',
+                            style: context.topology.textTheme.titleSmall?.copyWith(
+                              color: context.colors.primary,
+                            ),
                           ),
                         ),
                         onSort: (columnIndex, _) {
@@ -313,10 +320,12 @@ class _SiteScreenState extends State<SiteScreen> {
                         },
                       ),
                       DataColumn(
-                        label: Text(
-                          'Customer Code',
-                          style: context.topology.textTheme.titleSmall?.copyWith(
-                            color: context.colors.primary,
+                        label: Expanded(
+                          child: Text(
+                            'Customer Code',
+                            style: context.topology.textTheme.titleSmall?.copyWith(
+                              color: context.colors.primary,
+                            ),
                           ),
                         ),
                         onSort: (columnIndex, _) {
@@ -327,10 +336,12 @@ class _SiteScreenState extends State<SiteScreen> {
                         },
                       ),
                       DataColumn(
-                        label: Text(
-                          'Archived',
-                          style: context.topology.textTheme.titleSmall?.copyWith(
-                            color: context.colors.primary,
+                        label: Expanded(
+                          child: Text(
+                            'Archived',
+                            style: context.topology.textTheme.titleSmall?.copyWith(
+                              color: context.colors.primary,
+                            ),
                           ),
                         ),
                         onSort: (columnIndex, _) {
@@ -354,9 +365,7 @@ class _SiteScreenState extends State<SiteScreen> {
                             );
                           }
                         },
-                        color: MaterialStateProperty.resolveWith<Color?>((
-                          Set<MaterialState> states,
-                        ) {
+                        color: MaterialStateProperty.resolveWith<Color?>((states) {
                           return isEven ? context.colors.primary.withOpacity(0.05) : null;
                         }),
                         cells: [
@@ -414,22 +423,198 @@ class _SiteScreenState extends State<SiteScreen> {
                   ),
                 ),
               ),
-            ),
+            );
+          },
+        )
+        : SizedBox(
+          width: screenWidth,
+          height: screenHeight,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: context.spacing.l),
+                  child: SingleChildScrollView(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        sortColumnIndex: sortColumnIndex,
+                        showCheckboxColumn: false,
+                        columns: [
+                          DataColumn(
+                            label: Text(
+                              'Site Name',
+                              style: context.topology.textTheme.titleSmall?.copyWith(
+                                color: context.colors.primary,
+                              ),
+                            ),
+                            onSort: (columnIndex, _) {
+                              setState(() {
+                                sortColumnIndex = columnIndex;
+                                siteModel.sort((a, b) => a.siteName.compareTo(b.siteName));
+                              });
+                            },
+                          ),
+                          DataColumn(
+                            label: Text(
+                              'Site Code',
+                              style: context.topology.textTheme.titleSmall?.copyWith(
+                                color: context.colors.primary,
+                              ),
+                            ),
+                            onSort: (columnIndex, _) {
+                              setState(() {
+                                sortColumnIndex = columnIndex;
+                                siteModel.sort((a, b) => a.siteCode.compareTo(b.siteCode));
+                              });
+                            },
+                          ),
+                          DataColumn(
+                            label: Text(
+                              'Area',
+                              style: context.topology.textTheme.titleSmall?.copyWith(
+                                color: context.colors.primary,
+                              ),
+                            ),
+                            onSort: (columnIndex, _) {
+                              setState(() {
+                                sortColumnIndex = columnIndex;
+                                siteModel.sort((a, b) => a.area.compareTo(b.area));
+                              });
+                            },
+                          ),
+                          DataColumn(
+                            label: Text(
+                              'Customer Name',
+                              style: context.topology.textTheme.titleSmall?.copyWith(
+                                color: context.colors.primary,
+                              ),
+                            ),
+                            onSort: (columnIndex, _) {
+                              setState(() {
+                                sortColumnIndex = columnIndex;
+                                siteModel.sort((a, b) => a.customerName.compareTo(b.customerName));
+                              });
+                            },
+                          ),
+                          DataColumn(
+                            label: Text(
+                              'Customer Code',
+                              style: context.topology.textTheme.titleSmall?.copyWith(
+                                color: context.colors.primary,
+                              ),
+                            ),
+                            onSort: (columnIndex, _) {
+                              setState(() {
+                                sortColumnIndex = columnIndex;
+                                siteModel.sort((a, b) => a.customerCode.compareTo(b.customerCode));
+                              });
+                            },
+                          ),
+                          DataColumn(
+                            label: Text(
+                              'Archived',
+                              style: context.topology.textTheme.titleSmall?.copyWith(
+                                color: context.colors.primary,
+                              ),
+                            ),
+                            onSort: (columnIndex, _) {
+                              setState(() {
+                                sortColumnIndex = columnIndex;
+                                siteModel.sort((a, b) => a.status.compareTo(b.status));
+                              });
+                            },
+                          ),
+                        ],
+                        rows: List.generate(siteModel.length, (index) {
+                          final site = siteModel[index];
+                          final isEven = index % 2 == 0;
+
+                          return DataRow(
+                            onSelectChanged: (selected) {
+                              if (selected == true) {
+                                NavigationService().navigateTo(
+                                  AppRoutes.siteDetails,
+                                  arguments: {'siteModel': siteModel[index]},
+                                );
+                              }
+                            },
+                            color: MaterialStateProperty.resolveWith<Color?>((
+                              Set<MaterialState> states,
+                            ) {
+                              return isEven ? context.colors.primary.withOpacity(0.05) : null;
+                            }),
+                            cells: [
+                              DataCell(
+                                Text(
+                                  site.siteName,
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                              ),
+                              DataCell(
+                                Text(
+                                  site.siteCode,
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                              ),
+                              DataCell(
+                                Text(
+                                  site.area,
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                              ),
+                              DataCell(
+                                Text(
+                                  site.customerName,
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                              ),
+                              DataCell(
+                                Text(
+                                  site.customerCode,
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                              ),
+                              DataCell(
+                                Text(
+                                  site.status,
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 50,
+                right: 30,
+                child: FloatingActionButton(
+                  onPressed: () {
+                    NavigationService().navigateTo(AppRoutes.createSite);
+                  },
+                  tooltip: 'Add New',
+                  child: const Icon(Icons.add),
+                  backgroundColor: context.colors.primary,
+                ),
+              ),
+            ],
           ),
-          Positioned(
-            bottom: 50,
-            right: 30,
-            child: FloatingActionButton(
-              onPressed: () {
-                NavigationService().navigateTo(AppRoutes.createSite);
-              },
-              tooltip: 'Add New',
-              child: const Icon(Icons.add),
-              backgroundColor: context.colors.primary,
-            ),
-          ),
-        ],
-      ),
-    );
+        );
   }
 }

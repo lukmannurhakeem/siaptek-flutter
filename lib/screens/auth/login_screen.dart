@@ -102,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 Positioned.fill(
                   child: Image.asset(
-                    'assets/images/oil-rig-bg.png',
+                    'assets/images/bg.png',
                     fit: BoxFit.contain,
                     // Covers the screen while keeping aspect ratio
                     width: double.infinity,

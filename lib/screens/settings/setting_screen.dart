@@ -2,14 +2,14 @@ import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class TeamPlannerScreen extends StatefulWidget {
-  const TeamPlannerScreen({super.key});
+class SettingScreen extends StatefulWidget {
+  const SettingScreen({super.key});
 
   @override
-  State<TeamPlannerScreen> createState() => _TeamPlannerScreen();
+  State<SettingScreen> createState() => _SettingScreen();
 }
 
-class _TeamPlannerScreen extends State<TeamPlannerScreen> {
+class _SettingScreen extends State<SettingScreen> {
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -20,7 +20,7 @@ class _TeamPlannerScreen extends State<TeamPlannerScreen> {
           left: 0,
           right: 0,
           child: SvgPicture.asset(
-            'assets/images/maintainence.svg',
+            'assets/images/work_in_progress.svg',
             fit: BoxFit.contain,
             alignment: Alignment.bottomCenter,
             height: context.screenHeight * 0.3, // you can adjust this
@@ -37,13 +37,13 @@ class _TeamPlannerScreen extends State<TeamPlannerScreen> {
             children: [
               context.vXxl,
               Text(
-                '403. Forbidden',
+                'Work in progress',
                 style: context.topology.textTheme.titleMedium?.copyWith(
                   color: context.colors.error,
                 ),
               ),
               Text(
-                'You do not have permission to plan events.',
+                'Exciting event coming up',
                 style: context.topology.textTheme.titleMedium?.copyWith(
                   color: context.colors.primary,
                 ),

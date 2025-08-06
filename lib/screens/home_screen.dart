@@ -5,12 +5,14 @@ import 'package:base_app/providers/authenticate_provider.dart';
 import 'package:base_app/screens/categories/categories_screen.dart';
 import 'package:base_app/screens/customer/customer_screen.dart';
 import 'package:base_app/screens/dashboard/dashboard_screen.dart';
+import 'package:base_app/screens/job/job_add_new_screen.dart';
 import 'package:base_app/screens/job/job_screen.dart';
 import 'package:base_app/screens/personnel/personnel_screen.dart';
 import 'package:base_app/screens/personnel/personnel_team_screen.dart';
 import 'package:base_app/screens/planner/planner_screen.dart';
 import 'package:base_app/screens/planner/team_planner_screen.dart';
 import 'package:base_app/screens/profile/profile_screen.dart';
+import 'package:base_app/screens/settings/setting_screen.dart';
 import 'package:base_app/screens/site/site_screen.dart';
 import 'package:base_app/widget/welcome_dialog.dart';
 import 'package:flutter/material.dart';
@@ -54,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
       index: 2,
       children: [
         MenuItem(title: 'View All', icon: Icons.view_array, index: 12, screen: JobScreen()),
-        MenuItem(title: 'Add New', icon: Icons.add, index: 13, screen: TeamPlannerScreen()),
+        MenuItem(title: 'Add New', icon: Icons.add, index: 13, screen: JobAddNewScreen()),
       ],
     ),
     MenuItem(
@@ -94,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
       title: 'Settings',
       icon: Icons.settings,
       index: 8,
-      screen: Center(child: Text("Settings Content")),
+      screen: Center(child: SettingScreen()),
     ),
   ];
 

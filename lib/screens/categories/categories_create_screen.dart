@@ -17,12 +17,12 @@ class _CategoriesCreateScreenState extends State<CategoriesCreateScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Create Categories',
-          style: context.topology.textTheme.titleLarge?.copyWith(color: context.colors.onPrimary),
+          'Create Category',
+          style: context.topology.textTheme.titleMedium?.copyWith(color: context.colors.primary),
         ),
         centerTitle: true,
-        iconTheme: IconThemeData(color: context.colors.onPrimary),
-        backgroundColor: context.colors.primary,
+        iconTheme: IconThemeData(color: context.colors.primary),
+        backgroundColor: context.colors.onPrimary,
         leading: IconButton(
           onPressed: () {
             NavigationService().goBack();
@@ -31,7 +31,7 @@ class _CategoriesCreateScreenState extends State<CategoriesCreateScreen> {
         ),
       ),
       body: Container(
-        padding: context.paddingAll,
+        padding: context.paddingHorizontal,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,7 +46,7 @@ class _CategoriesCreateScreenState extends State<CategoriesCreateScreen> {
               context.vM,
               Text(
                 'Description Template',
-                style: context.topology.textTheme.bodyMedium?.copyWith(
+                style: context.topology.textTheme.titleSmall?.copyWith(
                   color: context.colors.primary,
                 ),
               ),
@@ -81,7 +81,7 @@ class _CategoriesCreateScreenState extends State<CategoriesCreateScreen> {
           flex: 2,
           child: Text(
             text,
-            style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
+            style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
           ),
         ),
         Expanded(flex: 3, child: CommonTextField()),

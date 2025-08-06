@@ -1,9 +1,8 @@
-import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/extension/date_time_extension.dart';
+import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
-
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 class PlannerScreen extends StatefulWidget {
   const PlannerScreen({super.key});
@@ -13,7 +12,11 @@ class PlannerScreen extends StatefulWidget {
 }
 
 class _PlannerScreenState extends State<PlannerScreen> {
-  DateTime _focusedDay = DateTime(DateTime.now().year, DateTime.now().month); // Default: July
+  DateTime _focusedDay = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    DateTime.now().day,
+  ); // Default: July
   DateTime? _selectedDay;
 
   void _pickMonthYear() async {
@@ -27,16 +30,13 @@ class _PlannerScreenState extends State<PlannerScreen> {
 
     if (picked != null) {
       setState(() {
-        _focusedDay = DateTime(picked.year, picked.month);
+        _focusedDay = DateTime(picked.year, picked.month, picked.day);
       });
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-
     return Padding(
       padding: context.paddingAll,
       child: Column(
@@ -49,10 +49,11 @@ class _PlannerScreenState extends State<PlannerScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                 _focusedDay.formatShortDate,
-                  style: context.topology.textTheme.titleMedium?.copyWith(color: context.colors.primary)
+                  _focusedDay.formatShortDate,
+                  style: context.topology.textTheme.titleMedium?.copyWith(
+                    color: context.colors.primary,
+                  ),
                 ),
-
               ],
             ),
           ),
@@ -63,7 +64,8 @@ class _PlannerScreenState extends State<PlannerScreen> {
             focusedDay: _focusedDay,
             daysOfWeekHeight: 40.0,
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-            startingDayOfWeek: StartingDayOfWeek.monday, // ✅ Start week on Monday
+            startingDayOfWeek: StartingDayOfWeek.monday,
+            // ✅ Start week on Monday
             headerVisible: false,
             availableGestures: AvailableGestures.none,
             onDaySelected: (selectedDay, focusedDay) {
@@ -74,11 +76,11 @@ class _PlannerScreenState extends State<PlannerScreen> {
             },
             daysOfWeekStyle: DaysOfWeekStyle(
               weekdayStyle: TextStyle(
-                color: Colors.deepPurple,       // Weekdays
+                color: Colors.deepPurple, // Weekdays
                 fontWeight: FontWeight.bold,
               ),
               weekendStyle: TextStyle(
-                color: Colors.redAccent,        // Saturday/Sunday
+                color: Colors.redAccent, // Saturday/Sunday
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -91,10 +93,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   alignment: Alignment.center,
-                  child: Text(
-                    '${day.day}',
-                    style: TextStyle(color: Colors.black87),
-                  ),
+                  child: Text('${day.day}', style: TextStyle(color: Colors.black87)),
                 );
               },
               todayBuilder: (context, day, focusedDay) {
@@ -108,7 +107,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                   alignment: Alignment.center,
                   child: Text(
                     '${day.day}',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.bold, color: context.colors.primary),
                   ),
                 );
               },
@@ -128,9 +127,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 );
               },
             ),
-            calendarStyle: CalendarStyle(
-              outsideDaysVisible: false,
-            ),
+            calendarStyle: CalendarStyle(outsideDaysVisible: false),
           ),
           context.vM,
           SfCalendar(

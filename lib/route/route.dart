@@ -4,6 +4,7 @@ import 'package:base_app/screens/categories/categories_create_screen.dart';
 import 'package:base_app/screens/categories/categories_screen.dart';
 import 'package:base_app/screens/dashboard/dashboard_screen.dart';
 import 'package:base_app/screens/home_screen.dart';
+import 'package:base_app/screens/job/job_register_screen.dart';
 import 'package:base_app/screens/job/job_screen.dart';
 import 'package:base_app/screens/personnel/personnel_create_screen.dart';
 import 'package:base_app/screens/personnel/personnel_screen.dart';
@@ -29,6 +30,7 @@ class AppRoutes {
   static const String planner = '/planner';
   static const String teamPlanner = '/teamPlanner';
   static const String job = '/job';
+  static const String jobRegister = '/jobRegister';
   static const String personnel = '/personnel';
   static const String teamPersonnel = '/teamPersonnel';
   static const String createPersonnel = '/createPersonnel';
@@ -74,6 +76,9 @@ class AppRoutes {
 
       case job:
         return MaterialPageRoute(builder: (_) => const JobScreen(), settings: settings);
+
+      case jobRegister:
+        return MaterialPageRoute(builder: (_) => const JobRegisterScreen(), settings: settings);
 
       case personnel:
         return MaterialPageRoute(builder: (_) => const PersonnelScreen(), settings: settings);

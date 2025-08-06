@@ -2,14 +2,14 @@ import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class TeamPlannerScreen extends StatefulWidget {
-  const TeamPlannerScreen({super.key});
+class JobAddNewScreen extends StatefulWidget {
+  const JobAddNewScreen({super.key});
 
   @override
-  State<TeamPlannerScreen> createState() => _TeamPlannerScreen();
+  State<JobAddNewScreen> createState() => _JobAddNewScreen();
 }
 
-class _TeamPlannerScreen extends State<TeamPlannerScreen> {
+class _JobAddNewScreen extends State<JobAddNewScreen> {
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -20,7 +20,7 @@ class _TeamPlannerScreen extends State<TeamPlannerScreen> {
           left: 0,
           right: 0,
           child: SvgPicture.asset(
-            'assets/images/maintainence.svg',
+            'assets/images/todo.svg',
             fit: BoxFit.contain,
             alignment: Alignment.bottomCenter,
             height: context.screenHeight * 0.3, // you can adjust this
@@ -31,19 +31,20 @@ class _TeamPlannerScreen extends State<TeamPlannerScreen> {
         Container(
           width: double.infinity,
           height: context.screenHeight - kToolbarHeight * 2,
+          padding: context.paddingHorizontal,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               context.vXxl,
               Text(
-                '403. Forbidden',
+                'Take a break',
                 style: context.topology.textTheme.titleMedium?.copyWith(
                   color: context.colors.error,
                 ),
               ),
               Text(
-                'You do not have permission to plan events.',
+                'We still upgrading for your convenience',
                 style: context.topology.textTheme.titleMedium?.copyWith(
                   color: context.colors.primary,
                 ),

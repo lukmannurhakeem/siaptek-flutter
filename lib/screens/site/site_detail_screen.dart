@@ -189,6 +189,16 @@ class _SiteDetailsScreenState extends State<SiteDetailsScreen> {
                     ),
                   ],
                 ),
+                context.vM,
+                Text(
+                  'Personnel',
+                  style: context.topology.textTheme.titleMedium?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                ),
+                context.vS,
+                context.divider,
+                context.vM,
               ],
             ),
           ),

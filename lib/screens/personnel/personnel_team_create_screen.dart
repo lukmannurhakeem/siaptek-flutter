@@ -18,11 +18,11 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
       appBar: AppBar(
         title: Text(
           'Create Team',
-          style: context.topology.textTheme.titleLarge?.copyWith(color: context.colors.onPrimary),
+          style: context.topology.textTheme.titleMedium?.copyWith(color: context.colors.primary),
         ),
         centerTitle: true,
-        iconTheme: IconThemeData(color: context.colors.onPrimary),
-        backgroundColor: context.colors.primary,
+        iconTheme: IconThemeData(color: context.colors.primary),
+        backgroundColor: context.colors.onPrimary,
         leading: IconButton(
           onPressed: () {
             NavigationService().goBack();
@@ -71,7 +71,7 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
           flex: 2,
           child: Text(
             text,
-            style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
+            style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
           ),
         ),
         Expanded(flex: 3, child: CommonTextField()),
