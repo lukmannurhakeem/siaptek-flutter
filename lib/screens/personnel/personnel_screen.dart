@@ -50,11 +50,11 @@ class _PersonnelScreenState extends State<PersonnelScreen> {
                   context.vM,
                   Expanded(
                     child: GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: context.isTablet ? 6 : 2,
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 16,
-                        childAspectRatio: 1.0,
+                        childAspectRatio: context.isTablet ? 2.0 : 1.0,
                       ),
                       itemCount: personnel.length,
                       itemBuilder: (context, index) {

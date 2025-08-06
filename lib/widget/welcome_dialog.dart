@@ -7,25 +7,14 @@ class WelcomeDialog extends StatefulWidget {
   final String? userName;
   final VoidCallback? onClose;
 
-  const WelcomeDialog({
-    super.key,
-    this.userName,
-    this.onClose,
-  });
+  const WelcomeDialog({super.key, this.userName, this.onClose});
 
-  static Future<void> show(
-    BuildContext context, {
-    String? userName,
-    VoidCallback? onClose,
-  }) {
+  static Future<void> show(BuildContext context, {String? userName, VoidCallback? onClose}) {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (BuildContext context) => WelcomeDialog(
-        userName: userName,
-        onClose: onClose,
-      ),
+      builder: (BuildContext context) => WelcomeDialog(userName: userName, onClose: onClose),
     );
   }
 
@@ -49,18 +38,12 @@ class _WelcomeDialogState extends State<WelcomeDialog> with SingleTickerProvider
     _scaleAnimation = Tween<double>(
       begin: 0.3,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.elasticOut,
-    ));
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.elasticOut));
 
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeIn,
-    ));
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeIn));
 
     _animationController.forward();
   }
@@ -84,6 +67,7 @@ class _WelcomeDialogState extends State<WelcomeDialog> with SingleTickerProvider
             child: ScaleTransition(
               scale: _scaleAnimation,
               child: Container(
+                width: context.isTablet ? context.screenWidth / 3 : context.screenWidth,
                 decoration: BoxDecoration(
                   color: context.colors.onPrimary,
                   borderRadius: BorderRadius.circular(8.0),
@@ -115,11 +99,12 @@ class _WelcomeDialogState extends State<WelcomeDialog> with SingleTickerProvider
                       ),
                       context.vL,
                       CommonButton(
-                          onPressed: () {
-                            widget.onClose?.call();
-                            NavigationService().goBack();
-                          },
-                          text: 'Continue'),
+                        onPressed: () {
+                          widget.onClose?.call();
+                          NavigationService().goBack();
+                        },
+                        text: 'Continue',
+                      ),
                     ],
                   ],
                 ),

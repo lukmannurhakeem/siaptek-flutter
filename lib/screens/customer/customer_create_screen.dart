@@ -1,37 +1,29 @@
 import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/providers/customer_provider.dart';
-import 'package:base_app/providers/site_provider.dart';
 import 'package:base_app/widget/common_button.dart';
 import 'package:base_app/widget/common_file_upload_input.dart';
 import 'package:base_app/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class SiteCreateNewScreen extends StatefulWidget {
-  const SiteCreateNewScreen({super.key});
+class CustomerCreateNewScreen extends StatefulWidget {
+  const CustomerCreateNewScreen({super.key});
 
   @override
-  State<SiteCreateNewScreen> createState() => _SiteCreateNewScreenState();
+  State<CustomerCreateNewScreen> createState() => _CustomerCreateNewScreenState();
 }
 
-class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
-  @override
-  void initState() {
-    super.initState();
-    final customerProvider = Provider.of<CustomerProvider>(context, listen: false);
-    customerProvider.fetchCustomers(context);
-  }
-
+class _CustomerCreateNewScreenState extends State<CustomerCreateNewScreen> {
   @override
   Widget build(BuildContext context) {
-    final siteProvider = Provider.of<SiteProvider>(context, listen: false);
+    final customerProvider = Provider.of<CustomerProvider>(context, listen: false);
     final screenHeight = context.screenHeight - (kToolbarHeight * 1.25);
     final screenWidth = context.screenWidth;
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Create Site',
+          'Create Customer',
           style: context.topology.textTheme.titleMedium?.copyWith(color: context.colors.primary),
         ),
         centerTitle: true,
@@ -53,19 +45,12 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'This is used for creating Sites belonging to a Customer',
-                  style: context.topology.textTheme.bodySmall?.copyWith(
-                    color: context.colors.primary,
-                  ),
-                ),
-                context.vM,
                 Row(
                   children: [
                     Expanded(
                       flex: 2,
                       child: Text(
-                        'Name',
+                        'Customer Name',
                         style: context.topology.textTheme.titleSmall?.copyWith(
                           color: context.colors.primary,
                         ),
@@ -74,8 +59,8 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
                     Expanded(
                       flex: 3,
                       child: CommonTextField(
-                        hintText: 'Enter Name',
-                        controller: siteProvider.nameController,
+                        hintText: 'Enter Customer Name',
+                        controller: customerProvider.customerNameController,
                         style: context.topology.textTheme.bodySmall?.copyWith(
                           color: context.colors.primary,
                         ),
@@ -89,7 +74,7 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
                     Expanded(
                       flex: 2,
                       child: Text(
-                        'Site Code',
+                        'Account Code',
                         style: context.topology.textTheme.titleSmall?.copyWith(
                           color: context.colors.primary,
                         ),
@@ -98,8 +83,8 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
                     Expanded(
                       flex: 3,
                       child: CommonTextField(
-                        hintText: 'Enter Site Code',
-                        controller: siteProvider.siteCodeController,
+                        hintText: 'Enter Account Code',
+                        controller: customerProvider.customerCodeController,
                         style: context.topology.textTheme.bodySmall?.copyWith(
                           color: context.colors.primary,
                         ),
@@ -113,60 +98,7 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
                     Expanded(
                       flex: 2,
                       child: Text(
-                        'Customer',
-                        style: context.topology.textTheme.titleSmall?.copyWith(
-                          color: context.colors.primary,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: Consumer2<CustomerProvider, SiteProvider>(
-                        builder: (context, customerProvider, siteProvider, _) {
-                          final customers = customerProvider.customers;
-
-                          return DropdownButtonFormField<String>(
-                            value: siteProvider.selectedCustomerId,
-                            decoration: InputDecoration(
-                              hintText: 'Select Customer',
-                              border: OutlineInputBorder(),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 12,
-                              ),
-                              hintStyle: context.topology.textTheme.bodySmall?.copyWith(
-                                color: Colors.grey,
-                              ),
-                            ),
-                            items:
-                                customers.map((customer) {
-                                  return DropdownMenuItem<String>(
-                                    value: customer.customerid,
-                                    child: Text(
-                                      customer.customername ?? '-',
-                                      style: context.topology.textTheme.bodySmall?.copyWith(
-                                        color: context.colors.primary,
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                            onChanged: (value) {
-                              siteProvider.setSelectedCustomer(value);
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-
-                context.vS,
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        'Area',
+                        'Agent',
                         style: context.topology.textTheme.titleSmall?.copyWith(
                           color: context.colors.primary,
                         ),
@@ -175,32 +107,7 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
                     Expanded(
                       flex: 3,
                       child: CommonTextField(
-                        controller: siteProvider.areaController,
-                        style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                context.vS,
-
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        'Description',
-                        style: context.topology.textTheme.titleSmall?.copyWith(
-                          color: context.colors.primary,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: CommonTextField(
-                        hintText: 'Enter Description',
-                        controller: siteProvider.descriptionController,
+                        hintText: 'Enter Agent',
                         style: context.topology.textTheme.bodySmall?.copyWith(
                           color: context.colors.primary,
                         ),
@@ -224,7 +131,6 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
                       flex: 3,
                       child: CommonTextField(
                         hintText: 'Enter Notes',
-                        controller: siteProvider.notesController,
                         style: context.topology.textTheme.bodySmall?.copyWith(
                           color: context.colors.primary,
                         ),
@@ -232,7 +138,6 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
                     ),
                   ],
                 ),
-
                 context.vS,
                 Row(
                   children: [
@@ -249,32 +154,7 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
                       flex: 3,
                       child: CommonTextField(
                         hintText: 'Enter Division',
-                        controller: siteProvider.divisionController,
-                        style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                context.vS,
-
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        'Address',
-                        style: context.topology.textTheme.titleSmall?.copyWith(
-                          color: context.colors.primary,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: CommonTextField(
-                        hintText: 'Enter Address',
-                        controller: siteProvider.addressController,
+                        controller: customerProvider.divisionController,
                         style: context.topology.textTheme.bodySmall?.copyWith(
                           color: context.colors.primary,
                         ),
@@ -297,8 +177,8 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
                     Expanded(
                       flex: 3,
                       child: CommonTextField(
-                        hintText: 'Enter Status',
-                        controller: siteProvider.statusController,
+                        hintText: 'Enter Division',
+                        controller: customerProvider.statusController,
                         style: context.topology.textTheme.bodySmall?.copyWith(
                           color: context.colors.primary,
                         ),
@@ -306,6 +186,7 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
                     ),
                   ],
                 ),
+
                 context.vS,
                 Row(
                   children: [
@@ -321,14 +202,37 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
                     Expanded(flex: 3, child: CommonFileUploadInput()),
                   ],
                 ),
+                context.vS,
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        'Address',
+                        style: context.topology.textTheme.titleSmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: CommonTextField(
+                        hintText: 'Enter Address',
+                        controller: customerProvider.addressController,
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 context.vL,
                 CommonButton(
                   text: 'Save',
                   onPressed: () {
-                    siteProvider.createSite(context);
+                    customerProvider.createCustomer(context);
                   },
                 ),
-                context.vL,
               ],
             ),
           ),
