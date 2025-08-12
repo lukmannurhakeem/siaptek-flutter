@@ -12,7 +12,12 @@ import 'package:base_app/screens/personnel/personnel_team_screen.dart';
 import 'package:base_app/screens/planner/planner_screen.dart';
 import 'package:base_app/screens/planner/team_planner_screen.dart';
 import 'package:base_app/screens/profile/profile_screen.dart';
-import 'package:base_app/screens/settings/setting_screen.dart';
+import 'package:base_app/screens/settings/accesss_screen.dart';
+import 'package:base_app/screens/settings/administration_tool_screen.dart';
+import 'package:base_app/screens/settings/company_screen.dart';
+import 'package:base_app/screens/settings/data_screen.dart';
+import 'package:base_app/screens/settings/logs_screen.dart';
+import 'package:base_app/screens/settings/report_setup_screen.dart';
 import 'package:base_app/screens/site/site_screen.dart';
 import 'package:base_app/widget/welcome_dialog.dart';
 import 'package:flutter/material.dart';
@@ -96,7 +101,19 @@ class _HomeScreenState extends State<HomeScreen> {
       title: 'Settings',
       icon: Icons.settings,
       index: 8,
-      screen: Center(child: SettingScreen()),
+      children: [
+        MenuItem(title: 'Data', icon: Icons.data_array, index: 16, screen: DataScreen()),
+        MenuItem(title: 'Report Setup', icon: Icons.report, index: 17, screen: ReportSetupScreen()),
+        MenuItem(title: 'Company', icon: Icons.meeting_room, index: 18, screen: CompanyScreen()),
+        MenuItem(title: 'Access', icon: Icons.accessibility, index: 19, screen: AccessScreen()),
+        MenuItem(
+          title: 'Administration Tools',
+          icon: Icons.admin_panel_settings,
+          index: 20,
+          screen: AdministrationToolsScreen(),
+        ),
+        MenuItem(title: 'Logs', icon: Icons.file_copy, index: 21, screen: LogsScreen()),
+      ],
     ),
   ];
 

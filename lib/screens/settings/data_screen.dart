@@ -2,14 +2,14 @@ import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/widget/common_collapsible_widget.dart';
 import 'package:flutter/material.dart';
 
-class SettingScreen extends StatefulWidget {
-  const SettingScreen({super.key});
+class DataScreen extends StatefulWidget {
+  const DataScreen({super.key});
 
   @override
-  State<SettingScreen> createState() => _SettingScreen();
+  State<DataScreen> createState() => _DataScreen();
 }
 
-class _SettingScreen extends State<SettingScreen> {
+class _DataScreen extends State<DataScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -46,7 +46,6 @@ class _SettingScreen extends State<SettingScreen> {
           'This is the collapsible content. It can contain any widget you want to show/hide.',
         ),
       ),
-      backgroundColor: Colors.grey.shade100,
       borderRadius: BorderRadius.circular(8),
     );
   }

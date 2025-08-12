@@ -151,10 +151,12 @@ class _JobScreenState extends State<JobScreen> {
                                 ),
                                 DataColumn(
                                   label: Expanded(
-                                    child: Text(
-                                      'Status',
-                                      style: context.topology.textTheme.titleSmall?.copyWith(
-                                        color: context.colors.primary,
+                                    child: Center(
+                                      child: Text(
+                                        'Status',
+                                        style: context.topology.textTheme.titleSmall?.copyWith(
+                                          color: context.colors.primary,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -254,23 +256,25 @@ class _JobScreenState extends State<JobScreen> {
                                       ),
                                     ),
                                     DataCell(
-                                      SizedBox(
-                                        width: double.infinity,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: _getStatusColor(data.statusCode),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Text(
-                                            _getStatusText(data.statusCode),
-                                            style: context.topology.textTheme.bodySmall?.copyWith(
-                                              color: context.colors.onPrimary,
+                                      Center(
+                                        child: SizedBox(
+                                          width: double.infinity,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
                                             ),
-                                            textAlign: TextAlign.center,
+                                            decoration: BoxDecoration(
+                                              color: _getStatusColor(data.statusCode),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              _getStatusText(data.statusCode),
+                                              style: context.topology.textTheme.bodySmall?.copyWith(
+                                                color: context.colors.onPrimary,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -389,6 +393,7 @@ class _JobScreenState extends State<JobScreen> {
                             ),
                             context.vS,
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Expanded(
                                   flex: 1,

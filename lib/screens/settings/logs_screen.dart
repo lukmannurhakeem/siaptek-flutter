@@ -2,29 +2,23 @@ import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/widget/common_collapsible_widget.dart';
 import 'package:flutter/material.dart';
 
-class SettingScreen extends StatefulWidget {
-  const SettingScreen({super.key});
+class LogsScreen extends StatefulWidget {
+  const LogsScreen({super.key});
 
   @override
-  State<SettingScreen> createState() => _SettingScreen();
+  State<LogsScreen> createState() => _LogsScreen();
 }
 
-class _SettingScreen extends State<SettingScreen> {
+class _LogsScreen extends State<LogsScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: context.paddingHorizontal,
       child: Column(
         children: [
-          _buildContent('Super Search'),
+          _buildContent('Audit Viewers'),
           context.vS,
-          _buildContent('Schedule Email'),
-          context.vS,
-          _buildContent('Dashboard Setup'),
-          context.vS,
-          _buildContent('Planner Setup'),
-          context.vS,
-          _buildContent('Data Import'),
+          _buildContent('Communications'),
           context.vS,
         ],
       ),
@@ -46,7 +40,6 @@ class _SettingScreen extends State<SettingScreen> {
           'This is the collapsible content. It can contain any widget you want to show/hide.',
         ),
       ),
-      backgroundColor: Colors.grey.shade100,
       borderRadius: BorderRadius.circular(8),
     );
   }
