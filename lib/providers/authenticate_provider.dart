@@ -53,38 +53,76 @@ class AuthenticateProvider extends ChangeNotifier {
     try {
       final storageAccessToken = LocalStorageService.getString(LocalStorageConstant.accessToken);
 
+      // No token → go to login
       if (storageAccessToken.isEmpty) {
         NavigationService().navigateToAndRemoveUntil(AppRoutes.login);
+        return;
       }
 
-      if (storageAccessToken.isNotEmpty) {
-        final data = await _userRepository.userVerifyToken();
+      // Verify existing token
+      final verifyResponse = await _userRepository.userVerifyToken();
 
-        if (data.valid == true) {
+      if (verifyResponse.valid == true) {
+        // Token valid → go to home
+        NavigationService().navigateToAndRemoveUntil(AppRoutes.home);
+        return;
+      }
+
+      // Token invalid → try refresh
+      try {
+        final refreshResponse = await _userRepository.userRefreshToken();
+
+        if (refreshResponse.accessToken?.isNotEmpty == true) {
+          await LocalStorageService.setString(
+            LocalStorageConstant.accessToken,
+            refreshResponse.accessToken!,
+          );
+          await LocalStorageService.setString(
+            LocalStorageConstant.refreshToken,
+            refreshResponse.refreshToken ?? '',
+          );
           NavigationService().navigateToAndRemoveUntil(AppRoutes.home);
         } else {
-          await _userRepository.userRefreshToken();
-          NavigationService().navigateToAndRemoveUntil(AppRoutes.home);
+          // Refresh failed → go to login
+          await _clearTokens();
+          NavigationService().navigateToAndRemoveUntil(AppRoutes.login);
         }
+      } catch (e) {
+        // Refresh request error → go to login
+        await _clearTokens();
+        NavigationService().navigateToAndRemoveUntil(AppRoutes.login);
       }
     } catch (e) {
-      final data = await _userRepository.userRefreshToken();
+      // Verify request error → try refresh
+      try {
+        final refreshResponse = await _userRepository.userRefreshToken();
 
-      if (data.accessToken?.isNotEmpty == true) {
-        await LocalStorageService.setString(
-          LocalStorageConstant.accessToken,
-          '${data.accessToken}',
-        );
-        await LocalStorageService.setString(
-          LocalStorageConstant.refreshToken,
-          '${data.refreshToken}',
-        );
-        NavigationService().navigateToAndRemoveUntil(AppRoutes.home);
-      } else {
+        if (refreshResponse.accessToken?.isNotEmpty == true) {
+          await LocalStorageService.setString(
+            LocalStorageConstant.accessToken,
+            refreshResponse.accessToken!,
+          );
+          await LocalStorageService.setString(
+            LocalStorageConstant.refreshToken,
+            refreshResponse.refreshToken ?? '',
+          );
+          NavigationService().navigateToAndRemoveUntil(AppRoutes.home);
+        } else {
+          await _clearTokens();
+          NavigationService().navigateToAndRemoveUntil(AppRoutes.login);
+          CommonSnackbar.showError(context, e.toString());
+        }
+      } catch (e2) {
+        await _clearTokens();
         NavigationService().navigateToAndRemoveUntil(AppRoutes.login);
-        CommonSnackbar.showError(context, '$e');
+        CommonSnackbar.showError(context, e2.toString());
       }
     }
+  }
+
+  Future<void> _clearTokens() async {
+    await LocalStorageService.remove(LocalStorageConstant.accessToken);
+    await LocalStorageService.remove(LocalStorageConstant.refreshToken);
   }
 
   Future<void> logout(BuildContext context) async {
