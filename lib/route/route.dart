@@ -6,6 +6,7 @@ import 'package:base_app/screens/customer/customer_create_screen.dart';
 import 'package:base_app/screens/customer/customer_screen.dart';
 import 'package:base_app/screens/dashboard/dashboard_screen.dart';
 import 'package:base_app/screens/home_screen.dart';
+import 'package:base_app/screens/job/job_add_new_details_screen.dart';
 import 'package:base_app/screens/job/job_add_new_screen.dart';
 import 'package:base_app/screens/job/job_item_details/job_item_details_screen.dart';
 import 'package:base_app/screens/job/job_register_screen.dart';
@@ -36,6 +37,7 @@ class AppRoutes {
   static const String job = '/job';
   static const String jobRegister = '/jobRegister';
   static const String jobAddNewScreen = '/jobAddNewScreen';
+  static const String jobAddNewDetailsScreen = '/jobAddNewDetailsScreen';
   static const String jobItemDetails = '/jobItemOverview';
 
   static const String personnel = '/personnel';
@@ -91,6 +93,17 @@ class AppRoutes {
 
       case jobAddNewScreen:
         return MaterialPageRoute(builder: (_) => const JobAddNewScreen(), settings: settings);
+
+      case jobAddNewDetailsScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder:
+              (_) => JobAddNewDetailsScreen(
+                customer: args?['customer'] ?? '',
+                site: args?['site'] ?? '',
+              ),
+          settings: settings,
+        );
 
       case jobItemDetails:
         final args = settings.arguments as Map<String, dynamic>?;

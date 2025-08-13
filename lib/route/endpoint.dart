@@ -12,4 +12,8 @@ class Endpoint {
   // site
   static const String site = '/site';
   static const String createSite = '/site/createSite';
+
+  static String getSiteByCustomerId(String customerId) {
+    return '/site/customer/$customerId';
+  }
 }

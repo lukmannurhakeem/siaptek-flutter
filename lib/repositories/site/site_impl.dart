@@ -1,5 +1,6 @@
 import 'package:base_app/core/service/http_service.dart';
 import 'package:base_app/model/get_site_model.dart';
+import 'package:base_app/model/site_customer_by_id_model.dart';
 import 'package:base_app/repositories/site/site_repository.dart';
 import 'package:base_app/route/endpoint.dart';
 
@@ -37,5 +38,11 @@ class SiteImpl implements SiteRepository {
         'status': status,
       },
     );
+  }
+
+  @override
+  Future<GetSiteByCustomerIdModel> fetchSiteByCustomerId({required String customerId}) async {
+    final response = await _api.get(Endpoint.getSiteByCustomerId(customerId), requiresAuth: true);
+    return GetSiteByCustomerIdModel.fromJson(response.data);
   }
 }

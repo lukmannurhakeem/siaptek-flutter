@@ -1,6 +1,7 @@
 import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/core/service/service_locator.dart';
 import 'package:base_app/model/get_site_model.dart';
+import 'package:base_app/model/site_customer_by_id_model.dart';
 import 'package:base_app/repositories/site/site_repository.dart';
 import 'package:base_app/widget/common_snackbar.dart';
 import 'package:flutter/material.dart';
@@ -28,12 +29,30 @@ class SiteProvider extends ChangeNotifier {
 
   GetSiteModel? get getSiteModel => _getSiteModel;
 
-  String? selectedCustomerCode;
+  List<SiteCustomer> _sitesCustomerList = [];
+
+  List<SiteCustomer> get sitesCustomerList => _sitesCustomerList;
+
+  GetSiteByCustomerIdModel? _getSiteByCustomerIdModel;
+
+  GetSiteByCustomerIdModel? get getSiteByCustomerId => _getSiteByCustomerIdModel;
+
   String? selectedCustomerId;
+
+  String? selectedCustomerIdSite = '';
 
   void setSelectedCustomer(String? customerId) {
     selectedCustomerId = customerId;
-    print('$customerId');
+    // Clear site selection when customer changes
+    selectedCustomerIdSite = null;
+    // Clear sites list when customer changes
+    _sitesCustomerList = [];
+    notifyListeners();
+  }
+
+  void setSelectedCustomerById(String? siteId) {
+    selectedCustomerIdSite = siteId;
+    print('Selected site ID: $siteId');
     notifyListeners();
   }
 
@@ -43,6 +62,31 @@ class SiteProvider extends ChangeNotifier {
       _sites = _getSiteModel?.sites ?? [];
       notifyListeners();
     } catch (e) {
+      CommonSnackbar.showError(context, e.toString());
+    }
+  }
+
+  Future<void> fetchSiteByCustomerId(BuildContext context, customerId) async {
+    try {
+      // Clear previous sites first
+      _sitesCustomerList = [];
+      notifyListeners();
+
+      final model = await _siteRepository.fetchSiteByCustomerId(customerId: customerId);
+      print('Site customer length : ${model.siteCustomers?.length}');
+
+      _getSiteByCustomerIdModel = model;
+      _sitesCustomerList = model.siteCustomers ?? [];
+
+      // If there's only one site, auto-select it
+      if (_sitesCustomerList.length == 1) {
+        selectedCustomerIdSite = _sitesCustomerList.first.siteid;
+      }
+
+      notifyListeners();
+    } catch (e) {
+      _sitesCustomerList = [];
+      notifyListeners();
       CommonSnackbar.showError(context, e.toString());
     }
   }
