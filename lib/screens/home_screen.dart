@@ -12,11 +12,8 @@ import 'package:base_app/screens/personnel/personnel_team_screen.dart';
 import 'package:base_app/screens/planner/planner_screen.dart';
 import 'package:base_app/screens/planner/team_planner_screen.dart';
 import 'package:base_app/screens/profile/profile_screen.dart';
-import 'package:base_app/screens/settings/accesss_screen.dart';
-import 'package:base_app/screens/settings/administration_tool_screen.dart';
-import 'package:base_app/screens/settings/company_screen.dart';
-import 'package:base_app/screens/settings/data_screen.dart';
-import 'package:base_app/screens/settings/logs_screen.dart';
+import 'package:base_app/screens/settings/company/division_screen.dart';
+import 'package:base_app/screens/settings/report_setup/report_types_screen.dart';
 import 'package:base_app/screens/settings/report_setup_screen.dart';
 import 'package:base_app/screens/site/site_screen.dart';
 import 'package:base_app/widget/welcome_dialog.dart';
@@ -102,31 +99,64 @@ class _HomeScreenState extends State<HomeScreen> {
       icon: Icons.settings,
       index: 8,
       children: [
-        MenuItem(title: 'Data', icon: Icons.data_array, index: 16, screen: DataScreen()),
-        MenuItem(title: 'Report Setup', icon: Icons.report, index: 17, screen: ReportSetupScreen()),
-        MenuItem(title: 'Company', icon: Icons.meeting_room, index: 18, screen: CompanyScreen()),
-        MenuItem(title: 'Access', icon: Icons.accessibility, index: 19, screen: AccessScreen()),
+        // MenuItem(title: 'Data', icon: Icons.data_array, index: 16, screen: DataScreen()),
         MenuItem(
-          title: 'Administration Tools',
-          icon: Icons.admin_panel_settings,
-          index: 20,
-          screen: AdministrationToolsScreen(),
+          title: 'Report Setup',
+          icon: Icons.report,
+          index: 17,
+          children: [
+            MenuItem(
+              title: 'Divisions',
+              icon: Icons.view_array,
+              index: 23,
+              screen: ReportSetupScreen(),
+            ),
+            MenuItem(
+              title: 'Report Type',
+              icon: Icons.view_array,
+              index: 24,
+              screen: ReportTypeScreen(),
+            ),
+          ],
         ),
-        MenuItem(title: 'Logs', icon: Icons.file_copy, index: 21, screen: LogsScreen()),
+        MenuItem(
+          title: 'Company',
+          icon: Icons.meeting_room,
+          index: 18,
+          children: [
+            MenuItem(
+              title: 'Divisions',
+              icon: Icons.view_array,
+              index: 22,
+              screen: CompanyDivisionScreen(),
+            ),
+          ],
+        ),
+        // MenuItem(title: 'Access', icon: Icons.accessibility, index: 19, screen: AccessScreen()),
+        // MenuItem(
+        //   title: 'Administration Tools',
+        //   icon: Icons.admin_panel_settings,
+        //   index: 20,
+        //   screen: AdministrationToolsScreen(),
+        // ),
+        // MenuItem(title: 'Logs', icon: Icons.file_copy, index: 21, screen: LogsScreen()),
       ],
     ),
   ];
 
   MenuItem? get _currentMenuItem {
-    for (final item in _menuItems) {
-      if (item.index == _selectedIndex) return item;
-      if (item.children != null) {
-        for (final sub in item.children!) {
-          if (sub.index == _selectedIndex) return sub;
+    MenuItem? findItem(List<MenuItem> items, int index) {
+      for (final item in items) {
+        if (item.index == index) return item;
+        if (item.children != null) {
+          final found = findItem(item.children!, index);
+          if (found != null) return found;
         }
       }
+      return null;
     }
-    return _menuItems[0];
+
+    return findItem(_menuItems, _selectedIndex) ?? _menuItems[0];
   }
 
   @override
@@ -185,71 +215,56 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  List<Widget> _buildMenuList(List<MenuItem> items) {
+  List<Widget> _buildMenuList(List<MenuItem> items, {int indent = 0}) {
     return items.expand((item) {
       final bool isSelected = _selectedIndex == item.index;
       final bool isExpanded = _expandedMenus.contains(item.index);
 
       List<Widget> tiles = [
-        ListTile(
-          splashColor: context.colors.primary.withOpacity(0.5),
-          leading: Icon(item.icon, color: context.colors.primary),
-          title: Text(
-            item.title,
-            style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
+        Padding(
+          padding: EdgeInsets.only(left: (indent * 16).toDouble()),
+          child: ListTile(
+            splashColor: context.colors.primary.withOpacity(0.5),
+            leading: Icon(item.icon, color: context.colors.primary),
+            title: Text(
+              item.title,
+              style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
+            ),
+            selected: isSelected,
+            selectedTileColor: context.colors.primary.withOpacity(0.1),
+            trailing:
+                item.children != null
+                    ? Icon(
+                      isExpanded ? Icons.expand_less : Icons.expand_more,
+                      color: context.colors.primary,
+                    )
+                    : null,
+            onTap: () {
+              if (item.children != null) {
+                setState(() {
+                  if (isExpanded) {
+                    _expandedMenus.remove(item.index);
+                  } else {
+                    _expandedMenus.add(item.index);
+                  }
+                });
+              } else {
+                setState(() => _selectedIndex = item.index);
+                NavigationService().goBack();
+              }
+            },
           ),
-          selected: isSelected,
-          selectedTileColor: context.colors.primary.withOpacity(0.1),
-          trailing:
-              item.children != null
-                  ? Icon(
-                    isExpanded ? Icons.expand_less : Icons.expand_more,
-                    color: context.colors.primary,
-                  )
-                  : null,
-          onTap: () {
-            if (item.children != null) {
-              setState(() {
-                if (isExpanded) {
-                  _expandedMenus.remove(item.index);
-                } else {
-                  _expandedMenus.add(item.index);
-                }
-              });
-            } else {
-              setState(() => _selectedIndex = item.index);
-              NavigationService().goBack();
-            }
-          },
         ),
       ];
 
       if (item.children != null && isExpanded) {
-        tiles.addAll(
-          item.children!.map((subItem) {
-            return Padding(
-              padding: const EdgeInsets.only(left: 32.0),
-              child: ListTile(
-                leading: Icon(subItem.icon, color: context.colors.primary),
-                title: Text(
-                  subItem.title,
-                  style: context.topology.textTheme.bodySmall?.copyWith(
-                    color: context.colors.primary,
-                  ),
-                ),
-                selected: _selectedIndex == subItem.index,
-                selectedTileColor: context.colors.primary.withOpacity(0.1),
-                onTap: () {
-                  setState(() => _selectedIndex = subItem.index);
-                  NavigationService().goBack();
-                },
-              ),
-            );
-          }),
-        );
+        tiles.addAll(_buildMenuList(item.children!, indent: indent + 1));
       }
 
-      tiles.add(context.divider);
+      if (indent == 0) {
+        tiles.add(context.divider);
+      }
+
       return tiles;
     }).toList();
   }

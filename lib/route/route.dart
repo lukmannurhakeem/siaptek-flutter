@@ -2,6 +2,7 @@ import 'package:base_app/screens/auth/forgot_password_screen.dart';
 import 'package:base_app/screens/auth/login_screen.dart';
 import 'package:base_app/screens/categories/categories_create_screen.dart';
 import 'package:base_app/screens/categories/categories_screen.dart';
+import 'package:base_app/screens/categories/category_details.dart';
 import 'package:base_app/screens/customer/customer_create_screen.dart';
 import 'package:base_app/screens/customer/customer_screen.dart';
 import 'package:base_app/screens/dashboard/dashboard_screen.dart';
@@ -9,15 +10,19 @@ import 'package:base_app/screens/home_screen.dart';
 import 'package:base_app/screens/job/job_add_new_details_screen.dart';
 import 'package:base_app/screens/job/job_add_new_screen.dart';
 import 'package:base_app/screens/job/job_item_details/job_item_details_screen.dart';
-import 'package:base_app/screens/job/job_register_screen.dart';
+import 'package:base_app/screens/job/job_register/job_register_screen.dart';
 import 'package:base_app/screens/job/job_screen.dart';
 import 'package:base_app/screens/personnel/personnel_create_screen.dart';
+import 'package:base_app/screens/personnel/personnel_detail_screen.dart';
 import 'package:base_app/screens/personnel/personnel_screen.dart';
 import 'package:base_app/screens/personnel/personnel_team_create_screen.dart';
 import 'package:base_app/screens/personnel/personnel_team_screen.dart';
 import 'package:base_app/screens/planner/planner_screen.dart';
 import 'package:base_app/screens/planner/team_planner_screen.dart';
 import 'package:base_app/screens/profile/profile_screen.dart';
+import 'package:base_app/screens/settings/company/division_crete_screen.dart';
+import 'package:base_app/screens/settings/report_setup/report_create_screen.dart';
+import 'package:base_app/screens/settings/report_setup/report_types_detail_screen.dart';
 import 'package:base_app/screens/site/site_create_new_screen.dart';
 import 'package:base_app/screens/site/site_detail_screen.dart';
 import 'package:base_app/screens/site/site_screen.dart';
@@ -44,14 +49,20 @@ class AppRoutes {
   static const String teamPersonnel = '/teamPersonnel';
   static const String createPersonnel = '/createPersonnel';
   static const String createTeamPersonnel = '/createTeamPersonnel';
+  static const String personnelDetails = '/personnelDetails';
   static const String site = '/site';
   static const String siteDetails = '/siteDetails';
   static const String createSite = '/createSite';
   static const String categories = '/categories';
   static const String createCategories = '/createCategories';
+  static const String categoryDetails = '/categoryDetails';
   static const String profile = '/profile';
   static const String customer = '/customer';
   static const String createCustomer = '/createCustomer';
+
+  static const String companyCreateDivision = '/companyCreateDivision';
+  static const String reportCreate = '/reportCreate';
+  static const String reportTypeDetails = '/reportTypeDetails';
 
   // Route generator function
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -128,6 +139,9 @@ class AppRoutes {
           settings: settings,
         );
 
+      case personnelDetails:
+        return MaterialPageRoute(builder: (_) => const PersonnelDetailScreen(), settings: settings);
+
       case site:
         return MaterialPageRoute(builder: (_) => const SiteScreen(), settings: settings);
 
@@ -148,10 +162,15 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const ProfileScreen(), settings: settings);
 
       case createCategories:
+        final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
-          builder: (_) => const CategoriesCreateScreen(),
+          builder: (_) => CategoriesCreateScreen(categoryId: args?['categoryId'] ?? ''),
           settings: settings,
         );
+
+      case categoryDetails:
+        return MaterialPageRoute(builder: (_) => const CategoryDetails(), settings: settings);
+
       case customer:
         return MaterialPageRoute(builder: (_) => const CustomerScreen(), settings: settings);
 
@@ -160,6 +179,20 @@ class AppRoutes {
           builder: (_) => const CustomerCreateNewScreen(),
           settings: settings,
         );
+
+      case companyCreateDivision:
+        return MaterialPageRoute(builder: (_) => const CompanyCreateDivision(), settings: settings);
+
+      case reportCreate:
+        return MaterialPageRoute(builder: (_) => const ReportCreateScreen(), settings: settings);
+
+      case reportTypeDetails:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => ReportTypesDetails(reportTypeID: args?['reportTypeID'] ?? ''),
+          settings: settings,
+        );
+
       default:
         // If the route is not defined, show an error page
         return MaterialPageRoute(

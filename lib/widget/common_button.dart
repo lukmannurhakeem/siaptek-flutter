@@ -681,7 +681,7 @@ class _CommonButtonState extends State<CommonButton> with SingleTickerProviderSt
               widget.text!,
               style:
                   widget.textStyle ??
-                  context.topology.textTheme.headlineSmall?.copyWith(color: textClr),
+                  context.topology.textTheme.titleSmall?.copyWith(color: textClr),
               textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,
             ),

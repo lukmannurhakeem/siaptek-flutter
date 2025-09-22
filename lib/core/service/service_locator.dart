@@ -1,9 +1,15 @@
 import 'package:base_app/core/service/flavor_config.dart';
 import 'package:base_app/core/service/http_service.dart';
+import 'package:base_app/repositories/category/category_impl.dart';
+import 'package:base_app/repositories/category/category_repository.dart';
 import 'package:base_app/repositories/customer/customer_impl.dart';
 import 'package:base_app/repositories/customer/customer_repository.dart';
+import 'package:base_app/repositories/job/job_impl.dart';
+import 'package:base_app/repositories/job/job_repository.dart';
 import 'package:base_app/repositories/site/site_impl.dart';
 import 'package:base_app/repositories/site/site_repository.dart';
+import 'package:base_app/repositories/system/system.impl.dart';
+import 'package:base_app/repositories/system/system_repository.dart';
 import 'package:base_app/repositories/user/user_impl.dart';
 import 'package:base_app/repositories/user/user_repository.dart';
 import 'package:dio/dio.dart';
@@ -18,6 +24,9 @@ class ServiceLocator {
   UserRepository? _userRepository;
   SiteRepository? _siteRepository;
   CustomerRepository? _customerRepository;
+  SystemRepository? _systemRepository;
+  JobRepository? _jobRepository;
+  CategoryRepository? _categoryRepository;
 
   void setupRepositories() {
     final dio =
@@ -29,6 +38,9 @@ class ServiceLocator {
     _userRepository = UserImpl(apiClient);
     _siteRepository = SiteImpl(apiClient);
     _customerRepository = CustomerImpl(apiClient);
+    _systemRepository = SystemImpl(apiClient);
+    _jobRepository = JobImpl(apiClient);
+    _categoryRepository = CategoryImpl(apiClient);
   }
 
   UserRepository get userRepository {
@@ -50,5 +62,26 @@ class ServiceLocator {
       setupRepositories();
     }
     return _customerRepository!;
+  }
+
+  SystemRepository get systemRepository {
+    if (_systemRepository == null) {
+      setupRepositories();
+    }
+    return _systemRepository!;
+  }
+
+  JobRepository get jobRepository {
+    if (_jobRepository == null) {
+      setupRepositories();
+    }
+    return _jobRepository!;
+  }
+
+  CategoryRepository get categoryRepository {
+    if (_categoryRepository == null) {
+      setupRepositories();
+    }
+    return _categoryRepository!;
   }
 }

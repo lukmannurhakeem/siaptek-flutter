@@ -4,14 +4,14 @@ import 'package:base_app/widget/common_button.dart';
 import 'package:base_app/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 
-class PersonnelCreateScreen extends StatefulWidget {
-  const PersonnelCreateScreen({super.key});
+class PersonnelDetailScreen extends StatefulWidget {
+  const PersonnelDetailScreen({super.key});
 
   @override
-  State<PersonnelCreateScreen> createState() => _PersonnelCreateScreenState();
+  State<PersonnelDetailScreen> createState() => _PersonnelDetailScreenState();
 }
 
-class _PersonnelCreateScreenState extends State<PersonnelCreateScreen> {
+class _PersonnelDetailScreenState extends State<PersonnelDetailScreen> {
   int _currentStep = 0;
 
   final List<String> _steps = ['Overview', 'Contact', 'Company', 'Misc Notes'];
@@ -21,7 +21,7 @@ class _PersonnelCreateScreenState extends State<PersonnelCreateScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Create Person',
+          'Personal Details',
           style: context.topology.textTheme.titleLarge?.copyWith(color: context.colors.primary),
         ),
         centerTitle: true,

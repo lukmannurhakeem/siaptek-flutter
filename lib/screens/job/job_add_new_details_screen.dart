@@ -1,5 +1,6 @@
 import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/service/navigation_service.dart';
+import 'package:base_app/widget/common_button.dart';
 import 'package:base_app/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 
@@ -51,56 +52,62 @@ class _JobAddNewDetailsScreenState extends State<JobAddNewDetailsScreen>
   Widget _buildTabletLayout(BuildContext context) {
     return Padding(
       padding: context.paddingHorizontal,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
         children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildRow(context, 'Job No'),
-                  context.vS,
-                  _buildRow(context, 'Created Date'),
-                  context.vS,
-                  _buildRow(context, 'Purchase Order No'),
-                  context.vS,
-                  _buildRow(context, 'Procedure No'),
-                  context.vS,
-                  _buildRow(context, 'Notes'),
-                  context.vS,
-                  _buildRow(context, 'Division Name'),
-                  context.vS,
-                  _buildRow(context, 'Address'),
-                  context.vS,
-                  _buildRow(context, 'Allocated Duration'),
-                  context.vS,
-                ],
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildRow(context, 'Job No'),
+                      context.vS,
+                      _buildRow(context, 'Created Date'),
+                      context.vS,
+                      _buildRow(context, 'Purchase Order No'),
+                      context.vS,
+                      _buildRow(context, 'Procedure No'),
+                      context.vS,
+                      _buildRow(context, 'Notes'),
+                      context.vS,
+                      _buildRow(context, 'Division Name'),
+                      context.vS,
+                      _buildRow(context, 'Address'),
+                      context.vS,
+                      _buildRow(context, 'Allocated Duration'),
+                      context.vS,
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
-          context.hXl,
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildRow(context, 'Est. Inspection Duration'),
-                  context.vS,
-                  _buildRow(context, 'Est. Start Date'),
-                  context.vS,
-                  _buildRow(context, 'Est. End Date'),
-                  context.vS,
-                  _buildRow(context, 'Engineer Complete'),
-                  context.vS,
-                  _buildRow(context, 'Offshore Location'),
-                  context.vS,
-                  _buildRow(context, 'Authenticator'),
-                  context.vS,
-                ],
+              context.hXl,
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildRow(context, 'Est. Inspection Duration'),
+                      context.vS,
+                      _buildRow(context, 'Est. Start Date'),
+                      context.vS,
+                      _buildRow(context, 'Est. End Date'),
+                      context.vS,
+                      _buildRow(context, 'Engineer Complete'),
+                      context.vS,
+                      _buildRow(context, 'Offshore Location'),
+                      context.vS,
+                      _buildRow(context, 'Authenticator'),
+                      context.vS,
+                    ],
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
+          context.vL,
+          CommonButton(text: 'Create', onPressed: () {}),
         ],
       ),
     );

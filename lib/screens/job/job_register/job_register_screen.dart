@@ -1,0 +1,1038 @@
+import 'package:base_app/core/extension/date_time_extension.dart';
+import 'package:base_app/core/extension/theme_extension.dart';
+import 'package:base_app/core/service/navigation_service.dart';
+// Conditional imports - these will only be imported on respective platforms
+import 'package:base_app/core/utils/file_export_stub.dart'
+    if (dart.library.html) 'package:base_app/core/utils/file_export_web.dart'
+    if (dart.library.io) 'package:base_app/core/utils/file_export_mobile.dart';
+import 'package:base_app/model/job_register.dart';
+import 'package:base_app/route/route.dart';
+import 'package:base_app/widget/common_button.dart';
+import 'package:base_app/widget/common_dialog.dart';
+import 'package:base_app/widget/common_textfield.dart';
+import 'package:flutter/material.dart';
+
+class JobRegisterScreen extends StatefulWidget {
+  const JobRegisterScreen({super.key});
+
+  @override
+  State<JobRegisterScreen> createState() => _JobRegisterScreenState();
+}
+
+class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProviderStateMixin {
+  late TabController _tabController;
+  int sortColumnIndex = 0;
+  Set<int> selectedRows = <int>{};
+  bool selectAll = false;
+
+  // Column selection for export
+  Map<String, bool> selectedColumns = {
+    'item': true,
+    'description': true,
+    'category': true,
+    'location': true,
+    'status': true,
+    'inspectedOn': true,
+    'expiryDate': true,
+  };
+
+  final List<Tab> tabs = const [
+    Tab(text: 'Item Register'),
+    Tab(text: 'Inspection Register'),
+    Tab(text: 'Report Approvals'),
+    Tab(text: 'Reporting'),
+    Tab(text: 'Files'),
+    Tab(text: 'Job Progress'),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: tabs.length, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _showColumnSelectionDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(
+                'Select Columns to Export',
+                style: context.topology.textTheme.titleSmall?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CheckboxListTile(
+                      title: Text('Item'),
+                      value: selectedColumns['item'],
+                      onChanged: (value) {
+                        setState(() {
+                          selectedColumns['item'] = value ?? false;
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: Text('Description'),
+                      value: selectedColumns['description'],
+                      onChanged: (value) {
+                        setState(() {
+                          selectedColumns['description'] = value ?? false;
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: Text('Category'),
+                      value: selectedColumns['category'],
+                      onChanged: (value) {
+                        setState(() {
+                          selectedColumns['category'] = value ?? false;
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: Text('Location'),
+                      value: selectedColumns['location'],
+                      onChanged: (value) {
+                        setState(() {
+                          selectedColumns['location'] = value ?? false;
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: Text('Status'),
+                      value: selectedColumns['status'],
+                      onChanged: (value) {
+                        setState(() {
+                          selectedColumns['status'] = value ?? false;
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: Text('Inspected On'),
+                      value: selectedColumns['inspectedOn'],
+                      onChanged: (value) {
+                        setState(() {
+                          selectedColumns['inspectedOn'] = value ?? false;
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: Text('Expiry Date'),
+                      value: selectedColumns['expiryDate'],
+                      onChanged: (value) {
+                        setState(() {
+                          selectedColumns['expiryDate'] = value ?? false;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    this.setState(() {}); // Update main widget state
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Apply'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showExportDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Export Data',
+            style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
+          ),
+          content: Text(
+            'Export ${selectedRows.length} selected rows to CSV file?',
+            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await _exportToCSV();
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('CSV file exported successfully!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+              child: Text('Export'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _exportToCSV() async {
+    if (selectedRows.isEmpty) return;
+
+    // Generate CSV content
+    List<String> headers = [];
+    if (selectedColumns['item'] == true) headers.add('Item');
+    if (selectedColumns['description'] == true) headers.add('Description');
+    if (selectedColumns['category'] == true) headers.add('Category');
+    if (selectedColumns['location'] == true) headers.add('Location');
+    if (selectedColumns['status'] == true) headers.add('Status');
+    if (selectedColumns['inspectedOn'] == true) headers.add('Inspected On');
+    if (selectedColumns['expiryDate'] == true) headers.add('Expiry Date');
+
+    List<List<String>> rows = [headers];
+
+    for (int index in selectedRows) {
+      final data = _getFilteredList()[index];
+      List<String> row = [];
+
+      if (selectedColumns['item'] == true) row.add(_escapeCSVField(data.item));
+      if (selectedColumns['description'] == true) row.add(_escapeCSVField(data.description));
+      if (selectedColumns['category'] == true) row.add(_escapeCSVField(data.category));
+      if (selectedColumns['location'] == true) row.add(_escapeCSVField(data.location));
+      if (selectedColumns['status'] == true) row.add(_escapeCSVField(data.status));
+      if (selectedColumns['inspectedOn'] == true)
+        row.add(_escapeCSVField(data.inspectedOn.formatShortDate));
+      if (selectedColumns['expiryDate'] == true)
+        row.add(_escapeCSVField(data.expiryDate!.formatShortDate));
+
+      rows.add(row);
+    }
+
+    String csvContent = rows.map((row) => row.join(',')).join('\n');
+
+    // Use the platform-specific export function
+    try {
+      await exportCSV(csvContent, context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error exporting file: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  String _escapeCSVField(String field) {
+    if (field.contains(',') || field.contains('"') || field.contains('\n')) {
+      return '"${field.replaceAll('"', '""')}"';
+    }
+    return field;
+  }
+
+  // Filter list based on current tab
+  List<JobRegisterModel> _getFilteredList() {
+    switch (_tabController.index) {
+      case 0: // All Items
+        return _list;
+      case 1: // Active
+        return _list.where((item) => item.status.toLowerCase() == 'accepted').toList();
+      case 2: // Pending
+        return _list.where((item) => item.status.toLowerCase() == 'pending').toList();
+      case 3: // Archived
+        return _list.where((item) => item.archived.toLowerCase() == 'archived').toList();
+      default:
+        return _list;
+    }
+  }
+
+  // Sample data
+  final List<JobRegisterModel> _list = [
+    JobRegisterModel(
+      id: '001',
+      item: 'Fire Extinguisher',
+      description: 'Class A fire extinguisher for office use',
+      category: 'Safety Equipment',
+      location: 'Office Floor 1',
+      status: 'Accepted',
+      inspectedOn: DateTime.now(),
+      expiryDate: DateTime.now(),
+      archived: 'Active',
+    ),
+    JobRegisterModel(
+      id: '002',
+      item: 'First Aid Kit',
+      description: 'Emergency medical supplies kit',
+      category: 'Medical Supplies',
+      location: 'Kitchen Area',
+      status: 'Pending',
+      inspectedOn: DateTime.now(),
+      expiryDate: DateTime.now(),
+      archived: 'Active',
+    ),
+    JobRegisterModel(
+      id: '003',
+      item: 'Laptop Computer',
+      description: 'Dell Latitude 5520 for development work',
+      category: 'Electronics',
+      location: 'Development Lab',
+      status: 'Accepted',
+      inspectedOn: DateTime.now(),
+      expiryDate: DateTime.now(),
+      archived: 'Archived',
+    ),
+    // Add more sample data...
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Job Register',
+          style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
+        ),
+        centerTitle: true,
+        iconTheme: IconThemeData(color: context.colors.primary),
+        backgroundColor: context.colors.onPrimary,
+        leading: IconButton(
+          onPressed: () {
+            NavigationService().goBack();
+          },
+          icon: Icon(Icons.chevron_left),
+        ),
+      ),
+      body: Padding(
+        padding: context.paddingHorizontal,
+        child: Column(
+          children: [
+            // Tab bar
+            Container(
+              color: Colors.white,
+              child: TabBar(
+                controller: _tabController,
+                tabs: tabs,
+                labelColor: context.colors.primary,
+                unselectedLabelColor: Colors.grey,
+                indicatorColor: context.colors.primary,
+                indicatorWeight: 3,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                padding: EdgeInsets.zero,
+                onTap: (index) {
+                  setState(() {
+                    // Clear selections when switching tabs
+                    selectedRows.clear();
+                    selectAll = false;
+                  });
+                },
+              ),
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildTabContent(), // All Items
+                  _buildTabContent(), // Active
+                  _buildTabContent(), // Pending
+                  _buildTabContent(), // Archived
+                  _buildTabContent(),
+                  _buildTabContent(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: _buildFloatingActionButton(context),
+    );
+  }
+
+  Widget _buildActionButton(
+    BuildContext context,
+    String text,
+    IconData icon,
+    Color color,
+    VoidCallback onPressed,
+  ) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 16),
+      label: Text(text),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        textStyle: context.topology.textTheme.bodySmall,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      ),
+    );
+  }
+
+  Widget _buildToggleButton(
+    BuildContext context,
+    String text,
+    bool isActive,
+    VoidCallback onPressed,
+  ) {
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        backgroundColor: isActive ? Colors.teal : Colors.transparent,
+        foregroundColor: isActive ? Colors.white : Colors.grey[700],
+        side: BorderSide(color: isActive ? Colors.teal : Colors.grey[400]!, width: 1),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        textStyle: context.topology.textTheme.bodySmall,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      ),
+      child: Text(text),
+    );
+  }
+
+  Widget _buildTabContent() {
+    final filteredList = _getFilteredList();
+
+    if (filteredList.isEmpty) {
+      return Center(
+        child: Text(
+          'No items found',
+          style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
+        ),
+      );
+    }
+
+    return context.isTablet
+        ? _buildTabletView(context, filteredList)
+        : _buildMobileView(context, filteredList);
+  }
+
+  Widget _buildTabletView(BuildContext context, List<JobRegisterModel> list) {
+    return Container(
+      padding: const EdgeInsets.only(top: 16),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return ListView(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildActionButton(context, 'Create Item', Icons.add, Colors.blue, () {
+                        // Handle create item action
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text('Create Item clicked')));
+                      }),
+                      const SizedBox(width: 8),
+                      _buildActionButton(
+                        context,
+                        'Export Grid',
+                        Icons.download,
+                        Colors.blue,
+                        () => _showExportDialog(context),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildToggleButton(
+                        context,
+                        'All',
+                        _tabController.index == 0,
+                        () => _tabController.animateTo(0),
+                      ),
+                      const SizedBox(width: 4),
+                      _buildToggleButton(
+                        context,
+                        'Not Inspected',
+                        _tabController.index == 2,
+                        () => _tabController.animateTo(2),
+                      ),
+                      const SizedBox(width: 4),
+                      _buildToggleButton(
+                        context,
+                        'Draft',
+                        false, // You can add draft filtering logic
+                        () {
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text('Draft filter clicked')));
+                        },
+                      ),
+                      const SizedBox(width: 4),
+                      _buildToggleButton(
+                        context,
+                        'Inspected',
+                        _tabController.index == 1,
+                        () => _tabController.animateTo(1),
+                      ),
+                      const SizedBox(width: 4),
+                      _buildToggleButton(
+                        context,
+                        'Include Archived',
+                        _tabController.index == 3,
+                        () => _tabController.animateTo(3),
+                      ),
+                      const SizedBox(width: 4),
+                      _buildToggleButton(
+                        context,
+                        'Items I Can Inspect',
+                        false, // Add your logic here
+                        () {
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text('Items I Can Inspect clicked')));
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      _buildActionButton(
+                        context,
+                        'Column visibility',
+                        Icons.view_column,
+                        Colors.teal,
+                        () => _showColumnSelectionDialog(context),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                child: IntrinsicWidth(
+                  stepWidth: double.infinity,
+                  child: DataTable(
+                    sortColumnIndex: sortColumnIndex,
+                    showCheckboxColumn: true,
+                    columnSpacing: 20,
+                    dataRowMinHeight: 56,
+                    dataRowMaxHeight: 56,
+                    onSelectAll: (value) {
+                      setState(() {
+                        selectAll = value ?? false;
+                        if (selectAll) {
+                          selectedRows = Set<int>.from(
+                            List.generate(list.length, (index) => index),
+                          );
+                        } else {
+                          selectedRows.clear();
+                        }
+                      });
+                    },
+                    columns: [
+                      DataColumn(
+                        label: Expanded(
+                          child: Text(
+                            'Item',
+                            style: context.topology.textTheme.titleSmall?.copyWith(
+                              color: context.colors.primary,
+                            ),
+                          ),
+                        ),
+                        onSort: (columnIndex, _) {
+                          setState(() {
+                            sortColumnIndex = columnIndex;
+                            list.sort((a, b) => a.item.compareTo(b.item));
+                          });
+                        },
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          flex: 2,
+                          child: Text(
+                            'Description',
+                            style: context.topology.textTheme.titleSmall?.copyWith(
+                              color: context.colors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Text(
+                            'Category',
+                            style: context.topology.textTheme.titleSmall?.copyWith(
+                              color: context.colors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Text(
+                            'Location',
+                            style: context.topology.textTheme.titleSmall?.copyWith(
+                              color: context.colors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text(
+                              'Status',
+                              style: context.topology.textTheme.titleSmall?.copyWith(
+                                color: context.colors.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Text(
+                            'Inspected On',
+                            style: context.topology.textTheme.titleSmall?.copyWith(
+                              color: context.colors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Text(
+                            'Expiry Date',
+                            style: context.topology.textTheme.titleSmall?.copyWith(
+                              color: context.colors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                    rows: List.generate(list.length, (index) {
+                      final data = list[index];
+                      final isEven = index % 2 == 0;
+
+                      return DataRow(
+                        selected: selectedRows.contains(index),
+                        onSelectChanged: (selected) {
+                          setState(() {
+                            if (selected == true) {
+                              selectedRows.add(index);
+                            } else {
+                              selectedRows.remove(index);
+                            }
+                            selectAll = selectedRows.length == list.length;
+                          });
+                        },
+                        color: MaterialStateProperty.resolveWith<Color?>((
+                          Set<MaterialState> states,
+                        ) {
+                          return isEven ? context.colors.primary.withOpacity(0.05) : null;
+                        }),
+                        cells: [
+                          DataCell(
+                            InkWell(
+                              onTap: () {
+                                NavigationService().navigateTo(
+                                  AppRoutes.jobItemDetails,
+                                  arguments: {'item': data.item, 'site': data.location},
+                                );
+                              },
+                              child: Text(
+                                data.item,
+                                style: context.topology.textTheme.bodySmall?.copyWith(
+                                  color: context.colors.primary,
+                                ),
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            Text(
+                              data.description,
+                              style: context.topology.textTheme.bodySmall?.copyWith(
+                                color: context.colors.primary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
+                            ),
+                          ),
+                          DataCell(
+                            Text(
+                              data.category,
+                              style: context.topology.textTheme.bodySmall?.copyWith(
+                                color: context.colors.primary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
+                            ),
+                          ),
+                          DataCell(
+                            Text(
+                              data.location,
+                              style: context.topology.textTheme.bodySmall?.copyWith(
+                                color: context.colors.primary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
+                            ),
+                          ),
+                          DataCell(
+                            Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: _getStatusColor(data.status),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  data.status,
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.onPrimary,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            Text(
+                              data.inspectedOn.formatShortDate,
+                              style: context.topology.textTheme.bodySmall?.copyWith(
+                                color: context.colors.primary,
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            Text(
+                              data.expiryDate?.formatShortDate ?? '',
+                              style: context.topology.textTheme.bodySmall?.copyWith(
+                                color: context.colors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildMobileView(BuildContext context, List<JobRegisterModel> list) {
+    return Container(
+      padding: const EdgeInsets.only(top: 16),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          sortColumnIndex: sortColumnIndex,
+          showCheckboxColumn: true,
+          onSelectAll: (value) {
+            setState(() {
+              selectAll = value ?? false;
+              if (selectAll) {
+                selectedRows = Set<int>.from(List.generate(list.length, (index) => index));
+              } else {
+                selectedRows.clear();
+              }
+            });
+          },
+          columns: [
+            DataColumn(
+              label: Text(
+                'Item',
+                style: context.topology.textTheme.titleSmall?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Description',
+                style: context.topology.textTheme.titleSmall?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Category',
+                style: context.topology.textTheme.titleSmall?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Location',
+                style: context.topology.textTheme.titleSmall?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Status',
+                style: context.topology.textTheme.titleSmall?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Inspected On',
+                style: context.topology.textTheme.titleSmall?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Expiry Date',
+                style: context.topology.textTheme.titleSmall?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
+            ),
+          ],
+          rows: List.generate(list.length, (index) {
+            final data = list[index];
+            final isEven = index % 2 == 0;
+
+            return DataRow(
+              selected: selectedRows.contains(index),
+              onSelectChanged: (selected) {
+                setState(() {
+                  if (selected == true) {
+                    selectedRows.add(index);
+                  } else {
+                    selectedRows.remove(index);
+                  }
+                  selectAll = selectedRows.length == list.length;
+                });
+              },
+              color: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+                return isEven ? context.colors.primary.withOpacity(0.05) : null;
+              }),
+              cells: [
+                DataCell(
+                  Text(
+                    data.item,
+                    style: context.topology.textTheme.bodySmall?.copyWith(
+                      color: context.colors.primary,
+                    ),
+                  ),
+                ),
+                DataCell(
+                  Text(
+                    data.description,
+                    style: context.topology.textTheme.bodySmall?.copyWith(
+                      color: context.colors.primary,
+                    ),
+                  ),
+                ),
+                DataCell(
+                  Text(
+                    data.category,
+                    style: context.topology.textTheme.bodySmall?.copyWith(
+                      color: context.colors.primary,
+                    ),
+                  ),
+                ),
+                DataCell(
+                  Text(
+                    data.location,
+                    style: context.topology.textTheme.bodySmall?.copyWith(
+                      color: context.colors.primary,
+                    ),
+                  ),
+                ),
+                DataCell(
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(data.status),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      data.status,
+                      style: context.topology.textTheme.bodySmall?.copyWith(
+                        color: context.colors.onPrimary,
+                      ),
+                    ),
+                  ),
+                ),
+                DataCell(
+                  Text(
+                    data.inspectedOn.formatShortDate,
+                    style: context.topology.textTheme.bodySmall?.copyWith(
+                      color: context.colors.primary,
+                    ),
+                  ),
+                ),
+                DataCell(
+                  Text(
+                    data.expiryDate?.formatShortDate ?? '',
+                    style: context.topology.textTheme.bodySmall?.copyWith(
+                      color: context.colors.primary,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFloatingActionButton(BuildContext context) {
+    return FloatingActionButton(
+      onPressed: () {
+        CommonDialog.show(
+          context,
+          widget: SizedBox(
+            height: context.screenHeight / 2,
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        'Item',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: CommonTextField(
+                        hintText: 'Item Name',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                context.vS,
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        'Category',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: CommonTextField(
+                        hintText: 'Category',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                context.vS,
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        'Location',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: CommonTextField(
+                        hintText: 'Location',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                context.vS,
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        'Status',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: CommonTextField(
+                        hintText: 'Status',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                context.vL,
+                CommonButton(
+                  text: 'Search',
+                  onPressed: () {
+                    NavigationService().goBack();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      tooltip: 'Search',
+      backgroundColor: context.colors.primary,
+      child: const Icon(Icons.search),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'accepted':
+        return Colors.green;
+      case 'pending':
+        return Colors.orange;
+      case 'rejected':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+}
