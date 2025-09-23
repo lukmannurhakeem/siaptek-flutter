@@ -26,6 +26,9 @@ class Endpoint {
   static const String categoryView = '/category/view';
   static const String categoryCreate = '/category/create';
 
+  //personnel
+  static const String personnelView = '/personnel/view';
+
   static String categoryViewById({String? categoryId}) {
     return categoryId != null ? '/category/$categoryId' : '/category';
   }

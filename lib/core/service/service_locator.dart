@@ -6,6 +6,8 @@ import 'package:base_app/repositories/customer/customer_impl.dart';
 import 'package:base_app/repositories/customer/customer_repository.dart';
 import 'package:base_app/repositories/job/job_impl.dart';
 import 'package:base_app/repositories/job/job_repository.dart';
+import 'package:base_app/repositories/personnel/personnel_impl.dart';
+import 'package:base_app/repositories/personnel/personnel_repository.dart';
 import 'package:base_app/repositories/site/site_impl.dart';
 import 'package:base_app/repositories/site/site_repository.dart';
 import 'package:base_app/repositories/system/system.impl.dart';
@@ -27,6 +29,7 @@ class ServiceLocator {
   SystemRepository? _systemRepository;
   JobRepository? _jobRepository;
   CategoryRepository? _categoryRepository;
+  PersonnelRepository? _personnelRepository;
 
   void setupRepositories() {
     final dio =
@@ -41,6 +44,7 @@ class ServiceLocator {
     _systemRepository = SystemImpl(apiClient);
     _jobRepository = JobImpl(apiClient);
     _categoryRepository = CategoryImpl(apiClient);
+    _personnelRepository = PersonnelImpl(apiClient);
   }
 
   UserRepository get userRepository {
@@ -83,5 +87,12 @@ class ServiceLocator {
       setupRepositories();
     }
     return _categoryRepository!;
+  }
+
+  PersonnelRepository get personnelRepository {
+    if (_personnelRepository == null) {
+      setupRepositories();
+    }
+    return _personnelRepository!;
   }
 }

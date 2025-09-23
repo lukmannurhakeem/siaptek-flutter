@@ -6,6 +6,7 @@ import 'package:base_app/providers/authenticate_provider.dart';
 import 'package:base_app/providers/category_provider.dart';
 import 'package:base_app/providers/customer_provider.dart';
 import 'package:base_app/providers/job_provider.dart';
+import 'package:base_app/providers/personnel_provider.dart';
 import 'package:base_app/providers/site_provider.dart';
 import 'package:base_app/providers/system_provider.dart';
 import 'package:base_app/route/route.dart';
@@ -35,6 +36,7 @@ void mainCommon(FlavorType flavor) async {
         ChangeNotifierProvider(create: (_) => SystemProvider()),
         ChangeNotifierProvider(create: (_) => JobProvider()),
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
+        ChangeNotifierProvider(create: (_) => PersonnelProvider()),
         // Add more providers here if needed
       ],
       child: const MyApp(),

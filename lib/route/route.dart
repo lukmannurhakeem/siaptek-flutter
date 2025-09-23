@@ -140,7 +140,11 @@ class AppRoutes {
         );
 
       case personnelDetails:
-        return MaterialPageRoute(builder: (_) => const PersonnelDetailScreen(), settings: settings);
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => PersonnelDetailScreen(personnelId: args?['personnelId']),
+          settings: settings,
+        );
 
       case site:
         return MaterialPageRoute(builder: (_) => const SiteScreen(), settings: settings);
