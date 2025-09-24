@@ -9,6 +9,7 @@ import 'package:base_app/screens/dashboard/dashboard_screen.dart';
 import 'package:base_app/screens/home_screen.dart';
 import 'package:base_app/screens/job/job_add_new_details_screen.dart';
 import 'package:base_app/screens/job/job_add_new_screen.dart';
+import 'package:base_app/screens/job/job_item_create/job_item_create_screen.dart';
 import 'package:base_app/screens/job/job_item_details/job_item_details_screen.dart';
 import 'package:base_app/screens/job/job_register/job_register_screen.dart';
 import 'package:base_app/screens/job/job_screen.dart';
@@ -44,6 +45,7 @@ class AppRoutes {
   static const String jobAddNewScreen = '/jobAddNewScreen';
   static const String jobAddNewDetailsScreen = '/jobAddNewDetailsScreen';
   static const String jobItemDetails = '/jobItemOverview';
+  static const String jobItemCreateScreen = '/jobItemCreateScreen';
 
   static const String personnel = '/personnel';
   static const String teamPersonnel = '/teamPersonnel';
@@ -123,6 +125,9 @@ class AppRoutes {
               (_) => JobItemDetailsScreen(item: args?['item'] ?? '', site: args?['site'] ?? ''),
           settings: settings,
         );
+
+      case jobItemCreateScreen:
+        return MaterialPageRoute(builder: (_) => const JobItemCreateScreen(), settings: settings);
 
       case personnel:
         return MaterialPageRoute(builder: (_) => const PersonnelScreen(), settings: settings);

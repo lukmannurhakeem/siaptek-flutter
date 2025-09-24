@@ -431,10 +431,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                   child: Row(
                     children: [
                       _buildActionButton(context, 'Create Item', Icons.add, Colors.blue, () {
-                        // Handle create item action
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text('Create Item clicked')));
+                        NavigationService().navigateTo(AppRoutes.jobItemCreateScreen);
                       }),
                       const SizedBox(width: 8),
                       _buildActionButton(
