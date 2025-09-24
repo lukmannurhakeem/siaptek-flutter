@@ -21,6 +21,7 @@ class Endpoint {
 
   //job
   static const String jobView = '/job/view';
+  static const String jobRegister = '/jobitems/view';
 
   //category
   static const String categoryView = '/category/view';

@@ -12,9 +12,9 @@ import 'package:base_app/screens/personnel/personnel_team_screen.dart';
 import 'package:base_app/screens/planner/planner_screen.dart';
 import 'package:base_app/screens/planner/team_planner_screen.dart';
 import 'package:base_app/screens/profile/profile_screen.dart';
+import 'package:base_app/screens/settings/access/accesss_screen.dart';
 import 'package:base_app/screens/settings/company/division_screen.dart';
 import 'package:base_app/screens/settings/report_setup/report_types_screen.dart';
-import 'package:base_app/screens/settings/report_setup_screen.dart';
 import 'package:base_app/screens/site/site_screen.dart';
 import 'package:base_app/widget/welcome_dialog.dart';
 import 'package:flutter/material.dart';
@@ -105,12 +105,12 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: Icons.report,
           index: 17,
           children: [
-            MenuItem(
-              title: 'Divisions',
-              icon: Icons.view_array,
-              index: 23,
-              screen: ReportSetupScreen(),
-            ),
+            // MenuItem(
+            //   title: 'Divisions',
+            //   icon: Icons.view_array,
+            //   index: 23,
+            //   screen: ReportSetupScreen(),
+            // ),
             MenuItem(
               title: 'Report Type',
               icon: Icons.view_array,
@@ -132,7 +132,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        // MenuItem(title: 'Access', icon: Icons.accessibility, index: 19, screen: AccessScreen()),
+        MenuItem(
+          title: 'Access',
+          icon: Icons.accessibility,
+          index: 19,
+          children: [
+            MenuItem(title: 'Logins', icon: Icons.view_array, index: 20, screen: AccessScreen()),
+          ],
+          // screen: AccessScreen()
+        ),
         // MenuItem(
         //   title: 'Administration Tools',
         //   icon: Icons.admin_panel_settings,

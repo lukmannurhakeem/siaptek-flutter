@@ -95,7 +95,7 @@ class _JobItemDetailsScreenState extends State<JobItemDetailsScreen> with Ticker
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  ItemOverviewScreen(),
+                  ItemOverviewScreen(jobId: widget.item, siteId: widget.site),
                   ItemFilesScreen(),
                   ItemReportScreen(),
                   ItemCyclesScreen(),

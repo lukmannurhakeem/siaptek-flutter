@@ -6,11 +6,13 @@ import 'package:base_app/core/utils/file_export_stub.dart'
     if (dart.library.html) 'package:base_app/core/utils/file_export_web.dart'
     if (dart.library.io) 'package:base_app/core/utils/file_export_mobile.dart';
 import 'package:base_app/model/job_register.dart';
+import 'package:base_app/providers/job_provider.dart';
 import 'package:base_app/route/route.dart';
 import 'package:base_app/widget/common_button.dart';
 import 'package:base_app/widget/common_dialog.dart';
 import 'package:base_app/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class JobRegisterScreen extends StatefulWidget {
   const JobRegisterScreen({super.key});
@@ -24,6 +26,8 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
   int sortColumnIndex = 0;
   Set<int> selectedRows = <int>{};
   bool selectAll = false;
+  String searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
 
   // Column selection for export
   Map<String, bool> selectedColumns = {
@@ -49,6 +53,10 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
   void initState() {
     super.initState();
     _tabController = TabController(length: tabs.length, vsync: this);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<JobProvider>().fetchJobRegisterModel(context);
+    });
   }
 
   @override
@@ -205,6 +213,9 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
   Future<void> _exportToCSV() async {
     if (selectedRows.isEmpty) return;
 
+    final provider = context.read<JobProvider>();
+    final filteredList = provider.searchItems(searchQuery, _tabController.index);
+
     // Generate CSV content
     List<String> headers = [];
     if (selectedColumns['item'] == true) headers.add('Item');
@@ -218,18 +229,20 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
     List<List<String>> rows = [headers];
 
     for (int index in selectedRows) {
-      final data = _getFilteredList()[index];
+      if (index >= filteredList.length) continue;
+      final data = filteredList[index];
       List<String> row = [];
 
-      if (selectedColumns['item'] == true) row.add(_escapeCSVField(data.item));
-      if (selectedColumns['description'] == true) row.add(_escapeCSVField(data.description));
-      if (selectedColumns['category'] == true) row.add(_escapeCSVField(data.category));
-      if (selectedColumns['location'] == true) row.add(_escapeCSVField(data.location));
-      if (selectedColumns['status'] == true) row.add(_escapeCSVField(data.status));
+      if (selectedColumns['item'] == true) row.add(_escapeCSVField(data.itemNo ?? ''));
+      if (selectedColumns['description'] == true) row.add(_escapeCSVField(data.description ?? ''));
+      if (selectedColumns['category'] == true) row.add(_escapeCSVField(data.categoryId ?? ''));
+      if (selectedColumns['location'] == true)
+        row.add(_escapeCSVField(data.detailedLocation ?? ''));
+      if (selectedColumns['status'] == true) row.add(_escapeCSVField(data.status ?? ''));
       if (selectedColumns['inspectedOn'] == true)
-        row.add(_escapeCSVField(data.inspectedOn.formatShortDate));
+        row.add(_escapeCSVField(data.firstUseDate?.formatShortDate ?? ''));
       if (selectedColumns['expiryDate'] == true)
-        row.add(_escapeCSVField(data.expiryDate!.formatShortDate));
+        row.add(_escapeCSVField(data.expiryDateTimeStamp?.formatShortDate ?? ''));
 
       rows.add(row);
     }
@@ -255,60 +268,6 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
     return field;
   }
 
-  // Filter list based on current tab
-  List<JobRegisterModel> _getFilteredList() {
-    switch (_tabController.index) {
-      case 0: // All Items
-        return _list;
-      case 1: // Active
-        return _list.where((item) => item.status.toLowerCase() == 'accepted').toList();
-      case 2: // Pending
-        return _list.where((item) => item.status.toLowerCase() == 'pending').toList();
-      case 3: // Archived
-        return _list.where((item) => item.archived.toLowerCase() == 'archived').toList();
-      default:
-        return _list;
-    }
-  }
-
-  // Sample data
-  final List<JobRegisterModel> _list = [
-    JobRegisterModel(
-      id: '001',
-      item: 'Fire Extinguisher',
-      description: 'Class A fire extinguisher for office use',
-      category: 'Safety Equipment',
-      location: 'Office Floor 1',
-      status: 'Accepted',
-      inspectedOn: DateTime.now(),
-      expiryDate: DateTime.now(),
-      archived: 'Active',
-    ),
-    JobRegisterModel(
-      id: '002',
-      item: 'First Aid Kit',
-      description: 'Emergency medical supplies kit',
-      category: 'Medical Supplies',
-      location: 'Kitchen Area',
-      status: 'Pending',
-      inspectedOn: DateTime.now(),
-      expiryDate: DateTime.now(),
-      archived: 'Active',
-    ),
-    JobRegisterModel(
-      id: '003',
-      item: 'Laptop Computer',
-      description: 'Dell Latitude 5520 for development work',
-      category: 'Electronics',
-      location: 'Development Lab',
-      status: 'Accepted',
-      inspectedOn: DateTime.now(),
-      expiryDate: DateTime.now(),
-      archived: 'Archived',
-    ),
-    // Add more sample data...
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -327,47 +286,74 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
           icon: Icon(Icons.chevron_left),
         ),
       ),
-      body: Padding(
-        padding: context.paddingHorizontal,
-        child: Column(
-          children: [
-            // Tab bar
-            Container(
-              color: Colors.white,
-              child: TabBar(
-                controller: _tabController,
-                tabs: tabs,
-                labelColor: context.colors.primary,
-                unselectedLabelColor: Colors.grey,
-                indicatorColor: context.colors.primary,
-                indicatorWeight: 3,
-                isScrollable: true,
-                tabAlignment: TabAlignment.start,
-                padding: EdgeInsets.zero,
-                onTap: (index) {
-                  setState(() {
-                    // Clear selections when switching tabs
-                    selectedRows.clear();
-                    selectAll = false;
-                  });
-                },
-              ),
-            ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
+      body: Consumer<JobProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          if (provider.error != null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildTabContent(), // All Items
-                  _buildTabContent(), // Active
-                  _buildTabContent(), // Pending
-                  _buildTabContent(), // Archived
-                  _buildTabContent(),
-                  _buildTabContent(),
+                  Text(
+                    'Error loading data: ${provider.error}',
+                    style: context.topology.textTheme.bodyMedium?.copyWith(color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => provider.fetchJobRegisterModel(context),
+                    child: Text('Retry'),
+                  ),
                 ],
               ),
+            );
+          }
+          return Padding(
+            padding: context.paddingHorizontal,
+            child: Column(
+              children: [
+                // Tab bar
+                Container(
+                  color: Colors.white,
+                  child: TabBar(
+                    controller: _tabController,
+                    tabs: tabs,
+                    labelColor: context.colors.primary,
+                    unselectedLabelColor: Colors.grey,
+                    indicatorColor: context.colors.primary,
+                    indicatorWeight: 3,
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.start,
+                    padding: EdgeInsets.zero,
+                    onTap: (index) {
+                      setState(() {
+                        // Clear selections when switching tabs
+                        selectedRows.clear();
+                        selectAll = false;
+                      });
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildTabContent(provider), // All Items
+                      _buildTabContent(provider), // Active
+                      _buildTabContent(provider), // Pending
+                      _buildTabContent(provider), // Archived
+                      _buildTabContent(provider),
+                      _buildTabContent(provider),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
       floatingActionButton: _buildFloatingActionButton(context),
     );
@@ -414,10 +400,10 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
     );
   }
 
-  Widget _buildTabContent() {
-    final filteredList = _getFilteredList();
+  Widget _buildTabContent(JobProvider provider) {
+    final filteredList = provider.searchItems(searchQuery, _tabController.index);
 
-    if (filteredList.isEmpty) {
+    if (filteredList.isEmpty && !provider.isLoading) {
       return Center(
         child: Text(
           'No items found',
@@ -431,7 +417,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
         : _buildMobileView(context, filteredList);
   }
 
-  Widget _buildTabletView(BuildContext context, List<JobRegisterModel> list) {
+  Widget _buildTabletView(BuildContext context, List<Item> list) {
     return Container(
       padding: const EdgeInsets.only(top: 16),
       child: LayoutBuilder(
@@ -552,12 +538,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                             ),
                           ),
                         ),
-                        onSort: (columnIndex, _) {
-                          setState(() {
-                            sortColumnIndex = columnIndex;
-                            list.sort((a, b) => a.item.compareTo(b.item));
-                          });
-                        },
+                        onSort: (columnIndex, _) {},
                       ),
                       DataColumn(
                         label: Expanded(
@@ -650,11 +631,11 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                               onTap: () {
                                 NavigationService().navigateTo(
                                   AppRoutes.jobItemDetails,
-                                  arguments: {'item': data.item, 'site': data.location},
+                                  arguments: {'item': data.jobId, 'site': data.locationId},
                                 );
                               },
                               child: Text(
-                                data.item,
+                                data.itemId ?? '-',
                                 style: context.topology.textTheme.bodySmall?.copyWith(
                                   color: context.colors.primary,
                                 ),
@@ -663,7 +644,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                           ),
                           DataCell(
                             Text(
-                              data.description,
+                              data.description ?? '-',
                               style: context.topology.textTheme.bodySmall?.copyWith(
                                 color: context.colors.primary,
                               ),
@@ -673,7 +654,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                           ),
                           DataCell(
                             Text(
-                              data.category,
+                              data.categoryId ?? '-',
                               style: context.topology.textTheme.bodySmall?.copyWith(
                                 color: context.colors.primary,
                               ),
@@ -683,7 +664,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                           ),
                           DataCell(
                             Text(
-                              data.location,
+                              data.locationId ?? '-',
                               style: context.topology.textTheme.bodySmall?.copyWith(
                                 color: context.colors.primary,
                               ),
@@ -696,11 +677,11 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: _getStatusColor(data.status),
+                                  color: _getStatusColor(data.status ?? ''),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  data.status,
+                                  data.status ?? '-',
                                   style: context.topology.textTheme.bodySmall?.copyWith(
                                     color: context.colors.onPrimary,
                                   ),
@@ -711,7 +692,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                           ),
                           DataCell(
                             Text(
-                              data.inspectedOn.formatShortDate,
+                              data.expiryDateTimeStamp?.formatShortDate ?? '-',
                               style: context.topology.textTheme.bodySmall?.copyWith(
                                 color: context.colors.primary,
                               ),
@@ -719,7 +700,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                           ),
                           DataCell(
                             Text(
-                              data.expiryDate?.formatShortDate ?? '',
+                              data.expiryDateTimeStamp?.formatShortDate ?? '',
                               style: context.topology.textTheme.bodySmall?.copyWith(
                                 color: context.colors.primary,
                               ),
@@ -738,7 +719,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
     );
   }
 
-  Widget _buildMobileView(BuildContext context, List<JobRegisterModel> list) {
+  Widget _buildMobileView(BuildContext context, List<Item> list) {
     return Container(
       padding: const EdgeInsets.only(top: 16),
       child: SingleChildScrollView(
@@ -836,7 +817,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
               cells: [
                 DataCell(
                   Text(
-                    data.item,
+                    data.itemId ?? '-',
                     style: context.topology.textTheme.bodySmall?.copyWith(
                       color: context.colors.primary,
                     ),
@@ -844,7 +825,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                 ),
                 DataCell(
                   Text(
-                    data.description,
+                    data.description ?? '-',
                     style: context.topology.textTheme.bodySmall?.copyWith(
                       color: context.colors.primary,
                     ),
@@ -852,7 +833,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                 ),
                 DataCell(
                   Text(
-                    data.category,
+                    data.categoryId ?? '-',
                     style: context.topology.textTheme.bodySmall?.copyWith(
                       color: context.colors.primary,
                     ),
@@ -860,7 +841,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                 ),
                 DataCell(
                   Text(
-                    data.location,
+                    data.locationId ?? '-',
                     style: context.topology.textTheme.bodySmall?.copyWith(
                       color: context.colors.primary,
                     ),
@@ -870,11 +851,11 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(data.status),
+                      color: _getStatusColor(data.status ?? ''),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      data.status,
+                      data.status ?? '-',
                       style: context.topology.textTheme.bodySmall?.copyWith(
                         color: context.colors.onPrimary,
                       ),
@@ -883,7 +864,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                 ),
                 DataCell(
                   Text(
-                    data.inspectedOn.formatShortDate,
+                    data.expiryDateTimeStamp?.formatShortDate ?? '-',
                     style: context.topology.textTheme.bodySmall?.copyWith(
                       color: context.colors.primary,
                     ),
@@ -891,7 +872,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                 ),
                 DataCell(
                   Text(
-                    data.expiryDate?.formatShortDate ?? '',
+                    data.expiryDateTimeStamp?.formatShortDate ?? '',
                     style: context.topology.textTheme.bodySmall?.copyWith(
                       color: context.colors.primary,
                     ),

@@ -1,13 +1,36 @@
 import 'package:base_app/core/extension/date_time_extension.dart';
 import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/service/navigation_service.dart';
-import 'package:base_app/model/job_register.dart';
 import 'package:base_app/providers/category_provider.dart'; // Import your CategoryItem
 import 'package:base_app/route/route.dart';
 import 'package:base_app/widget/common_button.dart';
 import 'package:base_app/widget/common_dialog.dart';
 import 'package:base_app/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
+
+class JobRegisterModel {
+  final String id;
+  final String item;
+  final String description;
+  final String category;
+  final String location;
+  final String status;
+  final DateTime inspectedOn;
+  final DateTime? expiryDate;
+  final String archived;
+
+  JobRegisterModel({
+    required this.id,
+    required this.item,
+    required this.description,
+    required this.category,
+    required this.location,
+    required this.status,
+    required this.inspectedOn,
+    required this.expiryDate,
+    required this.archived,
+  });
+}
 
 class CategoryDetails extends StatefulWidget {
   const CategoryDetails({super.key});
