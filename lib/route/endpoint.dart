@@ -22,6 +22,7 @@ class Endpoint {
   //job
   static const String jobView = '/job/view';
   static const String jobRegister = '/jobitems/view';
+  static const String jobItemCreate = '/jobitems/create';
 
   //category
   static const String categoryView = '/category/view';
@@ -29,6 +30,7 @@ class Endpoint {
 
   //personnel
   static const String personnelView = '/personnel/view';
+  static const String personnelCreate = '/personnel/create';
 
   static String categoryViewById({String? categoryId}) {
     return categoryId != null ? '/category/$categoryId' : '/category';

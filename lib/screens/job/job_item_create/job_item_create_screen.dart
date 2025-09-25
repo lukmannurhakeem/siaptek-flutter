@@ -1,12 +1,15 @@
 import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/providers/category_provider.dart';
+import 'package:base_app/providers/job_provider.dart';
 import 'package:base_app/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class JobItemCreateScreen extends StatefulWidget {
-  const JobItemCreateScreen({super.key});
+  final String jobId;
+
+  const JobItemCreateScreen({super.key, required this.jobId});
 
   @override
   State<JobItemCreateScreen> createState() => _JobItemCreateScreenState();
@@ -18,6 +21,13 @@ class _JobItemCreateScreenState extends State<JobItemCreateScreen> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _detailedLocationController = TextEditingController();
+
+  final TextEditingController _internalNotesController = TextEditingController();
+  final TextEditingController _externalNotesController = TextEditingController();
+  final TextEditingController _manufacturerController = TextEditingController();
+  final TextEditingController _manufacturerAddressController = TextEditingController();
+  final TextEditingController _manufacturerDateController = TextEditingController();
+  final TextEditingController _firstUseDateController = TextEditingController();
 
   CategoryItem? _selectedCategory;
 
@@ -122,17 +132,17 @@ class _JobItemCreateScreenState extends State<JobItemCreateScreen> {
         context.vM,
         _buildRow(context, 'Detailed Location', _detailedLocationController, maxLines: 2),
         context.vM,
-        _buildRow(context, 'Internal Notes', _descriptionController, maxLines: 3),
+        _buildRow(context, 'Internal Notes', _internalNotesController, maxLines: 3),
         context.vM,
-        _buildRow(context, 'External Notes', _descriptionController, maxLines: 3),
+        _buildRow(context, 'External Notes', _externalNotesController, maxLines: 3),
         context.vM,
-        _buildRow(context, 'Manufacturer', _descriptionController, maxLines: 3),
+        _buildRow(context, 'Manufacturer', _manufacturerController, maxLines: 3),
         context.vM,
-        _buildRow(context, 'Manufacturer Address', _descriptionController, maxLines: 3),
+        _buildRow(context, 'Manufacturer Address', _manufacturerAddressController, maxLines: 3),
         context.vM,
-        _buildRow(context, 'Manufacture Date', _locationController),
+        _buildRow(context, 'Manufacture Date', _manufacturerDateController),
         context.vM,
-        _buildRow(context, 'First Use Date', _locationController),
+        _buildRow(context, 'First Use Date', _firstUseDateController),
       ],
     );
   }
@@ -223,24 +233,23 @@ class _JobItemCreateScreenState extends State<JobItemCreateScreen> {
       return;
     }
 
-    // TODO: Implement save logic here
-    // You can access the form data like this:
     final jobItemData = {
-      'categoryId': _selectedCategory!.id,
+      'jobID': widget.jobId,
       'categoryName': _selectedCategory!.name,
+      "categoryID": _selectedCategory!.id,
       'itemNo': _itemNoController.text.trim(),
       'description': _descriptionController.text.trim(),
       'location': _locationController.text.trim(),
       'detailedLocation': _detailedLocationController.text.trim(),
+      "internalNotes": _internalNotesController.text.trim(),
+      "externalNotes": _externalNotesController.text.trim(),
+      "manufacturer": _manufacturerDateController.text.trim(),
+      "manufacturerAddress": _manufacturerAddressController.text.trim(),
+      // "manufacturerDate": _manufacturerDateController.text.trim(),
+      // "firstUseDate": _firstUseDateController.text.trim(),
     };
 
-    // Show success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Job item saved successfully'), backgroundColor: Colors.green),
-    );
-
-    // Navigate back
-    NavigationService().goBack();
+    context.read<JobProvider>().createJobItem(context, jobItemData);
   }
 }
 

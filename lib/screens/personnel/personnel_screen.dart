@@ -167,7 +167,7 @@ class _PersonnelScreenState extends State<PersonnelScreen> {
                                     crossAxisCount: context.isTablet ? 6 : 2,
                                     crossAxisSpacing: 16,
                                     mainAxisSpacing: 16,
-                                    childAspectRatio: context.isTablet ? 2.0 : 1.0,
+                                    childAspectRatio: context.isTablet ? 3 / 2 : 1.0,
                                   ),
                                   itemCount: personnelList.length,
                                   itemBuilder: (context, index) {
@@ -233,6 +233,7 @@ class _PersonnelScreenState extends State<PersonnelScreen> {
               ),
               const SizedBox(height: 12),
               Flexible(
+                flex: 3,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -246,19 +247,19 @@ class _PersonnelScreenState extends State<PersonnelScreen> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    // if (personnelData.company.jobTitle.isNotEmpty) ...[
-                    //   const SizedBox(height: 4),
-                    //   Text(
-                    //     personnelData.company.jobTitle,
-                    //     textAlign: TextAlign.center,
-                    //     style: context.topology.textTheme.bodySmall?.copyWith(
-                    //       color: context.colors.primary,
-                    //       fontSize: 11,
-                    //     ),
-                    //     maxLines: 1,
-                    //     overflow: TextOverflow.ellipsis,
-                    //   ),
-                    // ],
+                    if (personnelData.company.jobTitle.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        personnelData.company.jobTitle,
+                        textAlign: TextAlign.center,
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                          fontSize: 11,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                     // if (personnelData.company.employeeNumber.isNotEmpty) ...[
                     //   const SizedBox(height: 2),
                     //   Text(

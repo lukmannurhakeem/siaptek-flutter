@@ -102,7 +102,11 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const JobScreen(), settings: settings);
 
       case jobRegister:
-        return MaterialPageRoute(builder: (_) => const JobRegisterScreen(), settings: settings);
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => JobRegisterScreen(jobId: args?['jobId']),
+          settings: settings,
+        );
 
       case jobAddNewScreen:
         return MaterialPageRoute(builder: (_) => const JobAddNewScreen(), settings: settings);
@@ -127,7 +131,11 @@ class AppRoutes {
         );
 
       case jobItemCreateScreen:
-        return MaterialPageRoute(builder: (_) => const JobItemCreateScreen(), settings: settings);
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => JobItemCreateScreen(jobId: args?['jobId']),
+          settings: settings,
+        );
 
       case personnel:
         return MaterialPageRoute(builder: (_) => const PersonnelScreen(), settings: settings);

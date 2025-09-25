@@ -110,17 +110,14 @@ class PersonnelProvider extends ChangeNotifier {
     _errorMessage = null;
   }
 
-  // Save new personnel
-  Future<bool> createPersonnel(PersonnelData personnelData) async {
+  // Save new personnel - Updated to use real API call
+  Future<bool> createPersonnel(Map<String, dynamic> personnelData) async {
     _setLoading(true);
     _clearError();
 
     try {
       // Call repository method to create personnel
-      // await _personnelRepository.createPersonnel(personnelData);
-
-      // For now, simulate API call
-      await Future.delayed(const Duration(seconds: 1));
+      await _personnelRepository.createPersonnel(personnelData);
 
       // Refresh the list after creating
       await fetchPersonnel();

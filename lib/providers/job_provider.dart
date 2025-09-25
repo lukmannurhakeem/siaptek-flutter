@@ -154,6 +154,27 @@ class JobProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> createJobItem(BuildContext context, Map<String, dynamic> jobItemData) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final result = await _jobRepository.createJobItem(jobItemData);
+
+      CommonSnackbar.showSuccess(context, result["message"] ?? "Job item created successfully");
+
+      // Refresh items after creation
+      await fetchJobRegisterModel(context);
+
+      NavigationService().goBack();
+    } catch (e) {
+      CommonSnackbar.showError(context, e.toString());
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   @override
   void dispose() {
     customerIdController.dispose();

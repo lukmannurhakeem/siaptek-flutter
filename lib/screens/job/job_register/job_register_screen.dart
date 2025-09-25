@@ -15,7 +15,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class JobRegisterScreen extends StatefulWidget {
-  const JobRegisterScreen({super.key});
+  final String jobId;
+
+  const JobRegisterScreen({super.key, required this.jobId});
 
   @override
   State<JobRegisterScreen> createState() => _JobRegisterScreenState();
@@ -431,7 +433,10 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                   child: Row(
                     children: [
                       _buildActionButton(context, 'Create Item', Icons.add, Colors.blue, () {
-                        NavigationService().navigateTo(AppRoutes.jobItemCreateScreen);
+                        NavigationService().navigateTo(
+                          AppRoutes.jobItemCreateScreen,
+                          arguments: {'jobId': widget.jobId},
+                        );
                       }),
                       const SizedBox(width: 8),
                       _buildActionButton(

@@ -20,4 +20,10 @@ class JobImpl implements JobRepository {
     final response = await _api.get(Endpoint.jobRegister, requiresAuth: true);
     return JobRegisterModel.fromJson(response.data);
   }
+
+  @override
+  Future<Map<String, dynamic>> createJobItem(Map<String, dynamic> jobItemData) async {
+    final response = await _api.post(Endpoint.jobItemCreate, data: jobItemData, requiresAuth: true);
+    return response.data;
+  }
 }

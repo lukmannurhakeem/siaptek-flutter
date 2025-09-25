@@ -13,4 +13,14 @@ class PersonnelImpl implements PersonnelRepository {
     final response = await _api.get(Endpoint.personnelView, requiresAuth: true);
     return PersonnelModel.fromJson(response.data);
   }
+
+  @override
+  Future<Map<String, dynamic>> createPersonnel(Map<String, dynamic> personnelData) async {
+    final response = await _api.post(
+      Endpoint.personnelCreate,
+      data: personnelData,
+      requiresAuth: true,
+    );
+    return response.data;
+  }
 }

@@ -154,7 +154,10 @@ class _JobScreenState extends State<JobScreen> {
                                     return DataRow(
                                       onSelectChanged: (selected) {
                                         if (selected == true) {
-                                          NavigationService().navigateTo(AppRoutes.jobRegister);
+                                          NavigationService().navigateTo(
+                                            AppRoutes.jobRegister,
+                                            arguments: {'jobId': data.jobId},
+                                          );
                                         }
                                       },
                                       color: MaterialStateProperty.resolveWith<Color?>((
