@@ -49,6 +49,17 @@ class AuthenticateProvider extends ChangeNotifier {
     return _user;
   }
 
+  // Added register method
+  Future<bool> registerUser(BuildContext context, Map<String, dynamic> registerData) async {
+    try {
+      await _userRepository.userRegister(registerData);
+      return true;
+    } catch (e) {
+      CommonSnackbar.showError(context, 'Failed to register user: ${e.toString()}');
+      return false;
+    }
+  }
+
   Future<void> verifyToken(BuildContext context) async {
     try {
       final storageAccessToken = LocalStorageService.getString(LocalStorageConstant.accessToken);

@@ -12,7 +12,7 @@ import 'package:base_app/screens/personnel/personnel_team_screen.dart';
 import 'package:base_app/screens/planner/planner_screen.dart';
 import 'package:base_app/screens/planner/team_planner_screen.dart';
 import 'package:base_app/screens/profile/profile_screen.dart';
-import 'package:base_app/screens/settings/access/accesss_screen.dart';
+import 'package:base_app/screens/settings/access/acccess_view_screen.dart';
 import 'package:base_app/screens/settings/company/division_screen.dart';
 import 'package:base_app/screens/settings/report_setup/report_types_screen.dart';
 import 'package:base_app/screens/site/site_screen.dart';
@@ -137,7 +137,12 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: Icons.accessibility,
           index: 19,
           children: [
-            MenuItem(title: 'Logins', icon: Icons.view_array, index: 20, screen: AccessScreen()),
+            MenuItem(
+              title: 'Logins',
+              icon: Icons.view_array,
+              index: 20,
+              screen: AccessViewScreen(),
+            ),
           ],
           // screen: AccessScreen()
         ),

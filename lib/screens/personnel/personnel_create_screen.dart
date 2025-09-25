@@ -328,6 +328,7 @@ class _PersonnelCreateScreenState extends State<PersonnelCreateScreen> {
         Expanded(
           flex: 3,
           child: CommonTextField(
+            style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
             controller: controller,
             validator:
                 isRequired

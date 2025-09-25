@@ -4,6 +4,7 @@ import 'package:base_app/core/service/local_storage_constant.dart';
 import 'package:base_app/model/user_login_model.dart';
 import 'package:base_app/model/user_refresh_token.dart';
 import 'package:base_app/model/user_verify_token.dart';
+import 'package:base_app/model/view_user_model.dart';
 import 'package:base_app/repositories/user/user_repository.dart';
 import 'package:base_app/route/endpoint.dart';
 
@@ -55,4 +56,16 @@ class UserImpl implements UserRepository {
 
   @override
   String? getRefreshToken() => _api.refreshToken;
+
+  @override
+  Future<Map<String, dynamic>> userRegister(Map<String, dynamic> registerData) async {
+    final response = await _api.post(Endpoint.userRegister, data: registerData, requiresAuth: true);
+    return response.data;
+  }
+
+  @override
+  Future<ViewUserModel> fetchUserAccess() {
+    // TODO: implement fetchUserAccess
+    throw UnimplementedError();
+  }
 }

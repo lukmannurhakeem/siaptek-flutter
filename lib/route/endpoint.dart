@@ -4,6 +4,7 @@ class Endpoint {
   static const String verifyToken = '/auth/verify';
   static const String refreshToken = '/auth/refresh';
   static const String logout = '/auth/logout';
+  static const String userRegister = '/auth/register';
 
   //customer
   static const String customer = '/customer';

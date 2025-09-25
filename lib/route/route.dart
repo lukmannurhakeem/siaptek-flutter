@@ -21,6 +21,8 @@ import 'package:base_app/screens/personnel/personnel_team_screen.dart';
 import 'package:base_app/screens/planner/planner_screen.dart';
 import 'package:base_app/screens/planner/team_planner_screen.dart';
 import 'package:base_app/screens/profile/profile_screen.dart';
+import 'package:base_app/screens/settings/access/acccess_view_screen.dart';
+import 'package:base_app/screens/settings/access/accesss_create_screen.dart';
 import 'package:base_app/screens/settings/company/division_crete_screen.dart';
 import 'package:base_app/screens/settings/report_setup/report_create_screen.dart';
 import 'package:base_app/screens/settings/report_setup/report_types_detail_screen.dart';
@@ -65,6 +67,9 @@ class AppRoutes {
   static const String companyCreateDivision = '/companyCreateDivision';
   static const String reportCreate = '/reportCreate';
   static const String reportTypeDetails = '/reportTypeDetails';
+
+  static const String accessScreen = '/accessScreen';
+  static const String accessView = '/accessView';
 
   // Route generator function
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -209,6 +214,12 @@ class AppRoutes {
           builder: (_) => ReportTypesDetails(reportTypeID: args?['reportTypeID'] ?? ''),
           settings: settings,
         );
+
+      case accessScreen:
+        return MaterialPageRoute(builder: (_) => const AccessScreen(), settings: settings);
+
+      case accessView:
+        return MaterialPageRoute(builder: (_) => const AccessViewScreen(), settings: settings);
 
       default:
         // If the route is not defined, show an error page
