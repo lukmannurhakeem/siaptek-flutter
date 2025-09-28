@@ -20,5 +20,13 @@ abstract class SystemRepository {
     String? timezone,
   });
 
+  Future<void> deleteDivision(GetCompanyDivision division);
+
   Future<Map<String, dynamic>?> createReport(Map<String, dynamic> requestBody);
+
+  Future<Map<String, dynamic>?> updateReport(String reportId, Map<String, dynamic> requestBody);
+
+  Future<void> deleteReport(String reportId);
+
+  Future<Map<String, dynamic>?> getReportDetails(String reportId);
 }

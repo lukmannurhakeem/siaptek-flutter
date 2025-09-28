@@ -15,6 +15,9 @@ class ReportCreateScreen extends StatefulWidget {
 
 class _ReportCreateScreenState extends State<ReportCreateScreen> {
   int _currentStep = 0;
+  bool _isEditMode = false;
+  dynamic _editReportData;
+  int? _editReportIndex;
 
   final List<String> _steps = [
     'Overview',
@@ -55,6 +58,111 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
   List<Map<String, dynamic>> _competencyReports = [];
 
   @override
+  void initState() {
+    super.initState();
+    // Check if we're in edit mode by getting arguments
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkEditMode();
+    });
+  }
+
+  void _checkEditMode() {
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (args != null) {
+      _isEditMode = args['isEdit'] ?? false;
+      _editReportData = args['reportData'];
+      _editReportIndex = args['reportIndex'];
+
+      if (_isEditMode && _editReportData != null) {
+        _populateFormFields();
+      }
+    }
+  }
+
+  // Replace the _populateFormFields method in ReportCreateScreen with this enhanced version
+
+  void _populateFormFields() async {
+    if (_editReportData?.categoryId != null) {
+      // Fetch detailed report data from API
+      final provider = Provider.of<SystemProvider>(context, listen: false);
+      final detailedData = await provider.getReportDetails(_editReportData!.categoryId);
+
+      if (detailedData != null) {
+        // Populate basic fields from detailed data
+        _reportNameController.text =
+            detailedData['reportType']?['reportName'] ?? _editReportData?.reportName ?? '';
+        _descriptionController.text =
+            detailedData['reportType']?['description'] ?? _editReportData?.description ?? '';
+        _documentCodeController.text =
+            detailedData['reportType']?['documentCode'] ?? _editReportData?.documentCode ?? '';
+        _batchReportTypeController.text = detailedData['reportType']?['batchReportType'] ?? '';
+        _possibleStatusController.text = detailedData['reportType']?['possibleStatus'] ?? '';
+        _permissionController.text = detailedData['reportType']?['permission'] ?? '';
+        _categoryIDController.text =
+            detailedData['reportType']?['categoryID'] ?? _editReportData?.categoryId ?? '';
+        _fieldsIDController.text = detailedData['reportType']?['fieldsID'] ?? '';
+        _documentTemplateController.text = detailedData['reportType']?['documentTemplate'] ?? '';
+        _labelTemplateController.text = detailedData['reportType']?['labelTemplate'] ?? '';
+        _actionReportIDController.text = detailedData['reportType']?['actionReportID'] ?? '';
+        _competencyIDController.text =
+            detailedData['reportType']?['competencyID'] ?? _editReportData?.competencyId ?? '';
+
+        // Set boolean values from detailed data
+        _isExternalReport = detailedData['reportType']?['isExternalReport'] ?? false;
+        _defaultAsDraft = detailedData['reportType']?['defaultAsDraft'] ?? true;
+        _archived = detailedData['reportType']?['archived'] ?? _editReportData?.archived ?? false;
+        _updateItemStatus = detailedData['reportType']?['updateItemStatus'] ?? true;
+        _updateItemDates = detailedData['reportType']?['updateItemDates'] ?? true;
+        _isStatusRequired = detailedData['reportType']?['isStatusRequired'] ?? true;
+
+        // Populate dynamic lists from detailed data
+        if (detailedData['reportFields'] != null) {
+          _reportFields = List<Map<String, dynamic>>.from(
+            detailedData['reportFields'].map((field) => Map<String, dynamic>.from(field)),
+          );
+        }
+
+        if (detailedData['statusRuleReports'] != null) {
+          _statusRuleReports = List<Map<String, dynamic>>.from(
+            detailedData['statusRuleReports'].map((rule) => Map<String, dynamic>.from(rule)),
+          );
+        }
+
+        if (detailedData['reportTypeDates'] != null) {
+          _reportTypeDates = List<Map<String, dynamic>>.from(
+            detailedData['reportTypeDates'].map((date) => Map<String, dynamic>.from(date)),
+          );
+        }
+
+        if (detailedData['actionReports'] != null) {
+          _actionReports = List<Map<String, dynamic>>.from(
+            detailedData['actionReports'].map((action) => Map<String, dynamic>.from(action)),
+          );
+        }
+
+        if (detailedData['competencyReports'] != null) {
+          _competencyReports = List<Map<String, dynamic>>.from(
+            detailedData['competencyReports'].map(
+              (competency) => Map<String, dynamic>.from(competency),
+            ),
+          );
+        }
+      } else {
+        // Fallback to basic data if detailed fetch fails
+        _reportNameController.text = _editReportData?.reportName ?? '';
+        _descriptionController.text = _editReportData?.description ?? '';
+        _documentCodeController.text = _editReportData?.documentCode ?? '';
+        _categoryIDController.text = _editReportData?.categoryId ?? '';
+        _competencyIDController.text = _editReportData?.competencyId ?? '';
+
+        _archived = _editReportData?.archived ?? false;
+      }
+
+      setState(() {});
+    }
+  }
+
+  @override
   void dispose() {
     // Dispose controllers
     _reportNameController.dispose();
@@ -77,7 +185,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Create Report Template',
+          _isEditMode ? 'Edit Report Template' : 'Create Report Template',
           style: context.topology.textTheme.titleLarge?.copyWith(color: context.colors.primary),
         ),
         centerTitle: true,
@@ -181,8 +289,8 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
                     _currentStep < _steps.length - 1
                         ? 'Next'
                         : provider.isLoading
-                        ? 'Creating...'
-                        : 'Create Report',
+                        ? (_isEditMode ? 'Updating...' : 'Creating...')
+                        : (_isEditMode ? 'Update Report' : 'Create Report'),
               );
             },
           ),
@@ -1292,7 +1400,10 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
       final provider = Provider.of<SystemProvider>(context, listen: false);
 
       // Generate a job ID (you might want to get this from your backend or generate it differently)
-      final jobID = DateTime.now().millisecondsSinceEpoch.toString();
+      final jobID =
+          _isEditMode
+              ? (_editReportData?.categoryId ?? DateTime.now().millisecondsSinceEpoch.toString())
+              : DateTime.now().millisecondsSinceEpoch.toString();
 
       final reportType = {
         "jobID": jobID,
@@ -1316,23 +1427,41 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         "competencyID": _competencyIDController.text,
       };
 
-      await provider.createReport(
-        reportType: reportType,
-        competencyReports: _competencyReports,
-        reportTypeDates: _reportTypeDates,
-        statusRuleReports: _statusRuleReports,
-        reportFields: _reportFields,
-        actionReports: _actionReports,
-      );
+      if (_isEditMode) {
+        // Call update API
+        await provider.updateReport(
+          reportId: jobID,
+          reportType: reportType,
+          competencyReports: _competencyReports,
+          reportTypeDates: _reportTypeDates,
+          statusRuleReports: _statusRuleReports,
+          reportFields: _reportFields,
+          actionReports: _actionReports,
+        );
+      } else {
+        // Call create API
+        await provider.createReport(
+          reportType: reportType,
+          competencyReports: _competencyReports,
+          reportTypeDates: _reportTypeDates,
+          statusRuleReports: _statusRuleReports,
+          reportFields: _reportFields,
+          actionReports: _actionReports,
+        );
+      }
 
       if (provider.hasError) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: ${provider.errorMessage}')));
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Report created successfully!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isEditMode ? 'Report updated successfully!' : 'Report created successfully!',
+            ),
+          ),
+        );
         NavigationService().goBack();
       }
     } catch (e) {

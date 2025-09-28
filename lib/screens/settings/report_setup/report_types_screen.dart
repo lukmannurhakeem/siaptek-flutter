@@ -280,21 +280,39 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> with TickerProvider
           ),
         ),
       ),
+      // Add Actions column
+      DataColumn(
+        label: Expanded(
+          child: Text(
+            'Actions',
+            style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
+          ),
+        ),
+      ),
     ];
   }
 
   List<DataRow> _buildDataRows(BuildContext context, SystemProvider provider) {
     return List.generate(provider.getReportTypeModel!.data!.length, (index) {
       final data = provider.getReportTypeModel!.data![index].reportType;
+      final reportItem = provider.getReportTypeModel!.data![index];
       final isEven = index % 2 == 0;
 
       return DataRow(
         onSelectChanged: (selected) {
           if (selected == true) {
-            // Navigate to Edit Report Template screen
+            // Navigate to View Report Template screen (details view)
             NavigationService().navigateTo(
               AppRoutes.reportTypeDetails,
-              arguments: {'reportTypeID': data?.categoryId},
+              arguments: {
+                'reportTypeID':
+                    data?.reportTypeId ??
+                    data?.categoryId ??
+                    reportItem.reportType?.reportTypeId ??
+                    'default-id',
+                'jobID': data?.jobId,
+                'reportName': data?.reportName,
+              },
             );
           }
         },
@@ -338,9 +356,149 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> with TickerProvider
               style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
             ),
           ),
+          // Add Actions cell with Edit and Delete buttons
+          DataCell(
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Edit Button
+                IconButton(
+                  icon: Icon(Icons.edit, color: context.colors.primary, size: 20),
+                  onPressed: () => _editReport(reportItem, index),
+                  tooltip: 'Edit Report',
+                  padding: const EdgeInsets.all(8),
+                  constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                ),
+                const SizedBox(width: 4),
+                // Delete Button
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                  onPressed: () => _showDeleteDialog(reportItem, index),
+                  tooltip: 'Delete Report',
+                  padding: const EdgeInsets.all(8),
+                  constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                ),
+              ],
+            ),
+          ),
         ],
       );
     });
+  }
+
+  void _editReport(dynamic reportItem, int index) {
+    // Navigate to create screen with edit mode and report data
+    NavigationService().navigateTo(
+      AppRoutes.reportCreate,
+      arguments: {
+        'isEdit': true,
+        'reportData': reportItem.reportType,
+        'reportIndex': index,
+        'fullReportItem': reportItem, // Pass the full report item for complete data
+      },
+    );
+  }
+
+  void _showDeleteDialog(dynamic reportItem, int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Delete Report',
+            style: context.topology.textTheme.titleMedium?.copyWith(color: context.colors.primary),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to delete this report?',
+                style: context.topology.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Report Name: ${reportItem.reportType?.reportName ?? 'N/A'}',
+                      style: context.topology.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Description: ${reportItem.reportType?.description ?? 'N/A'}',
+                      style: context.topology.textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Document Code: ${reportItem.reportType?.documentCode ?? 'N/A'}',
+                      style: context.topology.textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'This action cannot be undone.',
+                style: context.topology.textTheme.bodySmall?.copyWith(
+                  color: Colors.red[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancel', style: TextStyle(color: context.colors.primary)),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteReport(reportItem, index);
+              },
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteReport(dynamic reportItem, int index) async {
+    try {
+      final provider = Provider.of<SystemProvider>(context, listen: false);
+
+      // Show loading indicator
+      CommonSnackbar.showInfo(context, "Deleting report...");
+
+      // Use categoryId or any unique identifier for the report
+      final reportId =
+          reportItem.reportType?.categoryId ?? reportItem.reportType?.jobID ?? index.toString();
+
+      // Call delete API
+      await provider.deleteReport(reportId);
+
+      if (mounted) {
+        CommonSnackbar.showSuccess(context, "Report deleted successfully");
+      }
+    } catch (e) {
+      if (mounted) {
+        CommonSnackbar.showError(context, "Error deleting report: $e");
+      }
+    }
   }
 
   Future<void> _pickAndUploadFiles() async {

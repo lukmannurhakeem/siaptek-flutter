@@ -40,4 +40,6 @@ class Endpoint {
   static String getSiteByCustomerId(String customerId) {
     return '/site/customer/$customerId';
   }
+
+  static const String deleteDivision = '/division/delete';
 }

@@ -200,7 +200,6 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
                     _buildContactItem(Icons.email, 'Email', division.email!),
                   if (division.website != null)
                     _buildContactItem(Icons.web, 'Website', division.website!),
-
                   const SizedBox(height: 20),
                 ],
 
@@ -222,16 +221,29 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
                         text: 'Edit',
                         backgroundColor: context.colors.primary,
                         icon: Icons.edit,
-                        onPressed: () {},
+                        onPressed: () {
+                          // Navigate to edit screen
+                          NavigationService().navigateTo(
+                            AppRoutes.companyCreateDivision,
+                            arguments: division,
+                          );
+                        },
                       ),
                     ),
                     context.hM,
                     Expanded(
-                      child: CommonButton(
-                        text: 'Delete',
-                        backgroundColor: context.colors.primary,
-                        icon: Icons.delete,
-                        onPressed: () {},
+                      child: Consumer<SystemProvider>(
+                        builder: (context, provider, child) {
+                          return CommonButton(
+                            text: 'Delete',
+                            backgroundColor: Colors.red[600] ?? Colors.red,
+                            icon: Icons.delete,
+                            onPressed:
+                                provider.isLoading
+                                    ? null
+                                    : () => _showDeleteConfirmation(context, division),
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -339,5 +351,105 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
         division.fax != null ||
         division.email != null ||
         division.website != null;
+  }
+
+  void _showDeleteConfirmation(BuildContext context, GetCompanyDivision division) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.warning, color: Colors.orange[600]),
+              const SizedBox(width: 8),
+              const Text('Confirm Delete'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Are you sure you want to delete this division?'),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Division: ${division.divisionname ?? 'Unknown'}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    if (division.divisioncode != null) Text('Code: ${division.divisioncode}'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'This action cannot be undone.',
+                style: TextStyle(color: Colors.red, fontStyle: FontStyle.italic),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            Consumer<SystemProvider>(
+              builder: (context, provider, child) {
+                return ElevatedButton(
+                  onPressed:
+                      provider.isLoading ? null : () => _performDelete(dialogContext, division),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red[600],
+                    foregroundColor: Colors.white,
+                  ),
+                  child:
+                      provider.isLoading
+                          ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                          : const Text('Delete'),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _performDelete(BuildContext dialogContext, GetCompanyDivision division) async {
+    if (division.divisionid == null) {
+      Navigator.of(dialogContext).pop();
+      CommonSnackbar.showError(context, 'Cannot delete: Division ID is missing');
+      return;
+    }
+
+    final provider = context.read<SystemProvider>();
+    final success = await provider.deleteDivision(division);
+
+    // Close the dialog
+    Navigator.of(dialogContext).pop();
+
+    if (success) {
+      CommonSnackbar.showSuccess(
+        context,
+        'Division "${division.divisionname ?? 'Unknown'}" deleted successfully',
+      );
+    } else {
+      CommonSnackbar.showError(context, provider.errorMessage ?? 'Failed to delete division');
+    }
   }
 }
