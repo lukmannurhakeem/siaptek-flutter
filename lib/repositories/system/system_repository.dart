@@ -29,4 +29,19 @@ abstract class SystemRepository {
   Future<void> deleteReport(String reportId);
 
   Future<Map<String, dynamic>?> getReportDetails(String reportId);
+
+  Future<void> updateDivision({
+    required String divisionId,
+    String? customerid,
+    String? divisionname,
+    String? divisioncode,
+    String? logo,
+    String? address,
+    String? telephone,
+    String? website,
+    String? email,
+    String? fax,
+    String? culture,
+    String? timezone,
+  });
 }

@@ -1,5 +1,6 @@
 import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/service/navigation_service.dart';
+import 'package:base_app/model/get_company_division.dart';
 import 'package:base_app/providers/system_provider.dart';
 import 'package:base_app/widget/common_button.dart';
 import 'package:base_app/widget/common_textfield.dart';
@@ -8,8 +9,9 @@ import 'package:provider/provider.dart';
 
 class CompanyCreateDivision extends StatefulWidget {
   final String? id;
+  final GetCompanyDivision? division;
 
-  const CompanyCreateDivision({this.id, super.key});
+  const CompanyCreateDivision({this.id, this.division, super.key});
 
   @override
   State<CompanyCreateDivision> createState() => _CompanyCreateDivision();
@@ -30,14 +32,31 @@ class _CompanyCreateDivision extends State<CompanyCreateDivision> {
   final _cultureController = TextEditingController();
   final _timezoneController = TextEditingController();
 
+  bool get isEditMode => widget.division != null;
+
   @override
   void initState() {
     super.initState();
+    _initializeForm();
+  }
+
+  void _initializeForm() {
+    if (isEditMode && widget.division != null) {
+      _divisionNameController.text = widget.division!.divisionname ?? '';
+      _divisionCodeController.text = widget.division!.divisioncode ?? '';
+      _logoController.text = widget.division!.logo ?? '';
+      _addressController.text = widget.division!.address ?? '';
+      _telephoneController.text = widget.division!.telephone ?? '';
+      _websiteController.text = widget.division!.website ?? '';
+      _emailController.text = widget.division!.email ?? '';
+      _faxController.text = widget.division!.fax ?? '';
+      _cultureController.text = widget.division!.culture ?? '';
+      _timezoneController.text = widget.division!.timezone ?? '';
+    }
   }
 
   @override
   void dispose() {
-    // Dispose controllers to prevent memory leaks
     _divisionNameController.dispose();
     _divisionCodeController.dispose();
     _logoController.dispose();
@@ -56,30 +75,58 @@ class _CompanyCreateDivision extends State<CompanyCreateDivision> {
       final systemProvider = Provider.of<SystemProvider>(context, listen: false);
 
       try {
-        await systemProvider.createDivision(
-          customerid: widget.id,
-          divisionname: _divisionNameController.text.trim(),
-          divisioncode: _divisionCodeController.text.trim(),
-          logo: _logoController.text.trim().isEmpty ? null : _logoController.text.trim(),
-          address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
-          telephone:
-              _telephoneController.text.trim().isEmpty ? null : _telephoneController.text.trim(),
-          website: _websiteController.text.trim().isEmpty ? null : _websiteController.text.trim(),
-          email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
-          fax: _faxController.text.trim().isEmpty ? null : _faxController.text.trim(),
-          culture: _cultureController.text.trim().isEmpty ? null : _cultureController.text.trim(),
-          timezone:
-              _timezoneController.text.trim().isEmpty ? null : _timezoneController.text.trim(),
-        );
+        if (isEditMode) {
+          // Update existing division
+          await systemProvider.updateDivision(
+            divisionId: widget.division!.divisionid!,
+            customerid: widget.id ?? widget.division!.customerid,
+            divisionname: _divisionNameController.text.trim(),
+            divisioncode: _divisionCodeController.text.trim(),
+            logo: _logoController.text.trim().isEmpty ? null : _logoController.text.trim(),
+            address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
+            telephone:
+                _telephoneController.text.trim().isEmpty ? null : _telephoneController.text.trim(),
+            website: _websiteController.text.trim().isEmpty ? null : _websiteController.text.trim(),
+            email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+            fax: _faxController.text.trim().isEmpty ? null : _faxController.text.trim(),
+            culture: _cultureController.text.trim().isEmpty ? null : _cultureController.text.trim(),
+            timezone:
+                _timezoneController.text.trim().isEmpty ? null : _timezoneController.text.trim(),
+          );
 
-        if (systemProvider.hasError) {
-          _showErrorSnackBar(systemProvider.errorMessage!);
+          if (systemProvider.hasError) {
+            _showErrorSnackBar(systemProvider.errorMessage!);
+          } else {
+            _showSuccessSnackBar('Division updated successfully');
+            NavigationService().goBack();
+          }
         } else {
-          _showSuccessSnackBar('Division created successfully');
-          NavigationService().goBack();
+          // Create new division
+          await systemProvider.createDivision(
+            customerid: widget.id,
+            divisionname: _divisionNameController.text.trim(),
+            divisioncode: _divisionCodeController.text.trim(),
+            logo: _logoController.text.trim().isEmpty ? null : _logoController.text.trim(),
+            address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
+            telephone:
+                _telephoneController.text.trim().isEmpty ? null : _telephoneController.text.trim(),
+            website: _websiteController.text.trim().isEmpty ? null : _websiteController.text.trim(),
+            email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+            fax: _faxController.text.trim().isEmpty ? null : _faxController.text.trim(),
+            culture: _cultureController.text.trim().isEmpty ? null : _cultureController.text.trim(),
+            timezone:
+                _timezoneController.text.trim().isEmpty ? null : _timezoneController.text.trim(),
+          );
+
+          if (systemProvider.hasError) {
+            _showErrorSnackBar(systemProvider.errorMessage!);
+          } else {
+            _showSuccessSnackBar('Division created successfully');
+            NavigationService().goBack();
+          }
         }
       } catch (e) {
-        _showErrorSnackBar('Failed to create division: $e');
+        _showErrorSnackBar('Failed to ${isEditMode ? 'update' : 'create'} division: $e');
       }
     }
   }
@@ -104,7 +151,7 @@ class _CompanyCreateDivision extends State<CompanyCreateDivision> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Create Division',
+          isEditMode ? 'Edit Division' : 'Create Division',
           style: context.topology.textTheme.titleMedium?.copyWith(color: context.colors.primary),
         ),
         centerTitle: true,
@@ -137,7 +184,9 @@ class _CompanyCreateDivision extends State<CompanyCreateDivision> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'This is used for creating Division',
+                    isEditMode
+                        ? 'This is used for editing Division'
+                        : 'This is used for creating Division',
                     style: context.topology.textTheme.bodySmall?.copyWith(
                       color: context.colors.primary,
                     ),
@@ -284,7 +333,10 @@ class _CompanyCreateDivision extends State<CompanyCreateDivision> {
                   ),
                   context.vL,
                   CommonButton(
-                    text: systemProvider.isLoading ? 'Saving...' : 'Save',
+                    text:
+                        systemProvider.isLoading
+                            ? (isEditMode ? 'Updating...' : 'Saving...')
+                            : (isEditMode ? 'Update' : 'Save'),
                     onPressed: systemProvider.isLoading ? null : _handleSave,
                   ),
                 ],
@@ -308,7 +360,9 @@ class _CompanyCreateDivision extends State<CompanyCreateDivision> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'This is used for creating Division',
+                    isEditMode
+                        ? 'This is used for editing Division'
+                        : 'This is used for creating Division',
                     style: context.topology.textTheme.bodySmall?.copyWith(
                       color: context.colors.primary,
                     ),
@@ -369,7 +423,10 @@ class _CompanyCreateDivision extends State<CompanyCreateDivision> {
                   ),
                   context.vL,
                   CommonButton(
-                    text: systemProvider.isLoading ? 'Saving...' : 'Save',
+                    text:
+                        systemProvider.isLoading
+                            ? (isEditMode ? 'Updating...' : 'Saving...')
+                            : (isEditMode ? 'Update' : 'Save'),
                     onPressed: systemProvider.isLoading ? null : _handleSave,
                   ),
                 ],

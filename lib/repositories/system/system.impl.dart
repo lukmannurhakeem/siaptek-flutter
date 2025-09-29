@@ -151,4 +151,44 @@ class SystemImpl implements SystemRepository {
       throw Exception('Failed to get report details: $e');
     }
   }
+
+  // Add this method to your SystemImpl class
+
+  @override
+  Future<void> updateDivision({
+    required String divisionId,
+    String? customerid,
+    String? divisionname,
+    String? divisioncode,
+    String? logo,
+    String? address,
+    String? telephone,
+    String? website,
+    String? email,
+    String? fax,
+    String? culture,
+    String? timezone,
+  }) async {
+    try {
+      await _api.put(
+        '${Endpoint.updateDivision}/$divisionId',
+        requiresAuth: true,
+        data: {
+          if (customerid != null) "customerid": customerid,
+          if (divisionname != null) "divisionname": divisionname,
+          if (divisioncode != null) "divisioncode": divisioncode,
+          if (logo != null) "logo": logo,
+          if (address != null) "address": address,
+          if (telephone != null) "telephone": telephone,
+          if (website != null) "website": website,
+          if (email != null) "email": email,
+          if (fax != null) "fax": fax,
+          if (culture != null) "culture": culture,
+          if (timezone != null) "timezone": timezone,
+        },
+      );
+    } catch (e) {
+      throw Exception('Failed to update division: $e');
+    }
+  }
 }

@@ -1,4 +1,3 @@
-// 1. Updated SystemRepositor
 import 'package:base_app/core/service/service_locator.dart';
 import 'package:base_app/model/get_company_division.dart';
 import 'package:base_app/model/get_report_type_model.dart';
@@ -82,15 +81,53 @@ class SystemProvider extends ChangeNotifier {
     }
   }
 
-  // CORRECTED: This now accepts the complete GetCompanyDivision object
+  Future<void> updateDivision({
+    required String divisionId,
+    String? customerid,
+    String? divisionname,
+    String? divisioncode,
+    String? logo,
+    String? address,
+    String? telephone,
+    String? website,
+    String? email,
+    String? fax,
+    String? culture,
+    String? timezone,
+  }) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      await _systemRepository.updateDivision(
+        divisionId: divisionId,
+        customerid: customerid,
+        divisionname: divisionname,
+        divisioncode: divisioncode,
+        logo: logo,
+        address: address,
+        telephone: telephone,
+        website: website,
+        email: email,
+        fax: fax,
+        culture: culture,
+        timezone: timezone,
+      );
+      await fetchDivision();
+    } catch (e) {
+      _setError(e.toString());
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   Future<bool> deleteDivision(GetCompanyDivision division) async {
     _setLoading(true);
     _clearError();
 
     try {
       await _systemRepository.deleteDivision(division);
-
-      // Remove the division from the local list
       _division.removeWhere((div) => div.divisionid == division.divisionid);
       notifyListeners();
       return true;
@@ -102,7 +139,6 @@ class SystemProvider extends ChangeNotifier {
     }
   }
 
-  // Helper method if you need to delete by ID (finds the division first)
   Future<bool> deleteDivisionById(String divisionId) async {
     try {
       final division = _division.firstWhere(
@@ -116,7 +152,7 @@ class SystemProvider extends ChangeNotifier {
     }
   }
 
-  // Report Methods (unchanged)
+  // Report Methods
   Future<void> fetchReportType() async {
     _setLoading(true);
     _clearError();
@@ -225,9 +261,6 @@ class SystemProvider extends ChangeNotifier {
       _setLoading(false);
     }
   }
-
-  // Keep your existing createReportDetailed and updateReportDetailed methods...
-  // [They remain unchanged from your current implementation]
 
   // Private helper methods
   void _setLoading(bool loading) {

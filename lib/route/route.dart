@@ -1,3 +1,4 @@
+import 'package:base_app/model/get_company_division.dart'; // Add this import
 import 'package:base_app/screens/auth/forgot_password_screen.dart';
 import 'package:base_app/screens/auth/login_screen.dart';
 import 'package:base_app/screens/categories/categories_create_screen.dart';
@@ -203,7 +204,29 @@ class AppRoutes {
         );
 
       case companyCreateDivision:
-        return MaterialPageRoute(builder: (_) => const CompanyCreateDivision(), settings: settings);
+        final args = settings.arguments;
+
+        // Check if editing an existing division (GetCompanyDivision object passed)
+        if (args is GetCompanyDivision) {
+          return MaterialPageRoute(
+            builder: (_) => CompanyCreateDivision(division: args),
+            settings: settings,
+          );
+        }
+        // Check if creating with a customer ID (Map passed)
+        else if (args is Map<String, dynamic>) {
+          return MaterialPageRoute(
+            builder: (_) => CompanyCreateDivision(id: args['id'] as String?),
+            settings: settings,
+          );
+        }
+        // Default create mode (no arguments)
+        else {
+          return MaterialPageRoute(
+            builder: (_) => const CompanyCreateDivision(),
+            settings: settings,
+          );
+        }
 
       case reportCreate:
         return MaterialPageRoute(builder: (_) => const ReportCreateScreen(), settings: settings);
