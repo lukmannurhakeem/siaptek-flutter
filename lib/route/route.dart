@@ -153,8 +153,9 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const PersonnelTeamScreen(), settings: settings);
 
       case createTeamPersonnel:
+        final teamId = settings.arguments as String?;
         return MaterialPageRoute(
-          builder: (_) => const PersonnelCreateTeamScreen(),
+          builder: (_) => PersonnelCreateTeamScreen(teamPersonnelId: teamId),
           settings: settings,
         );
 

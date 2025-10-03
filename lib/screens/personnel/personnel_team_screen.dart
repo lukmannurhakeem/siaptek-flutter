@@ -361,7 +361,12 @@ class _PersonnelTeamScreenState extends State<PersonnelTeamScreen> {
       color: MaterialStateProperty.resolveWith<Color?>(
         (_) => isEven ? context.colors.primary.withOpacity(0.05) : null,
       ),
-      onSelectChanged: (_) {},
+      onSelectChanged: (_) {
+        NavigationService().navigateTo(
+          AppRoutes.createTeamPersonnel,
+          arguments: data.teamPersonnelId,
+        );
+      },
       cells: [
         DataCell(
           Text(

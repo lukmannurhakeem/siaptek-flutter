@@ -2,6 +2,7 @@ import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/model/personnel_team_model.dart';
 import 'package:base_app/providers/personnel_provider.dart';
+import 'package:base_app/route/route.dart';
 import 'package:base_app/widget/add_member_dialog_widget.dart';
 import 'package:base_app/widget/common_button.dart';
 import 'package:base_app/widget/common_textfield.dart';
@@ -10,7 +11,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 class PersonnelCreateTeamScreen extends StatefulWidget {
-  const PersonnelCreateTeamScreen({super.key});
+  final String? teamPersonnelId;
+
+  const PersonnelCreateTeamScreen({super.key, this.teamPersonnelId});
 
   @override
   State<PersonnelCreateTeamScreen> createState() => _PersonnelCreateTeamScreenState();
@@ -40,10 +43,41 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
       final provider = context.read<PersonnelProvider>();
       provider.fetchTeamPersonnel();
       provider.fetchPersonnel(); // Fetch personnel list for the dropdown
+
+      // If teamPersonnelId is provided, load the team data for editing
+      if (widget.teamPersonnelId != null) {
+        _loadTeamData(widget.teamPersonnelId!);
+      }
     });
 
     // Listen to search text changes
     _searchController.addListener(_onSearchChanged);
+  }
+
+  Future<void> _loadTeamData(String teamPersonnelId) async {
+    final provider = context.read<PersonnelProvider>();
+
+    // Wait for team list to be loaded
+    if (provider.teamPersonnelList.isEmpty) {
+      await provider.fetchTeamPersonnel();
+    }
+
+    // Find the team
+    final team = provider.getTeamById(teamPersonnelId);
+
+    if (team != null) {
+      setState(() {
+        _isEditMode = true;
+        _selectedTeamId = teamPersonnelId;
+        _nameController.text = team.name ?? '';
+        _typeController.text = team.type ?? '';
+        _descriptionController.text = team.description ?? '';
+        _pendingMembers.clear();
+      });
+
+      // Fetch team members
+      await provider.fetchTeamMembers(teamPersonnelId);
+    }
   }
 
   @override
@@ -657,6 +691,11 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
 
         final teamId = createdTeam.teamPersonnelId;
 
+        // Set the team ID BEFORE adding members
+        setState(() {
+          _selectedTeamId = teamId;
+        });
+
         // Add all pending members to the newly created team
         if (_pendingMembers.isNotEmpty) {
           for (var memberData in _pendingMembers) {
@@ -665,13 +704,13 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
           }
         }
 
-        setState(() {
-          _selectedTeamId = teamId;
-          _pendingMembers.clear();
-        });
-
         // Fetch the team members to display them
         await provider.fetchTeamMembers(teamId!);
+
+        // Clear pending members AFTER fetching
+        setState(() {
+          _pendingMembers.clear();
+        });
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -692,7 +731,7 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
         }
       }
     } else {
-      // Update existing team
+      // Update existing team (unchanged)
       final success = await provider.updateTeamPersonnel(_selectedTeamId!, personnelData);
 
       if (success && mounted) {
@@ -795,16 +834,11 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
         (_) => isEven ? context.colors.primary.withOpacity(0.05) : null,
       ),
       onSelectChanged: (_) {
-        setState(() {
-          _isEditMode = true;
-          _selectedTeamId = data.teamPersonnelId;
-          _nameController.text = data.name ?? '';
-          _typeController.text = data.type ?? '';
-          _descriptionController.text = data.description ?? '';
-          _pendingMembers.clear(); // Clear pending members when editing existing team
-        });
-
-        context.read<PersonnelProvider>().fetchTeamMembers(data.teamPersonnelId!);
+        // Navigate to create/edit screen with team data
+        NavigationService().navigateTo(
+          AppRoutes.createTeamPersonnel,
+          arguments: data.teamPersonnelId,
+        );
       },
       cells: [
         DataCell(
