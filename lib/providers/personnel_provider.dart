@@ -1,5 +1,7 @@
 import 'package:base_app/core/service/service_locator.dart';
 import 'package:base_app/model/personnel_model.dart';
+import 'package:base_app/model/personnel_team_member_model.dart';
+import 'package:base_app/model/personnel_team_model.dart';
 import 'package:base_app/repositories/personnel/personnel_repository.dart';
 import 'package:flutter/material.dart';
 
@@ -10,8 +12,14 @@ class PersonnelProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
+  // Team-related state
+  List<PersonnelTeamModel> _teamPersonnelList = [];
+
   // Getters
   PersonnelModel? get personnelModel => _personnelModel;
+
+  // Updated getter for team personnel
+  List<PersonnelTeamModel> get teamPersonnelList => _teamPersonnelList;
 
   bool get isLoading => _isLoading;
 
@@ -20,6 +28,12 @@ class PersonnelProvider extends ChangeNotifier {
   List<PersonnelData> get personnelList => _personnelModel?.data ?? [];
 
   int get personnelCount => _personnelModel?.count ?? 0;
+
+  int get teamPersonnelCount => _teamPersonnelList.length;
+
+  List<PersonnelTeamMemberModel> _teamMembers = [];
+
+  List<PersonnelTeamMemberModel> get teamMembers => _teamMembers;
 
   // Fetch personnel data
   Future<void> fetchPersonnel() async {
@@ -36,9 +50,34 @@ class PersonnelProvider extends ChangeNotifier {
     }
   }
 
+  void clearTeamMembers() {
+    _teamMembers = [];
+    notifyListeners();
+  }
+
+  Future<void> fetchTeamPersonnel() async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      _teamPersonnelList = await _personnelRepository.fetchTeamPersonnel();
+      notifyListeners();
+    } catch (e) {
+      _setError('Failed to fetch team personnel: ${e.toString()}');
+      _teamPersonnelList = [];
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   // Refresh personnel data
   Future<void> refreshPersonnel() async {
     await fetchPersonnel();
+  }
+
+  // Refresh team personnel data
+  Future<void> refreshTeamPersonnel() async {
+    await fetchTeamPersonnel();
   }
 
   // Search personnel by name, job title, or employee number
@@ -60,12 +99,38 @@ class PersonnelProvider extends ChangeNotifier {
     }).toList();
   }
 
+  // Search teams by name, type, or description
+  List<PersonnelTeamModel> searchTeams(String query) {
+    if (query.isEmpty) return _teamPersonnelList;
+
+    final lowercaseQuery = query.toLowerCase();
+
+    return _teamPersonnelList.where((team) {
+      final name = team.name?.toLowerCase() ?? '';
+      final type = team.type?.toLowerCase() ?? '';
+      final description = team.description?.toLowerCase() ?? '';
+
+      return name.contains(lowercaseQuery) ||
+          type.contains(lowercaseQuery) ||
+          description.contains(lowercaseQuery);
+    }).toList();
+  }
+
   // Get personnel by ID
   PersonnelData? getPersonnelById(String personnelId) {
     try {
       return personnelList.firstWhere(
         (personnel) => personnel.personnel.personnelID == personnelId,
       );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Get team by ID
+  PersonnelTeamModel? getTeamById(String teamId) {
+    try {
+      return _teamPersonnelList.firstWhere((team) => team.teamPersonnelId == teamId);
     } catch (e) {
       return null;
     }
@@ -130,6 +195,24 @@ class PersonnelProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> createTeamPersonnel(Map<String, dynamic> personnelData) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      await _personnelRepository.createTeamPersonnel(personnelData);
+
+      // Refresh the team list after creating
+      await fetchTeamPersonnel();
+      return true;
+    } catch (e) {
+      _setError('Failed to create team personnel: ${e.toString()}');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   // Update existing personnel
   Future<bool> updatePersonnel(String personnelId, PersonnelData personnelData) async {
     _setLoading(true);
@@ -147,6 +230,29 @@ class PersonnelProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _setError('Failed to update personnel: ${e.toString()}');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Update existing team
+  Future<bool> updateTeamPersonnel(String teamId, Map<String, dynamic> teamData) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      // Call repository method to update team
+      // await _personnelRepository.updateTeamPersonnel(teamId, teamData);
+
+      // For now, simulate API call
+      await Future.delayed(const Duration(seconds: 1));
+
+      // Refresh the list after updating
+      await fetchTeamPersonnel();
+      return true;
+    } catch (e) {
+      _setError('Failed to update team: ${e.toString()}');
       return false;
     } finally {
       _setLoading(false);
@@ -176,9 +282,119 @@ class PersonnelProvider extends ChangeNotifier {
     }
   }
 
+  // Delete team
+  Future<bool> deleteTeamPersonnel(String teamId) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      // Call repository method to delete team
+      // await _personnelRepository.deleteTeamPersonnel(teamId);
+
+      // For now, simulate API call
+      await Future.delayed(const Duration(seconds: 1));
+
+      // Refresh the list after deleting
+      await fetchTeamPersonnel();
+      return true;
+    } catch (e) {
+      _setError('Failed to delete team: ${e.toString()}');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> fetchTeamMembers(String teamPersonnelId) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      _teamMembers = await _personnelRepository.fetchTeamMembers(teamPersonnelId);
+      notifyListeners();
+    } catch (e) {
+      _setError('Failed to fetch team members: ${e.toString()}');
+      _teamMembers = [];
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Add member to team
+  Future<bool> addTeamMember(Map<String, dynamic> memberData) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      await _personnelRepository.addTeamMember(memberData);
+
+      // Refresh team members list if we have a team selected
+      if (memberData['team_personnel_id'] != null) {
+        await fetchTeamMembers(memberData['team_personnel_id']);
+      }
+
+      return true;
+    } catch (e) {
+      _setError('Failed to add team member: ${e.toString()}');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Remove member from team
+  Future<bool> removeTeamMember(String personnelMembersId, String teamPersonnelId) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      await _personnelRepository.removeTeamMember(personnelMembersId);
+
+      // Refresh team members list
+      await fetchTeamMembers(teamPersonnelId);
+
+      return true;
+    } catch (e) {
+      _setError('Failed to remove team member: ${e.toString()}');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Update team member roles
+  Future<bool> updateTeamMember(
+    String personnelMembersId,
+    String teamPersonnelId,
+    Map<String, dynamic> memberData,
+  ) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      await _personnelRepository.updateTeamMember(personnelMembersId, memberData);
+
+      // Refresh team members list
+      await fetchTeamMembers(teamPersonnelId);
+
+      return true;
+    } catch (e) {
+      _setError('Failed to update team member: ${e.toString()}');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Get personnel details for a team member
+  PersonnelData? getPersonnelForMember(String personnelId) {
+    return getPersonnelById(personnelId);
+  }
+
   // Clear all data
   void clearData() {
     _personnelModel = null;
+    _teamPersonnelList = [];
     _isLoading = false;
     _errorMessage = null;
     notifyListeners();

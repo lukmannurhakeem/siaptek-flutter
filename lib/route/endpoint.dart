@@ -25,6 +25,10 @@ class Endpoint {
   static const String jobView = '/job/view';
   static const String jobRegister = '/jobitems/view';
   static const String jobItemCreate = '/jobitems/create';
+  static const String personnelMembersView = '/personnelmembers/team';
+  static const String personnelMembersAdd = '/personnelmembers/add-member';
+  static const String personnelMembersDelete = '/personnelmembers';
+  static const String personnelMembersUpdate = '/personnelmembers';
 
   //category
   static const String categoryView = '/category/view';
@@ -33,6 +37,8 @@ class Endpoint {
   //personnel
   static const String personnelView = '/personnel/view';
   static const String personnelCreate = '/personnel/create';
+  static const String personnelTeamView = '/teampersonnel/view';
+  static const String personnelTeamCreate = '/teampersonnel/create';
 
   static String categoryViewById({String? categoryId}) {
     return categoryId != null ? '/category/$categoryId' : '/category';
