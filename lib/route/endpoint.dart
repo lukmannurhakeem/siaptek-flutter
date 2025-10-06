@@ -19,6 +19,7 @@ class Endpoint {
   static const String createDivision = '/division/create';
   static const String updateDivision = '/division/update';
   static const String reportType = '/report/view';
+  static const String deleteReportType = '/report/delete';
   static const String createReport = '/report/create';
 
   //job

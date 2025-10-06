@@ -486,7 +486,7 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> with TickerProvider
 
       // Use categoryId or any unique identifier for the report
       final reportId =
-          reportItem.reportType?.categoryId ?? reportItem.reportType?.jobID ?? index.toString();
+          reportItem.reportType.reportTypeId ?? reportItem.reportType?.jobID ?? index.toString();
 
       // Call delete API
       await provider.deleteReport(reportId);
