@@ -51,16 +51,15 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
   bool _isStatusRequired = true;
 
   // Lists to store dynamic data
-  List<Map<String, dynamic>> _reportFields = [];
-  List<Map<String, dynamic>> _statusRuleReports = [];
-  List<Map<String, dynamic>> _reportTypeDates = [];
-  List<Map<String, dynamic>> _actionReports = [];
-  List<Map<String, dynamic>> _competencyReports = [];
+  List<Map<String, dynamic>>? _reportFields = [];
+  List<Map<String, dynamic>>? _statusRuleReports = [];
+  List<Map<String, dynamic>>? _reportTypeDates = [];
+  List<Map<String, dynamic>>? _actionReports = [];
+  List<Map<String, dynamic>>? _competencyReports = [];
 
   @override
   void initState() {
     super.initState();
-    // Check if we're in edit mode by getting arguments
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkEditMode();
     });
@@ -79,16 +78,12 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
     }
   }
 
-  // Replace the _populateFormFields method in ReportCreateScreen with this enhanced version
-
   void _populateFormFields() async {
     if (_editReportData?.categoryId != null) {
-      // Fetch detailed report data from API
       final provider = Provider.of<SystemProvider>(context, listen: false);
       final detailedData = await provider.getReportDetails(_editReportData!.categoryId);
 
       if (detailedData != null) {
-        // Populate basic fields from detailed data
         _reportNameController.text =
             detailedData['reportType']?['reportName'] ?? _editReportData?.reportName ?? '';
         _descriptionController.text =
@@ -107,7 +102,6 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         _competencyIDController.text =
             detailedData['reportType']?['competencyID'] ?? _editReportData?.competencyId ?? '';
 
-        // Set boolean values from detailed data
         _isExternalReport = detailedData['reportType']?['isExternalReport'] ?? false;
         _defaultAsDraft = detailedData['reportType']?['defaultAsDraft'] ?? true;
         _archived = detailedData['reportType']?['archived'] ?? _editReportData?.archived ?? false;
@@ -115,10 +109,23 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         _updateItemDates = detailedData['reportType']?['updateItemDates'] ?? true;
         _isStatusRequired = detailedData['reportType']?['isStatusRequired'] ?? true;
 
-        // Populate dynamic lists from detailed data
+        // Populate reportFields with proper structure
         if (detailedData['reportFields'] != null) {
           _reportFields = List<Map<String, dynamic>>.from(
-            detailedData['reportFields'].map((field) => Map<String, dynamic>.from(field)),
+            detailedData['reportFields'].map((field) {
+              final fieldMap = Map<String, dynamic>.from(field);
+              // Ensure defaultValue is a string
+              if (fieldMap['defaultValue'] != null) {
+                if (fieldMap['defaultValue'] is List) {
+                  fieldMap['defaultValue'] = '';
+                } else if (fieldMap['defaultValue'] is Map) {
+                  fieldMap['defaultValue'] = fieldMap['defaultValue']['value']?.toString() ?? '';
+                } else {
+                  fieldMap['defaultValue'] = fieldMap['defaultValue'].toString();
+                }
+              }
+              return fieldMap;
+            }),
           );
         }
 
@@ -148,13 +155,11 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
           );
         }
       } else {
-        // Fallback to basic data if detailed fetch fails
         _reportNameController.text = _editReportData?.reportName ?? '';
         _descriptionController.text = _editReportData?.description ?? '';
         _documentCodeController.text = _editReportData?.documentCode ?? '';
         _categoryIDController.text = _editReportData?.categoryId ?? '';
         _competencyIDController.text = _editReportData?.competencyId ?? '';
-
         _archived = _editReportData?.archived ?? false;
       }
 
@@ -164,7 +169,6 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
 
   @override
   void dispose() {
-    // Dispose controllers
     _reportNameController.dispose();
     _descriptionController.dispose();
     _documentCodeController.dispose();
@@ -201,7 +205,6 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         padding: context.paddingAll,
         child: Column(
           children: [
-            // Horizontal stepper
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -422,7 +425,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         context.vS,
         Expanded(
           child: ListView.builder(
-            itemCount: _reportFields.length,
+            itemCount: _reportFields?.length ?? 0,
             itemBuilder: (context, index) {
               return Card(
                 margin: EdgeInsets.only(bottom: 8),
@@ -480,8 +483,6 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
                       _buildFieldCheckbox('Do Not Copy', index, 'doNotCopy'),
                       context.vS,
                       _buildFieldCheckbox('Is Archive', index, 'isArchive'),
-                      context.vS,
-                      _buildFieldTextField('Display Order', index, 'displayOrder'),
                     ],
                   ),
                 ),
@@ -516,7 +517,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         context.vS,
         Expanded(
           child: ListView.builder(
-            itemCount: _statusRuleReports.length,
+            itemCount: _statusRuleReports?.length ?? 0,
             itemBuilder: (context, index) {
               return Card(
                 margin: EdgeInsets.only(bottom: 8),
@@ -597,7 +598,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         context.vS,
         Expanded(
           child: ListView.builder(
-            itemCount: _reportTypeDates.length,
+            itemCount: _reportTypeDates?.length ?? 0,
             itemBuilder: (context, index) {
               return Card(
                 margin: EdgeInsets.only(bottom: 8),
@@ -669,7 +670,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         context.vS,
         Expanded(
           child: ListView.builder(
-            itemCount: _actionReports.length,
+            itemCount: _actionReports?.length ?? 0,
             itemBuilder: (context, index) {
               return Card(
                 margin: EdgeInsets.only(bottom: 8),
@@ -751,7 +752,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         context.vS,
         Expanded(
           child: ListView.builder(
-            itemCount: _competencyReports.length,
+            itemCount: _competencyReports?.length ?? 0,
             itemBuilder: (context, index) {
               return Card(
                 margin: EdgeInsets.only(bottom: 8),
@@ -794,7 +795,10 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
     );
   }
 
+  // Helper methods for Fields step
   Widget _buildFieldTextField(String label, int index, String key) {
+    final currentValue = _reportFields?[index][key]?.toString() ?? '';
+
     return Row(
       children: [
         Expanded(
@@ -807,10 +811,12 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         Expanded(
           flex: 3,
           child: CommonTextField(
+            controller: TextEditingController(text: currentValue)
+              ..selection = TextSelection.fromPosition(TextPosition(offset: currentValue.length)),
             style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
             onChanged: (value) {
               setState(() {
-                _reportFields[index][key] = value;
+                _reportFields?[index][key] = value;
               });
             },
           ),
@@ -839,7 +845,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
-                value: _reportFields[index][key]?.toString(),
+                value: _reportFields?[index][key]?.toString(),
                 style: context.topology.textTheme.bodySmall?.copyWith(
                   color: context.colors.primary,
                 ),
@@ -854,7 +860,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
                 onChanged: (String? newValue) {
                   if (newValue != null) {
                     setState(() {
-                      _reportFields[index][key] = newValue;
+                      _reportFields?[index][key] = newValue;
                     });
                   }
                 },
@@ -879,10 +885,10 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         Expanded(
           flex: 3,
           child: Checkbox(
-            value: _reportFields[index][key] ?? false,
+            value: _reportFields?[index][key] ?? false,
             onChanged: (bool? value) {
               setState(() {
-                _reportFields[index][key] = value ?? false;
+                _reportFields?[index][key] = value ?? false;
               });
             },
             activeColor: context.colors.primary,
@@ -894,6 +900,8 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
 
   // Helper methods for Status Rules step
   Widget _buildStatusRuleTextField(String label, int index, String key) {
+    final currentValue = _statusRuleReports?[index][key]?.toString() ?? '';
+
     return Row(
       children: [
         Expanded(
@@ -906,10 +914,12 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         Expanded(
           flex: 3,
           child: CommonTextField(
+            controller: TextEditingController(text: currentValue)
+              ..selection = TextSelection.fromPosition(TextPosition(offset: currentValue.length)),
             style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
             onChanged: (value) {
               setState(() {
-                _statusRuleReports[index][key] = value;
+                _statusRuleReports?[index][key] = value;
               });
             },
           ),
@@ -938,7 +948,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
-                value: _statusRuleReports[index][key]?.toString(),
+                value: _statusRuleReports?[index][key]?.toString(),
                 style: context.topology.textTheme.bodySmall?.copyWith(
                   color: context.colors.primary,
                 ),
@@ -953,7 +963,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
                 onChanged: (String? newValue) {
                   if (newValue != null) {
                     setState(() {
-                      _statusRuleReports[index][key] = newValue;
+                      _statusRuleReports?[index][key] = newValue;
                     });
                   }
                 },
@@ -967,6 +977,8 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
 
   // Helper methods for Dates step
   Widget _buildDateTextField(String label, int index, String key) {
+    final currentValue = _reportTypeDates?[index][key]?.toString() ?? '';
+
     return Row(
       children: [
         Expanded(
@@ -979,10 +991,12 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         Expanded(
           flex: 3,
           child: CommonTextField(
+            controller: TextEditingController(text: currentValue)
+              ..selection = TextSelection.fromPosition(TextPosition(offset: currentValue.length)),
             style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
             onChanged: (value) {
               setState(() {
-                _reportTypeDates[index][key] = value;
+                _reportTypeDates?[index][key] = value;
               });
             },
           ),
@@ -1011,7 +1025,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
-                value: _reportTypeDates[index][key]?.toString(),
+                value: _reportTypeDates?[index][key]?.toString(),
                 isExpanded: true,
                 style: context.topology.textTheme.bodySmall?.copyWith(
                   color: context.colors.primary,
@@ -1026,7 +1040,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
                 onChanged: (String? newValue) {
                   if (newValue != null) {
                     setState(() {
-                      _reportTypeDates[index][key] = newValue;
+                      _reportTypeDates?[index][key] = newValue;
                     });
                   }
                 },
@@ -1051,10 +1065,10 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         Expanded(
           flex: 3,
           child: Checkbox(
-            value: _reportTypeDates[index][key] ?? false,
+            value: _reportTypeDates?[index][key] ?? false,
             onChanged: (bool? value) {
               setState(() {
-                _reportTypeDates[index][key] = value ?? false;
+                _reportTypeDates?[index][key] = value ?? false;
               });
             },
             activeColor: context.colors.primary,
@@ -1066,6 +1080,8 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
 
   // Helper methods for Actions step
   Widget _buildActionTextField(String label, int index, String key) {
+    final currentValue = _actionReports?[index][key]?.toString() ?? '';
+
     return Row(
       children: [
         Expanded(
@@ -1078,10 +1094,12 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         Expanded(
           flex: 3,
           child: CommonTextField(
+            controller: TextEditingController(text: currentValue)
+              ..selection = TextSelection.fromPosition(TextPosition(offset: currentValue.length)),
             style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
             onChanged: (value) {
               setState(() {
-                _actionReports[index][key] = value;
+                _actionReports?[index][key] = value;
               });
             },
           ),
@@ -1110,7 +1128,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
-                value: _actionReports[index][key]?.toString(),
+                value: _actionReports?[index][key]?.toString(),
                 isExpanded: true,
                 style: context.topology.textTheme.bodySmall?.copyWith(
                   color: context.colors.primary,
@@ -1125,7 +1143,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
                 onChanged: (String? newValue) {
                   if (newValue != null) {
                     setState(() {
-                      _actionReports[index][key] = newValue;
+                      _actionReports?[index][key] = newValue;
                     });
                   }
                 },
@@ -1150,10 +1168,10 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         Expanded(
           flex: 3,
           child: Checkbox(
-            value: _actionReports[index][key] ?? false,
+            value: _actionReports?[index][key] ?? false,
             onChanged: (bool? value) {
               setState(() {
-                _actionReports[index][key] = value ?? false;
+                _actionReports?[index][key] = value ?? false;
               });
             },
             activeColor: context.colors.primary,
@@ -1165,6 +1183,8 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
 
   // Helper methods for Competency step
   Widget _buildCompetencyTextField(String label, int index, String key) {
+    final currentValue = _competencyReports?[index][key]?.toString() ?? '';
+
     return Row(
       children: [
         Expanded(
@@ -1177,10 +1197,12 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         Expanded(
           flex: 3,
           child: CommonTextField(
+            controller: TextEditingController(text: currentValue)
+              ..selection = TextSelection.fromPosition(TextPosition(offset: currentValue.length)),
             style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
             onChanged: (value) {
               setState(() {
-                _competencyReports[index][key] = value;
+                _competencyReports?[index][key] = value;
               });
             },
           ),
@@ -1209,7 +1231,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
-                value: _competencyReports[index][key]?.toString(),
+                value: _competencyReports?[index][key]?.toString(),
                 style: context.topology.textTheme.bodySmall?.copyWith(
                   color: context.colors.primary,
                 ),
@@ -1229,7 +1251,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
                 onChanged: (String? newValue) {
                   if (newValue != null) {
                     setState(() {
-                      _competencyReports[index][key] = newValue;
+                      _competencyReports?[index][key] = newValue;
                     });
                   }
                 },
@@ -1254,10 +1276,10 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         Expanded(
           flex: 3,
           child: Checkbox(
-            value: _competencyReports[index][key] ?? false,
+            value: _competencyReports?[index][key] ?? false,
             onChanged: (bool? value) {
               setState(() {
-                _competencyReports[index][key] = value ?? false;
+                _competencyReports?[index][key] = value ?? false;
               });
             },
             activeColor: context.colors.primary,
@@ -1309,7 +1331,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
   // Methods to add/remove dynamic items
   void _addReportField() {
     setState(() {
-      _reportFields.add({
+      _reportFields?.add({
         "labelText": "",
         "name": "",
         "fieldType": "text",
@@ -1321,32 +1343,31 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         "doNotCopy": false,
         "infoText": "",
         "isArchive": false,
-        "displayOrder": _reportFields.length + 1,
       });
     });
   }
 
   void _removeReportField(int index) {
     setState(() {
-      _reportFields.removeAt(index);
+      _reportFields?.removeAt(index);
     });
   }
 
   void _addStatusRule() {
     setState(() {
-      _statusRuleReports.add({"status": "", "field": "", "operator": "", "value": ""});
+      _statusRuleReports?.add({"status": "", "field": "", "operator": "", "value": ""});
     });
   }
 
   void _removeStatusRule(int index) {
     setState(() {
-      _statusRuleReports.removeAt(index);
+      _statusRuleReports?.removeAt(index);
     });
   }
 
   void _addReportTypeDate() {
     setState(() {
-      _reportTypeDates.add({
+      _reportTypeDates?.add({
         "name": "",
         "applyCycle": "",
         "isRequired": true,
@@ -1357,13 +1378,13 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
 
   void _removeReportTypeDate(int index) {
     setState(() {
-      _reportTypeDates.removeAt(index);
+      _reportTypeDates?.removeAt(index);
     });
   }
 
   void _addActionReport() {
     setState(() {
-      _actionReports.add({
+      _actionReports?.add({
         "description": "",
         "isArchive": false,
         "applyAction": "",
@@ -1379,19 +1400,19 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
 
   void _removeActionReport(int index) {
     setState(() {
-      _actionReports.removeAt(index);
+      _actionReports?.removeAt(index);
     });
   }
 
   void _addCompetencyReport() {
     setState(() {
-      _competencyReports.add({"internalExternal": "internal", "name": "", "canCreate": true});
+      _competencyReports?.add({"internalExternal": "internal", "name": "", "canCreate": true});
     });
   }
 
   void _removeCompetencyReport(int index) {
     setState(() {
-      _competencyReports.removeAt(index);
+      _competencyReports?.removeAt(index);
     });
   }
 
@@ -1399,14 +1420,24 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
     try {
       final provider = Provider.of<SystemProvider>(context, listen: false);
 
-      // Generate a job ID (you might want to get this from your backend or generate it differently)
-      final jobID =
-          _isEditMode
-              ? (_editReportData?.categoryId ?? DateTime.now().millisecondsSinceEpoch.toString())
-              : DateTime.now().millisecondsSinceEpoch.toString();
+      // Clean up reportFields before submission
+      final cleanedReportFields =
+          _reportFields?.map((field) {
+            final cleanField = Map<String, dynamic>.from(field);
+
+            // Ensure defaultValue is a simple string
+            if (cleanField['defaultValue'] != null) {
+              if (cleanField['defaultValue'] is List || cleanField['defaultValue'] is Map) {
+                cleanField['defaultValue'] = '';
+              } else {
+                cleanField['defaultValue'] = cleanField['defaultValue'].toString();
+              }
+            }
+
+            return cleanField;
+          }).toList();
 
       final reportType = {
-        "jobID": jobID,
         "reportName": _reportNameController.text,
         "description": _descriptionController.text,
         "documentCode": _documentCodeController.text,
@@ -1419,7 +1450,6 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         "isStatusRequired": _isStatusRequired,
         "possibleStatus": _possibleStatusController.text,
         "permission": _permissionController.text,
-        "categoryID": _categoryIDController.text,
         "fieldsID": _fieldsIDController.text,
         "documentTemplate": _documentTemplateController.text,
         "labelTemplate": _labelTemplateController.text,
@@ -1428,25 +1458,23 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
       };
 
       if (_isEditMode) {
-        // Call update API
         await provider.updateReport(
-          reportId: jobID,
+          reportId: _editReportData?.categoryId ?? '',
           reportType: reportType,
-          competencyReports: _competencyReports,
-          reportTypeDates: _reportTypeDates,
-          statusRuleReports: _statusRuleReports,
-          reportFields: _reportFields,
-          actionReports: _actionReports,
+          competencyReports: _competencyReports ?? [],
+          reportTypeDates: _reportTypeDates ?? [],
+          statusRuleReports: _statusRuleReports ?? [],
+          reportFields: cleanedReportFields ?? [],
+          actionReports: _actionReports ?? [],
         );
       } else {
-        // Call create API
         await provider.createReport(
           reportType: reportType,
-          competencyReports: _competencyReports,
-          reportTypeDates: _reportTypeDates,
-          statusRuleReports: _statusRuleReports,
-          reportFields: _reportFields,
-          actionReports: _actionReports,
+          competencyReports: _competencyReports ?? [],
+          reportTypeDates: _reportTypeDates ?? [],
+          statusRuleReports: _statusRuleReports ?? [],
+          reportFields: cleanedReportFields ?? [],
+          actionReports: _actionReports ?? [],
         );
       }
 

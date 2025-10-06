@@ -136,7 +136,7 @@ class SystemImpl implements SystemRepository {
   @override
   Future<void> deleteReport(String reportId) async {
     try {
-      await _api.delete('${Endpoint.reportType}/$reportId', requiresAuth: true);
+      await _api.delete('${Endpoint.deleteReportType}/$reportId', requiresAuth: true);
     } catch (e) {
       throw Exception('Failed to delete report: $e');
     }

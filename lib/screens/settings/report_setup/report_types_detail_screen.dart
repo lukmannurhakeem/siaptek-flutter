@@ -372,7 +372,7 @@ class _ReportTypesDetailsState extends State<ReportTypesDetails> with TickerProv
                 _buildInfoRow('Available To', field.onlyAvailable ?? 'N/A'),
                 _buildInfoRow('Permissions', field.permissionField ?? 'N/A'),
                 _buildInfoRow('Required', field.isRequired == true ? 'Yes' : 'No'),
-                _buildInfoRow('Display Order', field.displayOrder?.toString() ?? 'N/A'),
+
                 if (field.infoText?.isNotEmpty == true) _buildInfoRow('Info Text', field.infoText!),
               ],
             ),

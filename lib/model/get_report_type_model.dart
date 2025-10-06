@@ -218,7 +218,6 @@ class ReportField {
   bool? doNotCopy;
   String? infoText;
   bool? isArchive;
-  int? displayOrder;
   DateTime? createdAt;
   DateTime? updatedAt;
 
@@ -236,7 +235,6 @@ class ReportField {
     this.doNotCopy,
     this.infoText,
     this.isArchive,
-    this.displayOrder,
     this.createdAt,
     this.updatedAt,
   });
@@ -259,7 +257,6 @@ class ReportField {
     doNotCopy: json["doNotCopy"],
     infoText: json["infoText"],
     isArchive: json["isArchive"],
-    displayOrder: json["displayOrder"],
     createdAt: json["created_at"] == null ? null : DateTime.parse(json["created_at"]),
     updatedAt: json["updated_at"] == null ? null : DateTime.parse(json["updated_at"]),
   );
@@ -278,7 +275,6 @@ class ReportField {
     "doNotCopy": doNotCopy,
     "infoText": infoText,
     "isArchive": isArchive,
-    "displayOrder": displayOrder,
     "created_at": createdAt?.toIso8601String(),
     "updated_at": updatedAt?.toIso8601String(),
   };
