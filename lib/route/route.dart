@@ -131,8 +131,7 @@ class AppRoutes {
       case jobItemDetails:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
-          builder:
-              (_) => JobItemDetailsScreen(item: args?['item'] ?? '', site: args?['site'] ?? ''),
+          builder: (_) => JobItemDetailsScreen(item: args?['item'] ?? ''),
           settings: settings,
         );
 

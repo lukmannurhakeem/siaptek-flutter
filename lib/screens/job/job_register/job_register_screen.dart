@@ -8,8 +8,6 @@ import 'package:base_app/core/utils/file_export_stub.dart'
 import 'package:base_app/model/job_register.dart';
 import 'package:base_app/providers/job_provider.dart';
 import 'package:base_app/route/route.dart';
-import 'package:base_app/widget/common_button.dart';
-import 'package:base_app/widget/common_dialog.dart';
 import 'package:base_app/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -25,11 +23,11 @@ class JobRegisterScreen extends StatefulWidget {
 
 class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProviderStateMixin {
   late TabController _tabController;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
   int sortColumnIndex = 0;
   Set<int> selectedRows = <int>{};
   bool selectAll = false;
-  String searchQuery = '';
-  final TextEditingController _searchController = TextEditingController();
 
   // Column selection for export
   Map<String, bool> selectedColumns = {
@@ -57,13 +55,24 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
     _tabController = TabController(length: tabs.length, vsync: this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<JobProvider>().fetchJobRegisterModel(context);
+      // Fetch job register data if not already loaded
+      final provider = context.read<JobProvider>();
+      if (provider.jobRegisterModel == null) {
+        provider.fetchJobRegisterModel(context);
+      }
+    });
+
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
     });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -216,7 +225,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
     if (selectedRows.isEmpty) return;
 
     final provider = context.read<JobProvider>();
-    final filteredList = provider.searchItems(searchQuery, _tabController.index);
+    final filteredList = provider.searchItems(_searchQuery, _tabController.index);
 
     // Generate CSV content
     List<String> headers = [];
@@ -357,7 +366,6 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
           );
         },
       ),
-      floatingActionButton: _buildFloatingActionButton(context),
     );
   }
 
@@ -403,7 +411,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
   }
 
   Widget _buildTabContent(JobProvider provider) {
-    final filteredList = provider.searchItems(searchQuery, _tabController.index);
+    final filteredList = provider.searchItems(_searchQuery, _tabController.index);
 
     if (filteredList.isEmpty && !provider.isLoading) {
       return Center(
@@ -426,6 +434,19 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
         builder: (context, constraints) {
           return ListView(
             children: [
+              CommonTextField(
+                controller: _searchController,
+                hintText: 'Search items',
+                suffixIcon:
+                    _searchQuery.isNotEmpty
+                        ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                          },
+                        )
+                        : null,
+              ),
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: SingleChildScrollView(
@@ -607,7 +628,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                       ),
                     ],
                     rows: List.generate(list.length, (index) {
-                      final data = list[index];
+                      final data = list.elementAt(index);
                       final isEven = index % 2 == 0;
 
                       return DataRow(
@@ -633,7 +654,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                               onTap: () {
                                 NavigationService().navigateTo(
                                   AppRoutes.jobItemDetails,
-                                  arguments: {'item': data.jobId, 'site': data.locationId},
+                                  arguments: {'item': data},
                                 );
                               },
                               child: Text(
@@ -885,124 +906,6 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
           }),
         ),
       ),
-    );
-  }
-
-  Widget _buildFloatingActionButton(BuildContext context) {
-    return FloatingActionButton(
-      onPressed: () {
-        CommonDialog.show(
-          context,
-          widget: SizedBox(
-            height: context.screenHeight / 2,
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: Text(
-                        'Item',
-                        style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: CommonTextField(
-                        hintText: 'Item Name',
-                        style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                context.vS,
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: Text(
-                        'Category',
-                        style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: CommonTextField(
-                        hintText: 'Category',
-                        style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                context.vS,
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: Text(
-                        'Location',
-                        style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: CommonTextField(
-                        hintText: 'Location',
-                        style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                context.vS,
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: Text(
-                        'Status',
-                        style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: CommonTextField(
-                        hintText: 'Status',
-                        style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                context.vL,
-                CommonButton(
-                  text: 'Search',
-                  onPressed: () {
-                    NavigationService().goBack();
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-      tooltip: 'Search',
-      backgroundColor: context.colors.primary,
-      child: const Icon(Icons.search),
     );
   }
 

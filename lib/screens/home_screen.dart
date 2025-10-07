@@ -36,7 +36,8 @@ class _HomeScreenState extends State<HomeScreen> {
   // Track expanded menu items (by index)
   final Set<int> _expandedMenus = {};
 
-  final List<MenuItem> _menuItems = [
+  // Get all menu items
+  List<MenuItem> get _allMenuItems => [
     MenuItem(title: 'Dashboard', icon: Icons.home, index: 0, screen: DashboardScreen()),
     MenuItem(
       title: 'Planner',
@@ -99,18 +100,11 @@ class _HomeScreenState extends State<HomeScreen> {
       icon: Icons.settings,
       index: 8,
       children: [
-        // MenuItem(title: 'Data', icon: Icons.data_array, index: 16, screen: DataScreen()),
         MenuItem(
           title: 'Report Setup',
           icon: Icons.report,
           index: 17,
           children: [
-            // MenuItem(
-            //   title: 'Divisions',
-            //   icon: Icons.view_array,
-            //   index: 23,
-            //   screen: ReportSetupScreen(),
-            // ),
             MenuItem(
               title: 'Report Type',
               icon: Icons.view_array,
@@ -144,20 +138,26 @@ class _HomeScreenState extends State<HomeScreen> {
               screen: AccessViewScreen(),
             ),
           ],
-          // screen: AccessScreen()
         ),
-        // MenuItem(
-        //   title: 'Administration Tools',
-        //   icon: Icons.admin_panel_settings,
-        //   index: 20,
-        //   screen: AdministrationToolsScreen(),
-        // ),
-        // MenuItem(title: 'Logs', icon: Icons.file_copy, index: 21, screen: LogsScreen()),
       ],
     ),
   ];
 
-  MenuItem? get _currentMenuItem {
+  // Filter menu items based on user role
+  List<MenuItem> _getFilteredMenuItems(String userGroup) {
+    final isAdmin = userGroup.toLowerCase() == 'admin';
+    print('Henlo : ${userGroup.toLowerCase()}');
+
+    // Non-admin users only see Dashboard, Planner, and Jobs
+    // if (!isAdmin) {
+    //   return _allMenuItems.take(3).toList();
+    // }
+
+    // Admin users see all menu items
+    return _allMenuItems;
+  }
+
+  MenuItem? _getCurrentMenuItem(List<MenuItem> menuItems) {
     MenuItem? findItem(List<MenuItem> items, int index) {
       for (final item in items) {
         if (item.index == index) return item;
@@ -169,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return null;
     }
 
-    return findItem(_menuItems, _selectedIndex) ?? _menuItems[0];
+    return findItem(menuItems, _selectedIndex) ?? menuItems.first;
   }
 
   @override
@@ -184,28 +184,85 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _currentMenuItem?.title ?? '',
-          style: context.topology.textTheme.titleMedium?.copyWith(color: context.colors.primary),
-        ),
-        centerTitle: true,
-        iconTheme: IconThemeData(color: context.colors.primary),
-        backgroundColor: context.colors.onPrimary,
-      ),
-      drawer: Drawer(
-        child: SafeArea(
-          top: true,
-          child: ListView(
-            padding: context.paddingAll,
-            children: [
-              ..._buildMenuList(_menuItems),
+    return Consumer<AuthenticateProvider>(
+      builder: (context, authProvider, child) {
+        final userGroup = authProvider.userGroup;
+        final isAdmin = userGroup.toLowerCase() == 'admin';
+        final menuItems = _getFilteredMenuItems(userGroup);
+        final currentMenuItem = _getCurrentMenuItem(menuItems);
 
-              // Logout
-              Consumer<AuthenticateProvider>(
-                builder: (context, provider, child) {
-                  return ListTile(
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              currentMenuItem?.title ?? '',
+              style: context.topology.textTheme.titleMedium?.copyWith(
+                color: context.colors.primary,
+              ),
+            ),
+            centerTitle: true,
+            iconTheme: IconThemeData(color: context.colors.primary),
+            backgroundColor: context.colors.onPrimary,
+          ),
+          drawer: Drawer(
+            child: SafeArea(
+              top: true,
+              child: ListView(
+                padding: context.paddingAll,
+                children: [
+                  // User info header
+                  if (authProvider.user != null)
+                    Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${authProvider.user?.user?.firstName ?? ''} ${authProvider.user?.user?.lastName ?? ''}'
+                                .trim(),
+                            style: context.topology.textTheme.titleMedium?.copyWith(
+                              color: context.colors.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            authProvider.user?.user?.email ?? '',
+                            style: context.topology.textTheme.bodySmall?.copyWith(
+                              color: context.colors.primary.withOpacity(0.7),
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color:
+                                  isAdmin
+                                      ? context.colors.primary.withOpacity(0.15)
+                                      : Colors.grey.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: isAdmin ? context.colors.primary : Colors.grey,
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              isAdmin ? 'Admin' : 'User',
+                              style: context.topology.textTheme.bodySmall?.copyWith(
+                                color: context.colors.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  context.divider,
+
+                  // Menu items
+                  ..._buildMenuList(menuItems),
+
+                  // Logout
+                  ListTile(
                     splashColor: context.colors.primary.withOpacity(0.5),
                     leading: Icon(Icons.logout, color: context.colors.primary),
                     title: Text(
@@ -215,16 +272,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     onTap: () {
-                      provider.logout(context);
+                      authProvider.logout(context);
                     },
-                  );
-                },
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-      body: SafeArea(top: true, child: SingleChildScrollView(child: _getBodyContent())),
+          body: SafeArea(
+            top: true,
+            child: SingleChildScrollView(child: _getBodyContent(currentMenuItem)),
+          ),
+        );
+      },
     );
   }
 
@@ -282,7 +342,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }).toList();
   }
 
-  Widget _getBodyContent() {
-    return _currentMenuItem?.screen ?? Center(child: Text("${_currentMenuItem?.title} Content"));
+  Widget _getBodyContent(MenuItem? currentMenuItem) {
+    return currentMenuItem?.screen ?? Center(child: Text("${currentMenuItem?.title} Content"));
   }
 }

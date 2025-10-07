@@ -64,6 +64,35 @@ class JobProvider extends ChangeNotifier {
 
   dynamic get selectedSearchValue => _selectedSearchValue;
 
+  // Add this property to store current item
+  Item? _currentItem;
+
+  Item? get currentItem => _currentItem;
+
+  /// Get item by itemID from existing jobRegisterModel data
+  Item? getItemById(String itemId) {
+    if (_jobRegisterModel?.items == null) return null;
+
+    try {
+      return _jobRegisterModel!.items!.firstWhere((item) => item.itemId == itemId);
+    } catch (e) {
+      print('Item not found with ID: $itemId');
+      return null;
+    }
+  }
+
+  /// Set current item
+  void setCurrentItem(String itemId) {
+    _currentItem = getItemById(itemId);
+    notifyListeners();
+  }
+
+  /// Clear current item
+  void clearCurrentItem() {
+    _currentItem = null;
+    notifyListeners();
+  }
+
   /// Set search filters
   void setSearch(SearchColumnType? column, dynamic value) {
     _selectedSearchColumn = column;

@@ -15,6 +15,12 @@ class AuthenticateProvider extends ChangeNotifier {
 
   UserLoginModel? get user => _user;
 
+  // Check if current user is admin
+  bool get isAdmin => _user?.user?.userGroup?.toLowerCase() == 'admin';
+
+  // Get user group from local storage (for when app restarts)
+  String get userGroup => LocalStorageService.getString(LocalStorageConstant.userGroup);
+
   Future<UserLoginModel?> login(BuildContext context, String name, String password) async {
     if (name.trim().isEmpty || password.trim().isEmpty) {
       CommonSnackbar.showError(context, 'Email and password must not be empty');
@@ -34,6 +40,14 @@ class AuthenticateProvider extends ChangeNotifier {
           LocalStorageConstant.userEmail,
           _user!.user!.email ?? '',
         );
+        // Store user group for role-based access
+        await LocalStorageService.setString(
+          LocalStorageConstant.userGroup,
+          _user!.user!.userGroup ?? '',
+        );
+
+        notifyListeners(); // Notify listeners about user state change
+
         NavigationService().replaceTo(
           AppRoutes.home,
           arguments: {
@@ -134,6 +148,7 @@ class AuthenticateProvider extends ChangeNotifier {
   Future<void> _clearTokens() async {
     await LocalStorageService.remove(LocalStorageConstant.accessToken);
     await LocalStorageService.remove(LocalStorageConstant.refreshToken);
+    await LocalStorageService.remove(LocalStorageConstant.userGroup);
   }
 
   Future<void> logout(BuildContext context) async {
@@ -141,6 +156,9 @@ class AuthenticateProvider extends ChangeNotifier {
       await _userRepository.userLogout();
       await LocalStorageService.remove(LocalStorageConstant.accessToken);
       await LocalStorageService.remove(LocalStorageConstant.refreshToken);
+      await LocalStorageService.remove(LocalStorageConstant.userGroup);
+      _user = null;
+      notifyListeners();
       NavigationService().navigateToAndRemoveUntil(AppRoutes.login);
     } catch (e) {
       CommonSnackbar.showError(context, e.toString());

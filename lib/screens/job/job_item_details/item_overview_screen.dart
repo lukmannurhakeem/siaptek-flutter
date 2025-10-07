@@ -1,16 +1,13 @@
 import 'package:base_app/core/extension/date_time_extension.dart';
 import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/model/job_register.dart';
-import 'package:base_app/providers/job_provider.dart';
 import 'package:base_app/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class ItemOverviewScreen extends StatefulWidget {
-  final String? jobId;
-  final String? siteId;
+  final Item? jobId; // Item passed from previous screen
 
-  const ItemOverviewScreen({super.key, this.jobId, this.siteId});
+  const ItemOverviewScreen({super.key, this.jobId});
 
   @override
   State<ItemOverviewScreen> createState() => _ItemOverviewScreenState();
@@ -18,9 +15,8 @@ class ItemOverviewScreen extends StatefulWidget {
 
 class _ItemOverviewScreenState extends State<ItemOverviewScreen> {
   Item? currentItem;
-  bool isLoading = true;
 
-  // Text editing controllers for form fields
+  // Text editing controllers
   final TextEditingController _itemNoController = TextEditingController();
   final TextEditingController _archivedController = TextEditingController();
   final TextEditingController _rfidNoController = TextEditingController();
@@ -41,14 +37,15 @@ class _ItemOverviewScreenState extends State<ItemOverviewScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadItemData();
-    });
+    // Populate from passed item
+    if (widget.jobId != null) {
+      currentItem = widget.jobId;
+      _populateFields(currentItem!);
+    }
   }
 
   @override
   void dispose() {
-    // Dispose all controllers
     _itemNoController.dispose();
     _archivedController.dispose();
     _rfidNoController.dispose();
@@ -68,47 +65,12 @@ class _ItemOverviewScreenState extends State<ItemOverviewScreen> {
     super.dispose();
   }
 
-  Future<void> _loadItemData() async {
-    if (widget.jobId == null) {
-      setState(() {
-        isLoading = false;
-      });
-      return;
-    }
-
-    try {
-      final provider = context.read<JobProvider>();
-
-      // If data is not already loaded, fetch it
-      if (provider.jobRegisterModel == null) {
-        await provider.fetchJobRegisterModel(context);
-      }
-
-      // Find the specific item by jobId
-      final items = provider.jobRegisterModel?.items ?? [];
-      currentItem = items.firstWhere(
-        (item) => item.jobId == widget.jobId,
-        orElse: () => items.isNotEmpty ? items.first : null as Item, // cast needed
-      );
-
-      if (currentItem != null) {
-        _populateFields(currentItem!);
-      }
-    } catch (e) {
-      print('Error loading item data: $e');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
   void _populateFields(Item item) {
     _itemNoController.text = item.itemNo ?? '';
-    _archivedController.text = item.archived?.toString() ?? '';
+    _archivedController.text = (item.archived ?? false).toString();
     _rfidNoController.text = item.rfidNo ?? '';
-    _categoryController.text = item.categoryId ?? '';
-    _locationController.text = item.locationId ?? '';
+    _categoryController.text = item.categoryId ?? item.categoryId ?? '';
+    _locationController.text = item.locationId ?? item.locationId ?? '';
     _detailedLocationController.text = item.detailedLocation ?? '';
     _internalNotesController.text = item.internalNotes ?? '';
     _externalNotesController.text = item.externalNotes ?? '';
@@ -116,7 +78,7 @@ class _ItemOverviewScreenState extends State<ItemOverviewScreen> {
     _manufacturerAddressController.text = item.manufacturerAddress ?? '';
     _manufactureDateController.text = item.manufacturerDate?.formatShortDate ?? '';
     _firstUseDateController.text = item.firstUseDate?.formatShortDate ?? '';
-    _outOfServiceController.text = item.status?.toString() ?? '';
+    _outOfServiceController.text = item.status ?? '';
     _swlController.text = item.swl ?? '';
     _photoReferenceController.text = item.photoReference ?? '';
     _standardReferenceController.text = item.standardReference ?? '';
@@ -124,21 +86,6 @@ class _ItemOverviewScreenState extends State<ItemOverviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'Item Overview',
-            style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
-          ),
-          centerTitle: true,
-          iconTheme: IconThemeData(color: context.colors.primary),
-          backgroundColor: context.colors.onPrimary,
-        ),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -182,7 +129,6 @@ class _ItemOverviewScreenState extends State<ItemOverviewScreen> {
                 _buildRow(context, 'Internal Notes', _internalNotesController, maxLines: 3),
                 context.vS,
                 _buildRow(context, 'External Notes', _externalNotesController, maxLines: 3),
-                context.vS,
               ],
             ),
           ),
@@ -218,7 +164,6 @@ class _ItemOverviewScreenState extends State<ItemOverviewScreen> {
                   _standardReferenceController,
                   maxLines: 2,
                 ),
-                context.vS,
               ],
             ),
           ),
@@ -262,7 +207,6 @@ class _ItemOverviewScreenState extends State<ItemOverviewScreen> {
           _buildRow(context, 'Photo Reference', _photoReferenceController),
           context.vS,
           _buildRow(context, 'Standard & Reference', _standardReferenceController, maxLines: 2),
-          context.vS,
         ],
       ),
     );
@@ -293,7 +237,7 @@ class _ItemOverviewScreenState extends State<ItemOverviewScreen> {
           child: CommonTextField(
             controller: controller,
             maxLines: maxLines,
-            readOnly: true, // Make read-only since this is overview
+            readOnly: true,
             style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
           ),
         ),
