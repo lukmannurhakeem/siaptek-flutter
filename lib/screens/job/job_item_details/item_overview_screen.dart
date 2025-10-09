@@ -87,15 +87,6 @@ class _ItemOverviewScreenState extends State<ItemOverviewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Item Overview - ${currentItem?.itemNo ?? 'Unknown'}',
-          style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
-        ),
-        centerTitle: true,
-        iconTheme: IconThemeData(color: context.colors.primary),
-        backgroundColor: context.colors.onPrimary,
-      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

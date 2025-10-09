@@ -8,6 +8,7 @@ import 'package:base_app/core/utils/file_export_stub.dart'
 import 'package:base_app/model/job_register.dart';
 import 'package:base_app/providers/job_provider.dart';
 import 'package:base_app/route/route.dart';
+import 'package:base_app/widget/common_dialog.dart';
 import 'package:base_app/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -626,6 +627,16 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                           ),
                         ),
                       ),
+                      // DataColumn(
+                      //   label: Expanded(
+                      //     child: Text(
+                      //       '',
+                      //       style: context.topology.textTheme.titleSmall?.copyWith(
+                      //         color: context.colors.primary,
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                     rows: List.generate(list.length, (index) {
                       final data = list.elementAt(index);
@@ -729,6 +740,14 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                               ),
                             ),
                           ),
+                          // DataCell(
+                          //   CommonButton.iconOnly(
+                          //     icon: Icons.more_vert,
+                          //     onPressed: () {
+                          //       _showSearchDialog(context);
+                          //     },
+                          //   ),
+                          // ),
                         ],
                       );
                     }),
@@ -920,5 +939,16 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
       default:
         return Colors.grey;
     }
+  }
+
+  void _showSearchDialog(BuildContext context) {
+    CommonDialog.show(
+      context,
+      widget: StatefulBuilder(
+        builder: (context, setDialogState) {
+          return SizedBox(height: context.screenHeight / 3.5, child: Text('data'));
+        },
+      ),
+    );
   }
 }

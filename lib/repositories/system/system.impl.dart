@@ -1,6 +1,9 @@
+import 'dart:typed_data';
+
 import 'package:base_app/core/service/http_service.dart';
 import 'package:base_app/model/get_company_division.dart';
 import 'package:base_app/model/get_report_type_model.dart';
+import 'package:base_app/model/item_report_model.dart';
 import 'package:base_app/repositories/system/system_repository.dart';
 import 'package:base_app/route/endpoint.dart';
 
@@ -189,6 +192,71 @@ class SystemImpl implements SystemRepository {
       );
     } catch (e) {
       throw Exception('Failed to update division: $e');
+    }
+  }
+
+  // Add this method to your SystemRepository class
+
+  Future<Map<String, dynamic>?> getReportFields(String reportTypeId) async {
+    try {
+      final response = await _api.get(Endpoint.getReportField(reportTypeId), requiresAuth: true);
+      return response.data is Map<String, dynamic> ? response.data : null;
+    } catch (e) {
+      throw Exception('Failed to fetch report fields: $e');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>?> createReportData(Map<String, dynamic> requestBody) async {
+    try {
+      final response = await _api.post(
+        Endpoint.createReportData,
+        requiresAuth: true,
+        data: requestBody,
+      );
+      return response.data is Map<String, dynamic> ? response.data : null;
+    } catch (e) {
+      throw Exception('Failed to create report data: $e');
+    }
+  }
+
+  @override
+  Future<List<ItemReportModel>> fetchReportDataTypeModel(String reportTypeId) async {
+    try {
+      final response = await _api.get(Endpoint.getItemReport(reportTypeId), requiresAuth: true);
+
+      final data = response.data;
+
+      if (data is List) {
+        return data.map((e) => ItemReportModel.fromJson(e)).toList();
+      } else if (data is String) {
+        return itemReportModelFromJson(data);
+      } else if (data is Map<String, dynamic> && data['data'] is List) {
+        return (data['data'] as List).map((e) => ItemReportModel.fromJson(e)).toList();
+      } else {
+        throw Exception('Unexpected response format: ${response.data}');
+      }
+    } catch (e) {
+      throw Exception('Failed to fetch report types: $e');
+    }
+  }
+
+  @override
+  Future<Uint8List?> fetchPdfReportById(String reportTypeId) async {
+    try {
+      final response = await _api.getBytes(
+        Endpoint.fetchPdfReportById(reportTypeId),
+        requiresAuth: true,
+      );
+
+      final data = response.data;
+      if (data != null && data is List<int>) {
+        return Uint8List.fromList(data);
+      }
+
+      throw Exception('Invalid PDF response format');
+    } catch (e) {
+      throw Exception('Failed to fetch PDF: $e');
     }
   }
 }

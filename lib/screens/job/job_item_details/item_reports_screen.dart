@@ -1,11 +1,21 @@
+import 'dart:html' as html;
+
+import 'package:base_app/core/extension/date_time_extension.dart';
 import 'package:base_app/core/extension/theme_extension.dart';
+import 'package:base_app/core/service/navigation_service.dart';
+import 'package:base_app/model/job_register.dart';
 import 'package:base_app/providers/system_provider.dart';
+import 'package:base_app/route/route.dart';
+import 'package:base_app/screens/job/job_item_details/pdf_viewer_screen.dart';
 import 'package:base_app/widget/common_button.dart';
+import 'package:base_app/widget/common_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class ItemReportScreen extends StatefulWidget {
-  const ItemReportScreen({super.key});
+  final Item item;
+
+  const ItemReportScreen({super.key, required this.item});
 
   @override
   State<ItemReportScreen> createState() => _ItemReportScreenState();
@@ -15,9 +25,9 @@ class _ItemReportScreenState extends State<ItemReportScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch report data when screen loads
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SystemProvider>().fetchReportType();
+      context.read<SystemProvider>().fetchReportDataType(widget.item.itemId ?? '');
     });
   }
 
@@ -57,7 +67,7 @@ class _ItemReportScreenState extends State<ItemReportScreen> {
         }
 
         // Show empty state
-        if (!provider.hasReport) {
+        if (!provider.hasItemReport) {
           return Center(
             child: Text(
               'No reports available',
@@ -66,12 +76,31 @@ class _ItemReportScreenState extends State<ItemReportScreen> {
           );
         }
 
-        final reports = provider.getReportTypeModel!.data!;
-
         return LayoutBuilder(
           builder: (context, con) {
             return ListView(
               children: [
+                context.vM,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${provider.itemReportModel?.length ?? 0} report found',
+                      style: context.topology.textTheme.bodySmall?.copyWith(
+                        color: context.colors.primary,
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        _showCreateDialog(context);
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text('Create'),
+                      style: ElevatedButton.styleFrom(backgroundColor: context.colors.primary),
+                    ),
+                  ],
+                ),
+                context.vM,
                 ConstrainedBox(
                   constraints: BoxConstraints(minWidth: con.maxWidth),
                   child: IntrinsicWidth(
@@ -124,8 +153,8 @@ class _ItemReportScreenState extends State<ItemReportScreen> {
                           ),
                         ),
                       ],
-                      rows: List.generate(reports.length, (index) {
-                        final report = reports[index];
+                      rows: List.generate(provider.itemReportModel?.length ?? 0, (index) {
+                        final report = provider.itemReportModel?.elementAt(index);
                         final isEven = index % 2 == 0;
 
                         return DataRow(
@@ -137,7 +166,7 @@ class _ItemReportScreenState extends State<ItemReportScreen> {
                           cells: [
                             DataCell(
                               Text(
-                                _getReportCode(report),
+                                report?.reportId ?? '-',
                                 style: context.topology.textTheme.bodySmall?.copyWith(
                                   color: context.colors.primary,
                                 ),
@@ -145,7 +174,7 @@ class _ItemReportScreenState extends State<ItemReportScreen> {
                             ),
                             DataCell(
                               Text(
-                                _getReportName(report),
+                                report?.reportName ?? '-',
                                 style: context.topology.textTheme.bodySmall?.copyWith(
                                   color: context.colors.primary,
                                 ),
@@ -155,7 +184,7 @@ class _ItemReportScreenState extends State<ItemReportScreen> {
                             ),
                             DataCell(
                               Text(
-                                _getReportDate(report),
+                                report?.createdAt?.formatFullDate ?? '-',
                                 style: context.topology.textTheme.bodySmall?.copyWith(
                                   color: context.colors.primary,
                                 ),
@@ -167,7 +196,7 @@ class _ItemReportScreenState extends State<ItemReportScreen> {
                                 child: CommonButton(
                                   padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 8),
                                   onPressed: () {
-                                    _handleAction(context, _getReportId(report));
+                                    _printPdf(context, report?.reportId ?? '');
                                   },
                                   text: 'Action',
                                   textStyle: context.topology.textTheme.bodySmall?.copyWith(
@@ -288,7 +317,7 @@ class _ItemReportScreenState extends State<ItemReportScreen> {
   // Helper methods to extract data from report object
   String _getReportCode(dynamic report) {
     try {
-      return report.reportType?.documentCode ?? 'N/A';
+      return 'N/A';
     } catch (e) {
       return 'N/A';
     }
@@ -351,18 +380,117 @@ class _ItemReportScreenState extends State<ItemReportScreen> {
   }
 
   void _handleAction(BuildContext context, String reportId) {
-    // Implement your action logic here
-    // For example, navigate to report details or show options
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Report Action'),
-            content: Text('Action for report: $reportId'),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
-            ],
-          ),
+    // Get the report data to pass the report name
+    final provider = context.read<SystemProvider>();
+    final reports = provider.getReportTypeModel?.data ?? [];
+
+    final report = reports.firstWhere(
+      (r) => r.reportType?.reportTypeId == reportId,
+      orElse: () => reports.first,
     );
+
+    final reportName = report.reportType?.reportName ?? 'Report Details';
+
+    // Navigate to ReportFieldsScreen using NavigationService
+    NavigationService().navigateTo(
+      AppRoutes.reportFieldsScreen,
+      arguments: {'reportTypeId': reportId, 'reportName': reportName, 'item': widget.item},
+    );
+  }
+
+  void _showCreateDialog(BuildContext context, [String? reportId]) {
+    final provider = context.read<SystemProvider>();
+    final reports = provider.getReportTypeModel?.data ?? [];
+
+    CommonDialog.show(
+      context,
+      widget: StatefulBuilder(
+        builder: (context, setDialogState) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 🔹 Header with title and close button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Select Report Type',
+                    style: context.topology.textTheme.titleMedium?.copyWith(
+                      color: context.colors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    color: context.colors.primary,
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              const Divider(height: 1),
+
+              // 🔹 Scrollable list of report names
+              SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(reports.length, (index) {
+                    final report = reports[index];
+                    final isEven = index.isEven;
+
+                    return GestureDetector(
+                      onTap: () => _handleAction(context, report.reportType?.reportTypeId ?? ''),
+                      child: Container(
+                        color:
+                            isEven ? context.colors.primary.withOpacity(0.05) : Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                report.reportType?.reportName ?? '',
+                                style: context.topology.textTheme.bodyMedium?.copyWith(
+                                  color: context.colors.primary,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _printPdf(BuildContext context, String reportId) async {
+    final systemProvider = Provider.of<SystemProvider>(context, listen: false);
+
+    try {
+      if (context.isTablet) {
+        final url = 'http://localhost:4000/api/v1/reportData/$reportId/view-pdf';
+        html.window.open(url, '_blank');
+      } else {
+        final pdfBytes = await systemProvider.fetchPdfReportById(reportId);
+        if (pdfBytes != null && context.mounted) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => PdfViewerScreen(pdfData: pdfBytes, reportName: 'Report_$reportId'),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to generate PDF: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 }

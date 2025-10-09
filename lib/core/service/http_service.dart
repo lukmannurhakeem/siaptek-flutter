@@ -11,10 +11,7 @@ class ApiClient {
     _dio.options.connectTimeout = const Duration(milliseconds: 5000);
     _dio.options.receiveTimeout = const Duration(milliseconds: 3000);
 
-    _dio.options.headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    };
+    _dio.options.headers = {'Content-Type': 'application/json', 'Accept': 'application/json'};
 
     // Add interceptors
     _dio.interceptors.add(
@@ -52,14 +49,12 @@ class ApiClient {
   Options _createOptionsWithAuth({Options? options}) {
     final newOptions = options ?? Options();
 
-    if(LocalStorageService.getString('access_token').isNotEmpty){
+    if (LocalStorageService.getString('access_token').isNotEmpty) {
       newOptions.headers = {
         ...?newOptions.headers,
         'Authorization': 'Bearer ${LocalStorageService.getString('access_token')}',
       };
     }
-
-
 
     return newOptions;
   }
@@ -72,13 +67,35 @@ class ApiClient {
     bool requiresAuth = false,
   }) async {
     try {
-      final requestOptions = requiresAuth ? _createOptionsWithAuth(options: options) : options;
+      final requestOptions =
+          requiresAuth ? _createOptionsWithAuth(options: options) : (options ?? Options());
 
-      return await _dio.get(
-        path,
-        queryParameters: queryParameters,
-        options: requestOptions,
-      );
+      return await _dio.get(path, queryParameters: queryParameters, options: requestOptions);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // GET request for binary data (PDF, images, etc.)
+  Future<Response<List<int>>> getBytes(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    bool requiresAuth = false,
+  }) async {
+    try {
+      final requestOptions =
+          requiresAuth ? _createOptionsWithAuth(options: options) : (options ?? Options());
+
+      // Set response type to bytes
+      requestOptions.responseType = ResponseType.bytes;
+
+      return await _dio.get<List<int>>(
+            path,
+            queryParameters: queryParameters,
+            options: requestOptions,
+          )
+          as Response<List<int>>;
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -93,7 +110,8 @@ class ApiClient {
     bool requiresAuth = false,
   }) async {
     try {
-      final requestOptions = requiresAuth ? _createOptionsWithAuth(options: options) : options;
+      final requestOptions =
+          requiresAuth ? _createOptionsWithAuth(options: options) : (options ?? Options());
 
       return await _dio.post(
         path,
@@ -115,7 +133,8 @@ class ApiClient {
     bool requiresAuth = false,
   }) async {
     try {
-      final requestOptions = requiresAuth ? _createOptionsWithAuth(options: options) : options;
+      final requestOptions =
+          requiresAuth ? _createOptionsWithAuth(options: options) : (options ?? Options());
 
       return await _dio.put(
         path,
@@ -137,7 +156,8 @@ class ApiClient {
     bool requiresAuth = false,
   }) async {
     try {
-      final requestOptions = requiresAuth ? _createOptionsWithAuth(options: options) : options;
+      final requestOptions =
+          requiresAuth ? _createOptionsWithAuth(options: options) : (options ?? Options());
 
       return await _dio.delete(
         path,

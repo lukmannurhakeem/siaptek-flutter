@@ -12,6 +12,7 @@ import 'package:base_app/screens/job/job_add_new_details_screen.dart';
 import 'package:base_app/screens/job/job_add_new_screen.dart';
 import 'package:base_app/screens/job/job_item_create/job_item_create_screen.dart';
 import 'package:base_app/screens/job/job_item_details/job_item_details_screen.dart';
+import 'package:base_app/screens/job/job_item_details/report_field_screen.dart';
 import 'package:base_app/screens/job/job_register/job_register_screen.dart';
 import 'package:base_app/screens/job/job_screen.dart';
 import 'package:base_app/screens/personnel/personnel_create_screen.dart';
@@ -71,6 +72,8 @@ class AppRoutes {
 
   static const String accessScreen = '/accessScreen';
   static const String accessView = '/accessView';
+
+  static const String reportFieldsScreen = '/reportFieldsScreen ';
 
   // Route generator function
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -243,6 +246,18 @@ class AppRoutes {
 
       case accessView:
         return MaterialPageRoute(builder: (_) => const AccessViewScreen(), settings: settings);
+
+      case reportFieldsScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder:
+              (_) => ReportFieldsScreen(
+                reportTypeId: args?['reportTypeId'] ?? '',
+                reportName: args?['reportName'] ?? 'Report Details',
+                item: args?['item'],
+              ),
+          settings: settings,
+        );
 
       default:
         // If the route is not defined, show an error page

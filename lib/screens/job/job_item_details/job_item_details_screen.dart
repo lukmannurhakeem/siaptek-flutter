@@ -1,5 +1,4 @@
 import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/model/job_register.dart';
 import 'package:base_app/providers/job_provider.dart';
 import 'package:base_app/screens/job/job_item_details/item_cycles_screen.dart';
@@ -58,12 +57,6 @@ class _JobItemDetailsScreenState extends State<JobItemDetailsScreen> with Ticker
         centerTitle: true,
         iconTheme: IconThemeData(color: context.colors.primary),
         backgroundColor: context.colors.onPrimary,
-        leading: IconButton(
-          onPressed: () {
-            NavigationService().goBack();
-          },
-          icon: const Icon(Icons.chevron_left),
-        ),
       ),
       body: Consumer<JobProvider>(
         builder: (context, provider, child) {
@@ -110,7 +103,7 @@ class _JobItemDetailsScreenState extends State<JobItemDetailsScreen> with Ticker
                     children: [
                       ItemOverviewScreen(jobId: widget.item),
                       ItemFilesScreen(),
-                      ItemReportScreen(),
+                      ItemReportScreen(item: widget.item),
                       ItemCyclesScreen(),
                       ItemMovementScreen(),
                     ],

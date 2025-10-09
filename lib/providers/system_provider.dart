@@ -1,6 +1,9 @@
+import 'dart:typed_data';
+
 import 'package:base_app/core/service/service_locator.dart';
 import 'package:base_app/model/get_company_division.dart';
 import 'package:base_app/model/get_report_type_model.dart';
+import 'package:base_app/model/item_report_model.dart';
 import 'package:base_app/repositories/system/system_repository.dart';
 import 'package:flutter/material.dart';
 
@@ -11,6 +14,8 @@ class SystemProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   GetReportTypeModel? _getReportTypeModel;
+
+  List<ItemReportModel>? _itemReportModel;
 
   // Getters
   List<GetCompanyDivision> get divisions => _division;
@@ -23,9 +28,16 @@ class SystemProvider extends ChangeNotifier {
 
   bool get hasReport => _getReportTypeModel?.data != null && _getReportTypeModel!.data!.isNotEmpty;
 
+  bool get hasItemReport => _itemReportModel != null;
+
   bool get hasError => _errorMessage != null;
 
   GetReportTypeModel? get getReportTypeModel => _getReportTypeModel;
+
+  List<ItemReportModel>? get itemReportModel => _itemReportModel;
+  Uint8List? _pdfData;
+
+  Uint8List? get pdfData => _pdfData;
 
   // Division Methods
   Future<void> fetchDivision() async {
@@ -167,6 +179,20 @@ class SystemProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> fetchReportDataType(String reportTypeId) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      final result = await _systemRepository.fetchReportDataTypeModel(reportTypeId);
+      _itemReportModel = result;
+    } catch (e) {
+      _setError(e.toString());
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   Future<Map<String, dynamic>?> createReport({
     required Map<String, dynamic> reportType,
     required List<Map<String, dynamic>> competencyReports,
@@ -259,6 +285,80 @@ class SystemProvider extends ChangeNotifier {
       return null;
     } finally {
       _setLoading(false);
+    }
+  }
+
+  // Add this method to your SystemProvider class
+
+  Future<Map<String, dynamic>?> getReportFields(String reportTypeId) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      final result = await _systemRepository.getReportFields(reportTypeId);
+      return result;
+    } catch (e) {
+      _setError(e.toString());
+      return null;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<Uint8List?> fetchPdfReportById(String reportId) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      final pdfBytes = await _systemRepository.fetchPdfReportById(reportId);
+      _pdfData = pdfBytes;
+      notifyListeners();
+      return pdfBytes;
+    } catch (e) {
+      _setError(e.toString());
+      return null;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  void clearPdfData() {
+    _pdfData = null;
+    notifyListeners();
+  }
+
+  Future<Map<String, dynamic>?> createReportData({
+    required String reportTypeId,
+    required String itemId,
+    required String itemNo,
+    required String status,
+    required String inspectedBy,
+    required String reportDate,
+    required String regulation,
+    required Map<String, dynamic> reportData,
+  }) async {
+    try {
+      _setLoading(true);
+
+      final requestBody = {
+        "reportTypeID": reportTypeId,
+        "itemID": itemId,
+        "itemNo": itemNo,
+        "status": status,
+        "inspectedBy": inspectedBy,
+        "reportDate": reportDate,
+        "regulation": regulation,
+        "reportData": reportData,
+      };
+
+      final result = await _systemRepository.createReportData(requestBody);
+
+      _setLoading(false);
+      return result;
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+      rethrow;
     }
   }
 
