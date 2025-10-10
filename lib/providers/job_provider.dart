@@ -107,6 +107,40 @@ class JobProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Add this method to your JobProvider class
+
+  /// Create a new job from job details form
+  Future<void> createJobFromDetails(BuildContext context, Map<String, dynamic> jobData) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      // Call repository to create the job
+      final result = await _jobRepository.createJob(jobData);
+
+      if (context.mounted) {
+        CommonSnackbar.showSuccess(context, result["message"] ?? "Job created successfully");
+      }
+
+      // Refresh job list after successful creation
+      await fetchJobModel(context);
+
+      // Navigate back to job list
+      if (context.mounted) {
+        NavigationService().goBack();
+      }
+    } catch (e) {
+      _error = e.toString();
+      if (context.mounted) {
+        CommonSnackbar.showError(context, e.toString());
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   /// Get filtered jobs based on search criteria
   List<Datum> getFilteredJobs() {
     if (_jobModel?.data == null) return [];

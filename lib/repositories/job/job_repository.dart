@@ -7,4 +7,6 @@ abstract class JobRepository {
   Future<JobRegisterModel> fetchJobRegisterModel();
 
   Future<Map<String, dynamic>> createJobItem(Map<String, dynamic> jobItemData);
+
+  Future<Map<String, dynamic>> createJob(Map<String, dynamic> jobData);
 }

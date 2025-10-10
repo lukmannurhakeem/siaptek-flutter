@@ -44,6 +44,7 @@ class Endpoint {
   static const String personnelMembersAdd = '/personnelmembers/add-member';
   static const String personnelMembersDelete = '/personnelmembers';
   static const String personnelMembersUpdate = '/personnelmembers';
+  static const String jobCreate = '/job/create';
 
   //category
   static const String categoryView = '/category/view';
