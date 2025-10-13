@@ -1,5 +1,4 @@
 import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/model/menu_item.dart';
 import 'package:base_app/providers/authenticate_provider.dart';
 import 'package:base_app/screens/categories/categories_screen.dart';
@@ -30,13 +29,13 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
-
-  // Track expanded menu items (by index)
   final Set<int> _expandedMenus = {};
+  bool _isSidebarExpanded = true;
 
-  // Get all menu items
+  late AnimationController _animationController;
+
   List<MenuItem> get _allMenuItems => [
     MenuItem(title: 'Dashboard', icon: Icons.home, index: 0, screen: DashboardScreen()),
     MenuItem(
@@ -143,17 +142,26 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
   ];
 
-  // Filter menu items based on user role
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(duration: Duration(milliseconds: 300), vsync: this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.showWelcomeDialog) {
+        WelcomeDialog.show(context, userName: widget.userName);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   List<MenuItem> _getFilteredMenuItems(String userGroup) {
     final isAdmin = userGroup.toLowerCase() == 'admin';
     print('Henlo : ${userGroup.toLowerCase()}');
-
-    // Non-admin users only see Dashboard, Planner, and Jobs
-    // if (!isAdmin) {
-    //   return _allMenuItems.take(3).toList();
-    // }
-
-    // Admin users see all menu items
     return _allMenuItems;
   }
 
@@ -172,12 +180,13 @@ class _HomeScreenState extends State<HomeScreen> {
     return findItem(menuItems, _selectedIndex) ?? menuItems.first;
   }
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.showWelcomeDialog) {
-        WelcomeDialog.show(context, userName: widget.userName);
+  void _toggleSidebar() {
+    setState(() {
+      _isSidebarExpanded = !_isSidebarExpanded;
+      if (_isSidebarExpanded) {
+        _animationController.forward();
+      } else {
+        _animationController.reverse();
       }
     });
   }
@@ -193,6 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         return Scaffold(
           appBar: AppBar(
+            automaticallyImplyLeading: false,
             title: Text(
               currentMenuItem?.title ?? '',
               style: context.topology.textTheme.titleMedium?.copyWith(
@@ -203,85 +213,130 @@ class _HomeScreenState extends State<HomeScreen> {
             iconTheme: IconThemeData(color: context.colors.primary),
             backgroundColor: context.colors.onPrimary,
           ),
-          drawer: Drawer(
-            child: SafeArea(
-              top: true,
-              child: ListView(
-                padding: context.paddingAll,
-                children: [
-                  // User info header
-                  if (authProvider.user != null)
-                    Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${authProvider.user?.user?.firstName ?? ''} ${authProvider.user?.user?.lastName ?? ''}'
-                                .trim(),
-                            style: context.topology.textTheme.titleMedium?.copyWith(
-                              color: context.colors.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
+          body: Row(
+            children: [
+              // Animated Sidebar
+              AnimatedContainer(
+                duration: Duration(milliseconds: 300),
+                width: _isSidebarExpanded ? 280 : 80,
+                color: context.colors.onPrimary,
+                child: SafeArea(
+                  child: Column(
+                    children: [
+                      // Toggle Button
+                      Container(
+                        height: 56,
+                        alignment: Alignment.center,
+                        child: IconButton(
+                          icon: Icon(
+                            _isSidebarExpanded ? Icons.menu_open : Icons.menu,
+                            color: context.colors.primary,
                           ),
-                          SizedBox(height: 4),
-                          Text(
-                            authProvider.user?.user?.email ?? '',
-                            style: context.topology.textTheme.bodySmall?.copyWith(
-                              color: context.colors.primary.withOpacity(0.7),
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color:
-                                  isAdmin
-                                      ? context.colors.primary.withOpacity(0.15)
-                                      : Colors.grey.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(
-                                color: isAdmin ? context.colors.primary : Colors.grey,
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              isAdmin ? 'Admin' : 'User',
-                              style: context.topology.textTheme.bodySmall?.copyWith(
-                                color: context.colors.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
+                          onPressed: _toggleSidebar,
+                        ),
                       ),
-                    ),
-                  context.divider,
+                      Divider(height: 1),
 
-                  // Menu items
-                  ..._buildMenuList(menuItems),
+                      // User Info Header (only visible when expanded)
+                      if (authProvider.user != null && _isSidebarExpanded)
+                        Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${authProvider.user?.user?.firstName ?? ''} ${authProvider.user?.user?.lastName ?? ''}'
+                                    .trim(),
+                                style: context.topology.textTheme.titleSmall?.copyWith(
+                                  color: context.colors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                authProvider.user?.user?.email ?? '',
+                                style: context.topology.textTheme.bodySmall?.copyWith(
+                                  color: context.colors.primary.withOpacity(0.7),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              SizedBox(height: 8),
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color:
+                                      isAdmin
+                                          ? context.colors.primary.withOpacity(0.15)
+                                          : Colors.grey.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: isAdmin ? context.colors.primary : Colors.grey,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  isAdmin ? 'Admin' : 'User',
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      if (_isSidebarExpanded) Divider(height: 1),
 
-                  // Logout
-                  ListTile(
-                    splashColor: context.colors.primary.withOpacity(0.5),
-                    leading: Icon(Icons.logout, color: context.colors.primary),
-                    title: Text(
-                      'Logout',
-                      style: context.topology.textTheme.titleSmall?.copyWith(
-                        color: context.colors.primary,
+                      // Menu Items
+                      Expanded(
+                        child: ListView(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          children: _buildMenuList(menuItems),
+                        ),
                       ),
-                    ),
-                    onTap: () {
-                      authProvider.logout(context);
-                    },
+
+                      Divider(height: 1),
+
+                      // Logout
+                      Container(
+                        height: 56,
+                        child: Tooltip(
+                          message: 'Logout',
+                          child: ListTile(
+                            splashColor: context.colors.primary.withOpacity(0.5),
+                            leading: Icon(Icons.logout, color: context.colors.primary),
+                            title:
+                                _isSidebarExpanded
+                                    ? Text(
+                                      'Logout',
+                                      style: context.topology.textTheme.titleSmall?.copyWith(
+                                        color: context.colors.primary,
+                                      ),
+                                    )
+                                    : null,
+                            dense: true,
+                            onTap: () {
+                              authProvider.logout(context);
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-          body: SafeArea(
-            top: true,
-            child: SingleChildScrollView(child: _getBodyContent(currentMenuItem)),
+
+              // Main Content
+              Expanded(
+                child: SafeArea(
+                  top: true,
+                  child: SingleChildScrollView(child: _getBodyContent(currentMenuItem)),
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -292,53 +347,135 @@ class _HomeScreenState extends State<HomeScreen> {
     return items.expand((item) {
       final bool isSelected = _selectedIndex == item.index;
       final bool isExpanded = _expandedMenus.contains(item.index);
+      final bool hasChildren = item.children != null;
 
       List<Widget> tiles = [
         Padding(
-          padding: EdgeInsets.only(left: (indent * 16).toDouble()),
-          child: ListTile(
-            splashColor: context.colors.primary.withOpacity(0.5),
-            leading: Icon(item.icon, color: context.colors.primary),
-            title: Text(
-              item.title,
-              style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
-            ),
-            selected: isSelected,
-            selectedTileColor: context.colors.primary.withOpacity(0.1),
-            trailing:
-                item.children != null
-                    ? Icon(
-                      isExpanded ? Icons.expand_less : Icons.expand_more,
-                      color: context.colors.primary,
-                    )
-                    : null,
-            onTap: () {
-              if (item.children != null) {
-                setState(() {
-                  if (isExpanded) {
-                    _expandedMenus.remove(item.index);
-                  } else {
-                    _expandedMenus.add(item.index);
-                  }
-                });
-              } else {
-                setState(() => _selectedIndex = item.index);
-                NavigationService().goBack();
-              }
-            },
-          ),
+          padding: EdgeInsets.only(left: _isSidebarExpanded ? (indent * 16).toDouble() : 0),
+          child:
+              hasChildren && !_isSidebarExpanded
+                  ? _buildCollapsedMenuWithPopup(item, isExpanded)
+                  : Tooltip(
+                    message: _isSidebarExpanded ? '' : item.title,
+                    child: ListTile(
+                      splashColor: context.colors.primary.withOpacity(0.5),
+                      leading: Icon(item.icon, color: context.colors.primary),
+                      title:
+                          _isSidebarExpanded
+                              ? Text(
+                                item.title,
+                                style: context.topology.textTheme.titleSmall?.copyWith(
+                                  color: context.colors.primary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              )
+                              : null,
+                      selected: isSelected,
+                      selectedTileColor: context.colors.primary.withOpacity(0.1),
+                      trailing:
+                          _isSidebarExpanded && hasChildren
+                              ? Icon(
+                                isExpanded ? Icons.expand_less : Icons.expand_more,
+                                color: context.colors.primary,
+                              )
+                              : null,
+                      dense: true,
+                      onTap: () {
+                        setState(() {
+                          if (hasChildren && _isSidebarExpanded) {
+                            // Toggle expansion for parent items when sidebar is expanded
+                            if (isExpanded) {
+                              _expandedMenus.remove(item.index);
+                            } else {
+                              _expandedMenus.add(item.index);
+                            }
+                          } else if (!hasChildren) {
+                            // Navigate for leaf items
+                            _selectedIndex = item.index;
+                          }
+                        });
+                      },
+                    ),
+                  ),
         ),
       ];
 
-      if (item.children != null && isExpanded) {
+      if (hasChildren && isExpanded && _isSidebarExpanded) {
         tiles.addAll(_buildMenuList(item.children!, indent: indent + 1));
       }
 
-      if (indent == 0) {
-        tiles.add(context.divider);
-      }
-
       return tiles;
+    }).toList();
+  }
+
+  Widget _buildCollapsedMenuWithPopup(MenuItem item, bool isExpanded) {
+    return PopupMenuButton<MenuItem>(
+      onSelected: (selectedItem) {
+        setState(() {
+          _selectedIndex = selectedItem.index;
+        });
+      },
+      itemBuilder: (BuildContext context) {
+        return _buildPopupMenuItems(item.children ?? []);
+      },
+      child: Tooltip(
+        message: item.title,
+        child: ListTile(
+          splashColor: context.colors.primary.withOpacity(0.5),
+          leading: Icon(item.icon, color: context.colors.primary),
+          dense: true,
+        ),
+      ),
+    );
+  }
+
+  List<PopupMenuEntry<MenuItem>> _buildPopupMenuItems(List<MenuItem> items) {
+    return items.map((item) {
+      if (item.children != null && item.children!.isNotEmpty) {
+        return PopupMenuItem<MenuItem>(
+          child: PopupMenuButton<MenuItem>(
+            onSelected: (selectedItem) {
+              setState(() {
+                _selectedIndex = selectedItem.index;
+              });
+            },
+            itemBuilder: (BuildContext context) {
+              return _buildPopupMenuItems(item.children!);
+            },
+            child: Row(
+              children: [
+                Icon(item.icon, color: context.colors.primary, size: 18),
+                SizedBox(width: 8),
+                Text(
+                  item.title,
+                  style: context.topology.textTheme.bodySmall?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                ),
+                SizedBox(width: 8),
+                Icon(Icons.arrow_right, color: context.colors.primary, size: 16),
+              ],
+            ),
+          ),
+        );
+      } else {
+        return PopupMenuItem<MenuItem>(
+          value: item,
+          child: Row(
+            children: [
+              Icon(item.icon, color: context.colors.primary, size: 18),
+              SizedBox(width: 8),
+              Text(
+                item.title,
+                style: context.topology.textTheme.bodySmall?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
     }).toList();
   }
 
