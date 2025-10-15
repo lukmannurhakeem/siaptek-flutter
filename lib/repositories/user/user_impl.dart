@@ -48,7 +48,10 @@ class UserImpl implements UserRepository {
 
   @override
   Future<void> userLogout() async {
-    await _api.post(Endpoint.logout, data: {'refresh_token': LocalStorageConstant.refreshToken});
+    await _api.post(
+      Endpoint.logout,
+      data: {'refresh_token': LocalStorageService.getString(LocalStorageConstant.refreshToken)},
+    );
   }
 
   @override
