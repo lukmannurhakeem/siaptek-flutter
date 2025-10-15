@@ -395,7 +395,7 @@ class _JobScreenState extends State<JobScreen> {
                       ),
                     ],
                     rows: List.generate(jobProvider.jobModel!.data!.length, (index) {
-                      final data = jobProvider.jobModel!.data![index];
+                      final data = jobProvider.jobModel!.data!.elementAt(index);
                       final isEven = index % 2 == 0;
 
                       return DataRow(

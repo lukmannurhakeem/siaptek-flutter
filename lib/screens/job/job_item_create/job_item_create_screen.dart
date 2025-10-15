@@ -249,7 +249,7 @@ class _JobItemCreateScreenState extends State<JobItemCreateScreen> {
       // "firstUseDate": _firstUseDateController.text.trim(),
     };
 
-    context.read<JobProvider>().createJobItem(context, jobItemData);
+    context.read<JobProvider>().createJobItem(context, jobItemData, widget.jobId);
   }
 }
 

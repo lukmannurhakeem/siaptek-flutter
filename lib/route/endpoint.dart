@@ -38,7 +38,13 @@ class Endpoint {
 
   //job
   static const String jobView = '/job/view';
-  static const String jobRegister = '/jobitems/view';
+
+  // static String jobRegister = '/jobitems/view';
+
+  static String jobRegister({String? jobId}) {
+    return jobId != null ? '/jobitems/$jobId' : '/jobitems';
+  }
+
   static const String jobItemCreate = '/jobitems/create';
   static const String personnelMembersView = '/personnelmembers/team';
   static const String personnelMembersAdd = '/personnelmembers/add-member';

@@ -56,6 +56,9 @@ class JobProvider extends ChangeNotifier {
 
   List<Item> get jobItems => _jobRegisterModel?.items ?? [];
 
+  // Track current jobId to detect changes
+  String? _currentJobId;
+
   // Search state
   SearchColumnType? _selectedSearchColumn;
   dynamic _selectedSearchValue;
@@ -107,7 +110,13 @@ class JobProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Add this method to your JobProvider class
+  /// Clear job register model
+  void clearJobRegisterModel() {
+    _jobRegisterModel = null;
+    _currentJobId = null;
+    _currentItem = null;
+    notifyListeners();
+  }
 
   /// Create a new job from job details form
   Future<void> createJobFromDetails(BuildContext context, Map<String, dynamic> jobData) async {
@@ -267,18 +276,25 @@ class JobProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Fetch job register model from repository
-  Future<void> fetchJobRegisterModel(BuildContext context) async {
+  Future<void> fetchJobRegisterModel(BuildContext context, String jobId) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final model = await _jobRepository.fetchJobRegisterModel();
+      print('Fetching Job Register for jobId: $jobId');
+      final model = await _jobRepository.fetchJobRegisterModel(jobId);
+
+      // ✅ Properly populate the Job Register model
       _jobRegisterModel = model;
+      _currentJobId = jobId;
       _error = null;
+
+      print('✅ Job Register fetched successfully for jobId: $jobId');
+      print('Item count: ${_jobRegisterModel?.items?.length}');
     } catch (e) {
       _error = e.toString();
+      print('❌ Error fetching Job Register: $_error');
       if (context.mounted) {
         CommonSnackbar.showError(context, e.toString());
       }
@@ -370,7 +386,7 @@ class JobProvider extends ChangeNotifier {
   }
 
   /// Create a new job item
-  Future<void> createJobItem(BuildContext context, Map<String, dynamic> jobItemData) async {
+  Future<void> createJobItem(BuildContext context, Map<String, dynamic> jobItemData, jobId) async {
     _isLoading = true;
     notifyListeners();
 
@@ -382,7 +398,7 @@ class JobProvider extends ChangeNotifier {
       }
 
       // Refresh items after creation
-      await fetchJobRegisterModel(context);
+      await fetchJobRegisterModel(context, jobId);
 
       if (context.mounted) {
         NavigationService().goBack();
@@ -418,6 +434,8 @@ class JobProvider extends ChangeNotifier {
     sortAscending = true;
     _selectedSearchColumn = null;
     _selectedSearchValue = null;
+    _currentJobId = null;
+    _currentItem = null;
     notifyListeners();
   }
 

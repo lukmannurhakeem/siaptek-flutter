@@ -1,7 +1,6 @@
 import 'package:base_app/core/extension/date_time_extension.dart';
 import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/service/navigation_service.dart';
-// Conditional imports - these will only be imported on respective platforms
 import 'package:base_app/core/utils/file_export_stub.dart'
     if (dart.library.html) 'package:base_app/core/utils/file_export_web.dart'
     if (dart.library.io) 'package:base_app/core/utils/file_export_mobile.dart';
@@ -53,13 +52,16 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
   @override
   void initState() {
     super.initState();
+    print('JobRegisterScreen initState - jobId: ${widget.jobId}');
+
     _tabController = TabController(length: tabs.length, vsync: this);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Fetch job register data if not already loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final provider = context.read<JobProvider>();
-      if (provider.jobRegisterModel == null) {
-        provider.fetchJobRegisterModel(context);
+      print('Fetching job register data for jobId: ${widget.jobId}');
+      await provider.fetchJobRegisterModel(context, widget.jobId);
+      if (mounted) {
+        setState(() {});
       }
     });
 
@@ -68,6 +70,22 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
         _searchQuery = _searchController.text;
       });
     });
+  }
+
+  @override
+  void didUpdateWidget(JobRegisterScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.jobId != widget.jobId) {
+      print('JobRegisterScreen - jobId changed from ${oldWidget.jobId} to ${widget.jobId}');
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final provider = context.read<JobProvider>();
+        await provider.fetchJobRegisterModel(context, widget.jobId);
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    }
   }
 
   @override
@@ -96,7 +114,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     CheckboxListTile(
-                      title: Text('Item'),
+                      title: const Text('Item'),
                       value: selectedColumns['item'],
                       onChanged: (value) {
                         setState(() {
@@ -105,7 +123,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Description'),
+                      title: const Text('Description'),
                       value: selectedColumns['description'],
                       onChanged: (value) {
                         setState(() {
@@ -114,7 +132,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Category'),
+                      title: const Text('Category'),
                       value: selectedColumns['category'],
                       onChanged: (value) {
                         setState(() {
@@ -123,7 +141,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Location'),
+                      title: const Text('Location'),
                       value: selectedColumns['location'],
                       onChanged: (value) {
                         setState(() {
@@ -132,7 +150,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Status'),
+                      title: const Text('Status'),
                       value: selectedColumns['status'],
                       onChanged: (value) {
                         setState(() {
@@ -141,7 +159,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Inspected On'),
+                      title: const Text('Inspected On'),
                       value: selectedColumns['inspectedOn'],
                       onChanged: (value) {
                         setState(() {
@@ -150,7 +168,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Expiry Date'),
+                      title: const Text('Expiry Date'),
                       value: selectedColumns['expiryDate'],
                       onChanged: (value) {
                         setState(() {
@@ -166,14 +184,14 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text('Cancel'),
+                  child: const Text('Cancel'),
                 ),
                 TextButton(
                   onPressed: () {
-                    this.setState(() {}); // Update main widget state
+                    this.setState(() {});
                     Navigator.of(context).pop();
                   },
-                  child: Text('Apply'),
+                  child: const Text('Apply'),
                 ),
               ],
             );
@@ -201,20 +219,22 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () async {
                 await _exportToCSV();
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('CSV file exported successfully!'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
+                if (mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('CSV file exported successfully!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
               },
-              child: Text('Export'),
+              child: const Text('Export'),
             ),
           ],
         );
@@ -228,7 +248,6 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
     final provider = context.read<JobProvider>();
     final filteredList = provider.searchItems(_searchQuery, _tabController.index);
 
-    // Generate CSV content
     List<String> headers = [];
     if (selectedColumns['item'] == true) headers.add('Item');
     if (selectedColumns['description'] == true) headers.add('Description');
@@ -261,7 +280,6 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
 
     String csvContent = rows.map((row) => row.join(',')).join('\n');
 
-    // Use the platform-specific export function
     try {
       await exportCSV(csvContent, context);
     } catch (e) {
@@ -285,7 +303,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Job Register',
+          'Job Register - ${widget.jobId}',
           style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
         ),
         centerTitle: true,
@@ -295,13 +313,13 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
           onPressed: () {
             NavigationService().goBack();
           },
-          icon: Icon(Icons.chevron_left),
+          icon: const Icon(Icons.chevron_left),
         ),
       ),
       body: Consumer<JobProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (provider.error != null) {
@@ -314,20 +332,20 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                     style: context.topology.textTheme.bodyMedium?.copyWith(color: Colors.red),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => provider.fetchJobRegisterModel(context),
-                    child: Text('Retry'),
+                    onPressed: () => provider.fetchJobRegisterModel(context, widget.jobId),
+                    child: const Text('Retry'),
                   ),
                 ],
               ),
             );
           }
+
           return Padding(
             padding: context.paddingHorizontal,
             child: Column(
               children: [
-                // Tab bar
                 Container(
                   color: Colors.white,
                   child: TabBar(
@@ -342,7 +360,6 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                     padding: EdgeInsets.zero,
                     onTap: (index) {
                       setState(() {
-                        // Clear selections when switching tabs
                         selectedRows.clear();
                         selectAll = false;
                       });
@@ -353,10 +370,10 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildTabContent(provider), // All Items
-                      _buildTabContent(provider), // Active
-                      _buildTabContent(provider), // Pending
-                      _buildTabContent(provider), // Archived
+                      _buildTabContent(provider),
+                      _buildTabContent(provider),
+                      _buildTabContent(provider),
+                      _buildTabContent(provider),
                       _buildTabContent(provider),
                       _buildTabContent(provider),
                     ],
@@ -415,10 +432,108 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
     final filteredList = provider.searchItems(_searchQuery, _tabController.index);
 
     if (filteredList.isEmpty && !provider.isLoading) {
-      return Center(
-        child: Text(
-          'No items found',
-          style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
+      return Container(
+        padding: const EdgeInsets.only(top: 16),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return ListView(
+              children: [
+                CommonTextField(
+                  controller: _searchController,
+                  hintText: 'Search items',
+                  suffixIcon:
+                      _searchQuery.isNotEmpty
+                          ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+                            },
+                          )
+                          : null,
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildActionButton(context, 'Create Item', Icons.add, Colors.blue, () {
+                          NavigationService().navigateTo(
+                            AppRoutes.jobItemCreateScreen,
+                            arguments: {'jobId': widget.jobId},
+                          );
+                        }),
+                        const SizedBox(width: 8),
+                        _buildActionButton(
+                          context,
+                          'Export Grid',
+                          Icons.download,
+                          Colors.blue,
+                          () => _showExportDialog(context),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildToggleButton(
+                          context,
+                          'All',
+                          _tabController.index == 0,
+                          () => _tabController.animateTo(0),
+                        ),
+                        const SizedBox(width: 4),
+                        _buildToggleButton(
+                          context,
+                          'Not Inspected',
+                          _tabController.index == 2,
+                          () => _tabController.animateTo(2),
+                        ),
+                        const SizedBox(width: 4),
+                        _buildToggleButton(context, 'Draft', false, () {
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(const SnackBar(content: Text('Draft filter clicked')));
+                        }),
+                        const SizedBox(width: 4),
+                        _buildToggleButton(
+                          context,
+                          'Inspected',
+                          _tabController.index == 1,
+                          () => _tabController.animateTo(1),
+                        ),
+                        const SizedBox(width: 4),
+                        _buildToggleButton(
+                          context,
+                          'Include Archived',
+                          _tabController.index == 3,
+                          () => _tabController.animateTo(3),
+                        ),
+                        const SizedBox(width: 4),
+                        _buildToggleButton(context, 'Items I Can Inspect', false, () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Items I Can Inspect clicked')),
+                          );
+                        }),
+                        const SizedBox(width: 8),
+                        _buildActionButton(
+                          context,
+                          'Column visibility',
+                          Icons.view_column,
+                          Colors.teal,
+                          () => _showColumnSelectionDialog(context),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Center(
+                  child: Text(
+                    'No items found',
+                    style: context.topology.textTheme.bodyMedium?.copyWith(
+                      color: context.colors.primary,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       );
     }
@@ -483,16 +598,11 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                         () => _tabController.animateTo(2),
                       ),
                       const SizedBox(width: 4),
-                      _buildToggleButton(
-                        context,
-                        'Draft',
-                        false, // You can add draft filtering logic
-                        () {
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text('Draft filter clicked')));
-                        },
-                      ),
+                      _buildToggleButton(context, 'Draft', false, () {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(const SnackBar(content: Text('Draft filter clicked')));
+                      }),
                       const SizedBox(width: 4),
                       _buildToggleButton(
                         context,
@@ -508,16 +618,11 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                         () => _tabController.animateTo(3),
                       ),
                       const SizedBox(width: 4),
-                      _buildToggleButton(
-                        context,
-                        'Items I Can Inspect',
-                        false, // Add your logic here
-                        () {
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text('Items I Can Inspect clicked')));
-                        },
-                      ),
+                      _buildToggleButton(context, 'Items I Can Inspect', false, () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Items I Can Inspect clicked')),
+                        );
+                      }),
                       const SizedBox(width: 8),
                       _buildActionButton(
                         context,
@@ -627,16 +732,6 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                           ),
                         ),
                       ),
-                      // DataColumn(
-                      //   label: Expanded(
-                      //     child: Text(
-                      //       '',
-                      //       style: context.topology.textTheme.titleSmall?.copyWith(
-                      //         color: context.colors.primary,
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
                     ],
                     rows: List.generate(list.length, (index) {
                       final data = list.elementAt(index);
@@ -740,14 +835,6 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
                               ),
                             ),
                           ),
-                          // DataCell(
-                          //   CommonButton.iconOnly(
-                          //     icon: Icons.more_vert,
-                          //     onPressed: () {
-                          //       _showSearchDialog(context);
-                          //     },
-                          //   ),
-                          // ),
                         ],
                       );
                     }),
@@ -946,7 +1033,7 @@ class _JobRegisterScreenState extends State<JobRegisterScreen> with TickerProvid
       context,
       widget: StatefulBuilder(
         builder: (context, setDialogState) {
-          return SizedBox(height: context.screenHeight / 3.5, child: Text('data'));
+          return SizedBox(height: context.screenHeight / 3.5, child: const Text('data'));
         },
       ),
     );

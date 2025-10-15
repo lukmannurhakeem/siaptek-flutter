@@ -4,9 +4,9 @@ import 'package:base_app/model/job_register.dart';
 abstract class JobRepository {
   Future<JobModel> fetchJobModel();
 
-  Future<JobRegisterModel> fetchJobRegisterModel();
+  Future<JobRegisterModel> fetchJobRegisterModel(String jobId);
 
-  Future<Map<String, dynamic>> createJobItem(Map<String, dynamic> jobItemData);
+  Future<dynamic> createJobItem(Map<String, dynamic> jobItemData);
 
-  Future<Map<String, dynamic>> createJob(Map<String, dynamic> jobData);
+  Future<dynamic> createJob(Map<String, dynamic> jobData);
 }
