@@ -1,10 +1,10 @@
-import 'package:base_app/core/service/http_service.dart';
+import 'package:base_app/core/service/offline_http_service.dart';
 import 'package:base_app/model/get_customer_model.dart';
 import 'package:base_app/repositories/customer/customer_repository.dart';
 import 'package:base_app/route/endpoint.dart';
 
 class CustomerImpl implements CustomerRepository {
-  final ApiClient _api;
+  final OfflineHttpService _api; // Changed from ApiClient
 
   CustomerImpl(this._api);
 
@@ -23,7 +23,7 @@ class CustomerImpl implements CustomerRepository {
     required String status,
     required String customerName,
   }) async {
-    await _api.post(
+    final response = await _api.post(
       Endpoint.createCustomer,
       requiresAuth: true,
       data: {
@@ -35,5 +35,10 @@ class CustomerImpl implements CustomerRepository {
         'customername': customerName,
       },
     );
+
+    // Check if queued
+    if (response.statusCode == 202 && response.data['queued'] == true) {
+      throw Exception('Customer saved locally. Will sync when online.');
+    }
   }
 }

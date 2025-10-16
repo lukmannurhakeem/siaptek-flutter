@@ -1,4 +1,4 @@
-import 'package:base_app/core/service/http_service.dart';
+import 'package:base_app/core/service/offline_http_service.dart';
 import 'package:base_app/model/personnel_model.dart';
 import 'package:base_app/model/personnel_team_member_model.dart';
 import 'package:base_app/model/personnel_team_model.dart';
@@ -6,7 +6,7 @@ import 'package:base_app/repositories/personnel/personnel_repository.dart';
 import 'package:base_app/route/endpoint.dart';
 
 class PersonnelImpl implements PersonnelRepository {
-  final ApiClient api;
+  final OfflineHttpService api; // Changed from ApiClient
 
   PersonnelImpl(this.api);
 
@@ -23,6 +23,12 @@ class PersonnelImpl implements PersonnelRepository {
       data: personnelData,
       requiresAuth: true,
     );
+
+    // Check if queued
+    if (response.statusCode == 202 && response.data['queued'] == true) {
+      return {'message': 'Personnel saved locally. Will sync when online.', 'queued': true};
+    }
+
     return response.data;
   }
 
@@ -52,6 +58,12 @@ class PersonnelImpl implements PersonnelRepository {
       data: personnelTeamData,
       requiresAuth: true,
     );
+
+    // Check if queued
+    if (response.statusCode == 202 && response.data['queued'] == true) {
+      return {'message': 'Team saved locally. Will sync when online.', 'queued': true};
+    }
+
     return response.data;
   }
 
@@ -62,15 +74,12 @@ class PersonnelImpl implements PersonnelRepository {
       requiresAuth: true,
     );
 
-    // Handle the nested response structure with 'members' array
     if (response.data is Map<String, dynamic>) {
-      // Check if response has 'members' key
       if (response.data.containsKey('members') && response.data['members'] is List) {
         return (response.data['members'] as List)
             .map((item) => PersonnelTeamMemberModel.fromJson(item as Map<String, dynamic>))
             .toList();
       }
-      // Check if response has 'data' key with members
       if (response.data.containsKey('data')) {
         final data = response.data['data'];
         if (data is Map<String, dynamic> && data.containsKey('members')) {
@@ -84,7 +93,6 @@ class PersonnelImpl implements PersonnelRepository {
               .toList();
         }
       }
-      // Fallback: treat the whole response as a single member
       return [PersonnelTeamMemberModel.fromJson(response.data)];
     } else if (response.data is List) {
       return (response.data as List)
@@ -102,20 +110,43 @@ class PersonnelImpl implements PersonnelRepository {
       data: memberData,
       requiresAuth: true,
     );
+
+    // Check if queued
+    if (response.statusCode == 202 && response.data['queued'] == true) {
+      // Return a mock response for queued request
+      return AddMemberResponse(
+        message: 'Member addition queued. Will sync when online.',
+        data: response.data,
+      );
+    }
+
     return AddMemberResponse.fromJson(response.data);
   }
 
   @override
   Future<void> removeTeamMember(String personnelMembersId) async {
-    await api.delete('${Endpoint.personnelMembersDelete}/$personnelMembersId', requiresAuth: true);
+    final response = await api.delete(
+      '${Endpoint.personnelMembersDelete}/$personnelMembersId',
+      requiresAuth: true,
+    );
+
+    // Check if queued
+    if (response.statusCode == 202 && response.data['queued'] == true) {
+      throw Exception('Member removal queued. Will sync when online.');
+    }
   }
 
   @override
   Future<void> updateTeamMember(String personnelMembersId, Map<String, dynamic> memberData) async {
-    await api.put(
+    final response = await api.put(
       '${Endpoint.personnelMembersUpdate}/$personnelMembersId',
       data: memberData,
       requiresAuth: true,
     );
+
+    // Check if queued
+    if (response.statusCode == 202 && response.data['queued'] == true) {
+      throw Exception('Member update queued. Will sync when online.');
+    }
   }
 }

@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:base_app/core/service/http_service.dart';
+import 'package:base_app/core/service/offline_http_service.dart';
 import 'package:base_app/model/get_company_division.dart';
 import 'package:base_app/model/get_report_type_model.dart';
 import 'package:base_app/model/item_report_model.dart';
@@ -8,7 +8,7 @@ import 'package:base_app/repositories/system/system_repository.dart';
 import 'package:base_app/route/endpoint.dart';
 
 class SystemImpl implements SystemRepository {
-  final ApiClient _api;
+  final OfflineHttpService _api; // Changed from ApiClient
 
   SystemImpl(this._api);
 
@@ -54,7 +54,7 @@ class SystemImpl implements SystemRepository {
     String? timezone,
   }) async {
     try {
-      await _api.post(
+      final response = await _api.post(
         Endpoint.createDivision,
         requiresAuth: true,
         data: {
@@ -71,6 +71,11 @@ class SystemImpl implements SystemRepository {
           "timezone": timezone,
         },
       );
+
+      // Check if queued
+      if (response.statusCode == 202 && response.data['queued'] == true) {
+        throw Exception('Division saved locally. Will sync when online.');
+      }
     } catch (e) {
       throw Exception('Failed to create division: $e');
     }
@@ -79,7 +84,6 @@ class SystemImpl implements SystemRepository {
   @override
   Future<void> deleteDivision(GetCompanyDivision division) async {
     try {
-      // Prepare request body as per your API specification
       final requestBody = {
         "division_id": division.divisionid,
         "customer_id": division.customerid,
@@ -95,11 +99,16 @@ class SystemImpl implements SystemRepository {
         "timezone": division.timezone,
       };
 
-      await _api.delete(
+      final response = await _api.delete(
         '${Endpoint.deleteDivision}/${division.divisionid}',
         requiresAuth: true,
         data: requestBody,
       );
+
+      // Check if queued
+      if (response.statusCode == 202 && response.data['queued'] == true) {
+        throw Exception('Division deletion queued. Will sync when online.');
+      }
     } catch (e) {
       throw Exception('Failed to delete division: $e');
     }
@@ -113,6 +122,12 @@ class SystemImpl implements SystemRepository {
         requiresAuth: true,
         data: requestBody,
       );
+
+      // Check if queued
+      if (response.statusCode == 202 && response.data['queued'] == true) {
+        return {'message': 'Report saved locally. Will sync when online.', 'queued': true};
+      }
+
       return response.data is Map<String, dynamic> ? response.data : null;
     } catch (e) {
       throw Exception('Failed to create report: $e');
@@ -130,6 +145,12 @@ class SystemImpl implements SystemRepository {
         requiresAuth: true,
         data: requestBody,
       );
+
+      // Check if queued
+      if (response.statusCode == 202 && response.data['queued'] == true) {
+        return {'message': 'Report update queued. Will sync when online.', 'queued': true};
+      }
+
       return response.data is Map<String, dynamic> ? response.data : null;
     } catch (e) {
       throw Exception('Failed to update report: $e');
@@ -139,7 +160,15 @@ class SystemImpl implements SystemRepository {
   @override
   Future<void> deleteReport(String reportId) async {
     try {
-      await _api.delete('${Endpoint.deleteReportType}/$reportId', requiresAuth: true);
+      final response = await _api.delete(
+        '${Endpoint.deleteReportType}/$reportId',
+        requiresAuth: true,
+      );
+
+      // Check if queued
+      if (response.statusCode == 202 && response.data['queued'] == true) {
+        throw Exception('Report deletion queued. Will sync when online.');
+      }
     } catch (e) {
       throw Exception('Failed to delete report: $e');
     }
@@ -154,8 +183,6 @@ class SystemImpl implements SystemRepository {
       throw Exception('Failed to get report details: $e');
     }
   }
-
-  // Add this method to your SystemImpl class
 
   @override
   Future<void> updateDivision({
@@ -173,7 +200,7 @@ class SystemImpl implements SystemRepository {
     String? timezone,
   }) async {
     try {
-      await _api.put(
+      final response = await _api.put(
         '${Endpoint.updateDivision}/$divisionId',
         requiresAuth: true,
         data: {
@@ -190,12 +217,15 @@ class SystemImpl implements SystemRepository {
           if (timezone != null) "timezone": timezone,
         },
       );
+
+      // Check if queued
+      if (response.statusCode == 202 && response.data['queued'] == true) {
+        throw Exception('Division update queued. Will sync when online.');
+      }
     } catch (e) {
       throw Exception('Failed to update division: $e');
     }
   }
-
-  // Add this method to your SystemRepository class
 
   Future<Map<String, dynamic>?> getReportFields(String reportTypeId) async {
     try {
@@ -214,6 +244,12 @@ class SystemImpl implements SystemRepository {
         requiresAuth: true,
         data: requestBody,
       );
+
+      // Check if queued
+      if (response.statusCode == 202 && response.data['queued'] == true) {
+        return {'message': 'Report data saved locally. Will sync when online.', 'queued': true};
+      }
+
       return response.data is Map<String, dynamic> ? response.data : null;
     } catch (e) {
       throw Exception('Failed to create report data: $e');
@@ -244,7 +280,10 @@ class SystemImpl implements SystemRepository {
   @override
   Future<Uint8List?> fetchPdfReportById(String reportTypeId) async {
     try {
-      final response = await _api.getBytes(
+      // Note: UnifiedHttpService doesn't have getBytes yet
+      // We'll need to add it or handle binary data differently
+      // For now, using regular get with binary handling
+      final response = await _api.get(
         Endpoint.fetchPdfReportById(reportTypeId),
         requiresAuth: true,
       );

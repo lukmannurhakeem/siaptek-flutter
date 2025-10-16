@@ -1,11 +1,11 @@
-import 'package:base_app/core/service/http_service.dart';
+import 'package:base_app/core/service/offline_http_service.dart';
 import 'package:base_app/model/get_site_model.dart';
 import 'package:base_app/model/site_customer_by_id_model.dart';
 import 'package:base_app/repositories/site/site_repository.dart';
 import 'package:base_app/route/endpoint.dart';
 
 class SiteImpl implements SiteRepository {
-  final ApiClient _api;
+  final OfflineHttpService _api; // Changed from ApiClient
 
   SiteImpl(this._api);
 
@@ -38,6 +38,11 @@ class SiteImpl implements SiteRepository {
         'status': status,
       },
     );
+
+    // Check if queued
+    if (response.statusCode == 202 && response.data['queued'] == true) {
+      throw Exception('Site saved locally. Will sync when online.');
+    }
   }
 
   @override

@@ -1,5 +1,4 @@
-import 'package:base_app/core/service/flavor_config.dart';
-import 'package:base_app/core/service/http_service.dart';
+import 'package:base_app/core/service/offline_http_service.dart';
 import 'package:base_app/repositories/category/category_impl.dart';
 import 'package:base_app/repositories/category/category_repository.dart';
 import 'package:base_app/repositories/customer/customer_impl.dart';
@@ -14,85 +13,109 @@ import 'package:base_app/repositories/system/system.impl.dart';
 import 'package:base_app/repositories/system/system_repository.dart';
 import 'package:base_app/repositories/user/user_impl.dart';
 import 'package:base_app/repositories/user/user_repository.dart';
-import 'package:dio/dio.dart';
 
+/// Simple service locator without external dependencies
+/// Manages singleton instances of services and repositories
 class ServiceLocator {
+  // Singleton instance
   static final ServiceLocator _instance = ServiceLocator._internal();
 
   factory ServiceLocator() => _instance;
 
   ServiceLocator._internal();
 
-  UserRepository? _userRepository;
-  SiteRepository? _siteRepository;
+  // Services
+  OfflineHttpService? _httpService;
+
+  // Repositories (lazy initialization)
   CustomerRepository? _customerRepository;
-  SystemRepository? _systemRepository;
   JobRepository? _jobRepository;
+  SiteRepository? _siteRepository;
+  SystemRepository? _systemRepository;
   CategoryRepository? _categoryRepository;
   PersonnelRepository? _personnelRepository;
+  UserRepository? _userRepository;
 
-  void setupRepositories() {
-    final dio =
-        Dio()
-          ..options.baseUrl = Flavor.baseUrl
-          ..options.headers = {'Content-Type': 'application/json', 'Accept': 'application/json'};
-
-    final apiClient = ApiClient(dio);
-    _userRepository = UserImpl(apiClient);
-    _siteRepository = SiteImpl(apiClient);
-    _customerRepository = CustomerImpl(apiClient);
-    _systemRepository = SystemImpl(apiClient);
-    _jobRepository = JobImpl(apiClient);
-    _categoryRepository = CategoryImpl(apiClient);
-    _personnelRepository = PersonnelImpl(apiClient);
+  // Register HTTP Service (called from main.dart)
+  void registerHttpService(OfflineHttpService service) {
+    _httpService = service;
   }
 
-  UserRepository get userRepository {
-    if (_userRepository == null) {
-      setupRepositories();
+  // Get HTTP Service
+  OfflineHttpService get httpService {
+    if (_httpService == null) {
+      throw Exception('HttpService not initialized. Call registerHttpService() first.');
     }
+    return _httpService!;
+  }
+
+  // Get Customer Repository
+  UserRepository get userRepository {
+    _userRepository ??= UserImpl(httpService);
     return _userRepository!;
   }
 
-  SiteRepository get siteRepository {
-    if (_siteRepository == null) {
-      setupRepositories();
-    }
-    return _siteRepository!;
-  }
-
+  // Get Customer Repository
   CustomerRepository get customerRepository {
-    if (_customerRepository == null) {
-      setupRepositories();
-    }
+    _customerRepository ??= CustomerImpl(httpService);
     return _customerRepository!;
   }
 
-  SystemRepository get systemRepository {
-    if (_systemRepository == null) {
-      setupRepositories();
-    }
-    return _systemRepository!;
-  }
-
+  // Get Job Repository
   JobRepository get jobRepository {
-    if (_jobRepository == null) {
-      setupRepositories();
-    }
+    _jobRepository ??= JobImpl(httpService);
     return _jobRepository!;
   }
 
+  // Get Site Repository
+  SiteRepository get siteRepository {
+    _siteRepository ??= SiteImpl(httpService);
+    return _siteRepository!;
+  }
+
+  // Get System Repository
+  SystemRepository get systemRepository {
+    _systemRepository ??= SystemImpl(httpService);
+    return _systemRepository!;
+  }
+
+  // Get Category Repository
   CategoryRepository get categoryRepository {
-    if (_categoryRepository == null) {
-      setupRepositories();
-    }
+    _categoryRepository ??= CategoryImpl(httpService);
     return _categoryRepository!;
   }
 
+  // Get Personnel Repository
   PersonnelRepository get personnelRepository {
-    if (_personnelRepository == null) {
-      setupRepositories();
-    }
+    _personnelRepository ??= PersonnelImpl(httpService);
     return _personnelRepository!;
   }
+
+  // Reset all instances (useful for testing or logout)
+  void reset() {
+    _httpService = null;
+    _customerRepository = null;
+    _jobRepository = null;
+    _siteRepository = null;
+    _systemRepository = null;
+    _categoryRepository = null;
+    _personnelRepository = null;
+  }
 }
+
+// Usage in your code:
+//
+// In Providers:
+// final _jobRepository = ServiceLocator().jobRepository;
+// final _httpService = ServiceLocator().httpService;
+//
+// In Repositories:
+// class JobRepository {
+//   final UnifiedHttpService _http;
+//   JobRepository(this._http);
+//
+//   Future<JobModel> fetchJobs() async {
+//     final response = await _http.get('/jobs', requiresAuth: true);
+//     return JobModel.fromJson(response.data);
+//   }
+// }

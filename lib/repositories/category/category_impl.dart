@@ -1,11 +1,11 @@
-import 'package:base_app/core/service/http_service.dart';
+import 'package:base_app/core/service/offline_http_service.dart';
 import 'package:base_app/model/create_category_model.dart';
 import 'package:base_app/model/get_category_model.dart';
 import 'package:base_app/repositories/category/category_repository.dart';
 import 'package:base_app/route/endpoint.dart';
 
 class CategoryImpl implements CategoryRepository {
-  final ApiClient _api;
+  final OfflineHttpService _api; // Changed from ApiClient
 
   CategoryImpl(this._api);
 
@@ -29,7 +29,7 @@ class CategoryImpl implements CategoryRepository {
     String? checklistId,
     String? plannedMaintenanceId,
   }) async {
-    await _api.post(
+    final response = await _api.post(
       Endpoint.categoryCreate,
       requiresAuth: true,
       data: {
@@ -46,6 +46,11 @@ class CategoryImpl implements CategoryRepository {
         'plannedMaintenanceId': plannedMaintenanceId,
       },
     );
+
+    // Check if queued
+    if (response.statusCode == 202 && response.data['queued'] == true) {
+      throw Exception('Category saved locally. Will sync when online.');
+    }
   }
 
   @override
@@ -63,7 +68,7 @@ class CategoryImpl implements CategoryRepository {
     String? checklistId,
     String? plannedMaintenanceId,
   }) async {
-    await _api.post(
+    final response = await _api.post(
       Endpoint.categoryCreate,
       requiresAuth: true,
       data: {
@@ -81,6 +86,11 @@ class CategoryImpl implements CategoryRepository {
         'plannedMaintenanceId': plannedMaintenanceId,
       },
     );
+
+    // Check if queued
+    if (response.statusCode == 202 && response.data['queued'] == true) {
+      throw Exception('Category update queued. Will sync when online.');
+    }
   }
 
   @override
