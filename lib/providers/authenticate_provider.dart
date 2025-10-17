@@ -15,7 +15,6 @@ class AuthenticateProvider extends ChangeNotifier {
 
   UserLoginModel? get user => _user;
 
-  // Check if current user is admin
   bool get isAdmin => _user?.user?.userGroup?.toLowerCase() == 'admin';
 
   // Get user group from local storage (for when app restarts)
