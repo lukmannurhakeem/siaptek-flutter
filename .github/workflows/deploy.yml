@@ -16,7 +16,6 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.32.0'
           channel: 'stable'
           cache: true
 
@@ -32,6 +31,9 @@ jobs:
           repository: lukmannurhakeem/pwa_landing
           token: ${{ secrets.PAT_TOKEN }}
           path: pwa-landing-repo
+
+      - name: Prepare app folder
+        run: mkdir -p pwa-landing-repo/app
 
       - name: Clear old app files
         run: rm -rf pwa-landing-repo/app/* || true
