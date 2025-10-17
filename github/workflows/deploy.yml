@@ -1,0 +1,49 @@
+name: Build and Deploy Flutter PWA
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Flutter project
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Flutter web
+        run: flutter build web --release --base-href "/pwa_landing/app/"
+
+      - name: Checkout pwa_landing repo
+        uses: actions/checkout@v4
+        with:
+          repository: lukmannurhakeem/pwa_landing
+          token: ${{ secrets.PAT_TOKEN }}
+          path: pwa-landing-repo
+
+      - name: Clear old app files
+        run: rm -rf pwa-landing-repo/app/* || true
+
+      - name: Copy new build to pwa_landing
+        run: cp -r build/web/* pwa-landing-repo/app/
+
+      - name: Commit and push to pwa_landing
+        run: |
+          cd pwa-landing-repo
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add app
+          git diff --quiet && git diff --staged --quiet || git commit -m "Deploy Flutter PWA - $(date +'%Y-%m-%d %H:%M:%S')"
+          git push origin main
