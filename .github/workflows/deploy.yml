@@ -1,16 +1,24 @@
-name: Build and Deploy Flutter PWA
+name: Deploy Flutter PWA
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout Flutter project
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Flutter
@@ -19,33 +27,24 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Get dependencies
+      - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Flutter web
-        run: flutter build web --release --base-href "/pwa_landing/app/"
+      - name: Build web
+        run: flutter build web --release --base-href "/siaptek-flutter/"
 
-      - name: Checkout pwa_landing repo
-        uses: actions/checkout@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          repository: lukmannurhakeem/pwa_landing
-          token: ${{ secrets.PAT_TOKEN }}
-          path: pwa-landing-repo
+          path: 'build/web'
 
-      - name: Prepare app folder
-        run: mkdir -p pwa-landing-repo/app
-
-      - name: Clear old app files
-        run: rm -rf pwa-landing-repo/app/* || true
-
-      - name: Copy new build to pwa_landing
-        run: cp -r build/web/* pwa-landing-repo/app/
-
-      - name: Commit and push to pwa_landing
-        run: |
-          cd pwa-landing-repo
-          git config user.name "GitHub Actions Bot"
-          git config user.email "actions@github.com"
-          git add app
-          git diff --quiet && git diff --staged --quiet || git commit -m "Deploy Flutter PWA - $(date +'%Y-%m-%d %H:%M:%S')"
-          git push origin main
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
