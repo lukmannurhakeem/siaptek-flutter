@@ -1,7 +1,6 @@
 import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/screens/dashboard/dashboard_open_job_screen.dart';
-import 'package:base_app/screens/dashboard/dashboard_side_report_screen.dart';
-import 'package:base_app/screens/dashboard/dashboard_summary_screen.dart';
+import 'package:base_app/core/service/local_storage.dart';
+import 'package:base_app/core/service/local_storage_constant.dart';
 import 'package:flutter/material.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -11,55 +10,797 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> with TickerProviderStateMixin {
-  late TabController _tabController;
-
-  final List<Tab> tabs = const [
-    Tab(text: 'Summary'),
-    Tab(text: 'Open Jobs'),
-    Tab(text: 'Site Report Summary'),
-  ];
+class _DashboardScreenState extends State<DashboardScreen> {
+  String _firstName = '';
+  String _lastName = '';
+  String _email = '';
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: tabs.length, vsync: this);
+    _loadUserData();
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  Future<void> _loadUserData() async {
+    final firstName = await LocalStorageService.getString(LocalStorageConstant.userFirstName) ?? '';
+    final lastName = await LocalStorageService.getString(LocalStorageConstant.userLastName) ?? '';
+    final email = await LocalStorageService.getString(LocalStorageConstant.userEmail) ?? '';
+
+    setState(() {
+      _firstName = firstName;
+      _lastName = lastName;
+      _email = email;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: context.paddingHorizontal,
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            color: Colors.white,
-            child: TabBar(
-              controller: _tabController,
-              tabs: tabs,
-              labelColor: context.colors.primary,
-              unselectedLabelColor: Colors.grey,
-              indicatorColor: context.colors.primary,
-              indicatorWeight: 3,
-              isScrollable: true,
-              tabAlignment: TabAlignment.start,
-              padding: EdgeInsets.zero,
+          // Header with user info, notification, and location filter
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // User Info
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: context.colors.primary.withOpacity(0.1),
+                    child: Text(
+                      _firstName.isNotEmpty ? _firstName[0].toUpperCase() : 'U',
+                      style: TextStyle(
+                        color: context.colors.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$_firstName $_lastName'.trim(),
+                        style: context.topology.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        _email,
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              // Notification and Location Filter
+              Row(
+                children: [
+                  // Notification Icon
+                  Stack(
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.notifications_outlined),
+                        onPressed: () {
+                          // Handle notification tap
+                        },
+                      ),
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(width: 8),
+
+                  // Location Filter
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Text('All Locations'),
+                        SizedBox(width: 8),
+                        Icon(Icons.keyboard_arrow_down, size: 20),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: 24),
+
+          // Top Row - Statistics Cards
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isWideScreen = constraints.maxWidth > 1200;
+              final cardCount = isWideScreen ? 4 : 2;
+
+              return Wrap(
+                spacing: 16,
+                runSpacing: 16,
+                children: [
+                  _StatCard(
+                    title: 'Workorders By Status',
+                    child: _WorkordersByStatusChart(),
+                    width: (constraints.maxWidth - 16) / cardCount,
+                  ),
+                  _StatCard(
+                    title: 'Maintenance Type',
+                    child: _MaintenanceTypePieChart(),
+                    width: (constraints.maxWidth - 16) / cardCount,
+                  ),
+                  _StatCard(
+                    title: 'On-Time Completion Rate',
+                    child: _CompletionRateChart(),
+                    width: (constraints.maxWidth - 16) / cardCount,
+                  ),
+                  _StatCard(
+                    title: 'Last 30 Days Downtime',
+                    child: _DowntimeDisplay(),
+                    width: (constraints.maxWidth - 16) / cardCount,
+                  ),
+                ],
+              );
+            },
+          ),
+          SizedBox(height: 24),
+
+          // Bottom Row - Work Orders and Issues
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isWideScreen = constraints.maxWidth > 900;
+
+              if (isWideScreen) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: _OpenWorkordersCard()),
+                    SizedBox(width: 16),
+                    Expanded(child: _OpenIssuesCard()),
+                    SizedBox(width: 16),
+                    Expanded(child: _TechnicianWorkloadCard()),
+                  ],
+                );
+              } else {
+                return Column(
+                  children: [
+                    _OpenWorkordersCard(),
+                    SizedBox(height: 16),
+                    _OpenIssuesCard(),
+                    SizedBox(height: 16),
+                    _TechnicianWorkloadCard(),
+                  ],
+                );
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final String title;
+  final Widget child;
+  final double? width;
+
+  const _StatCard({required this.title, required this.child, this.width});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      constraints: BoxConstraints(minWidth: 250),
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade700,
             ),
           ),
-          SizedBox(
-            height: MediaQuery.of(context).size.height - kToolbarHeight - 70,
-            child: TabBarView(
-              controller: _tabController,
-              children: [SummaryScreen(), OpenJobsScreen(), SiteReportScreen()],
+          SizedBox(height: 20),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _WorkordersByStatusChart extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        _BarColumn(label: 'Open', value: 85, color: Colors.green, height: 80),
+        _BarColumn(label: 'In Progress', value: 120, color: Colors.blue, height: 110),
+        _BarColumn(label: 'On-Hold', value: 105, color: Colors.orange, height: 95),
+        _BarColumn(label: 'Past Due', value: 135, color: Colors.red, height: 125),
+      ],
+    );
+  }
+}
+
+class _BarColumn extends StatelessWidget {
+  final String label;
+  final int value;
+  final Color color;
+  final double height;
+
+  const _BarColumn({
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.height,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 40,
+          height: height,
+          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
+        ),
+        SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+}
+
+class _MaintenanceTypePieChart extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            SizedBox(
+              height: 120,
+              width: 120,
+              child: CircularProgressIndicator(
+                value: 0.7,
+                strokeWidth: 20,
+                backgroundColor: Colors.green.shade400,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(width: 20),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _LegendItem(color: Colors.blue, label: 'Preventive'),
+            SizedBox(height: 8),
+            _LegendItem(color: Colors.green.shade400, label: 'Corrective'),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _LegendItem extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const _LegendItem({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        SizedBox(width: 8),
+        Text(label, style: TextStyle(fontSize: 13)),
+      ],
+    );
+  }
+}
+
+class _CompletionRateChart extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SizedBox(
+        height: 120,
+        width: 120,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            CircularProgressIndicator(
+              value: 0.75,
+              strokeWidth: 15,
+              backgroundColor: Colors.grey.shade200,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+            ),
+            Text(
+              '75%',
+              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.green),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DowntimeDisplay extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        children: [
+          Text(
+            '4.5 hours',
+            style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.blue),
+          ),
+          SizedBox(height: 8),
+          Text('across 3 assets', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+        ],
+      ),
+    );
+  }
+}
+
+class _OpenWorkordersCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text('Open Workorders', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              SizedBox(width: 8),
+              Icon(Icons.help_outline, size: 16, color: Colors.blue.shade300),
+            ],
+          ),
+          SizedBox(height: 16),
+          _WorkorderItem(
+            priority: 'High',
+            priorityColor: Colors.red,
+            title: 'Risk of overheating, causing system failure',
+            asset: 'Conveyor Belts',
+            location: 'Loading Bay',
+            avatars: 3,
+            dueDate: 'Due in 2 days',
+            isAssigned: true,
+          ),
+          Divider(height: 32),
+          _WorkorderItem(
+            priority: 'High',
+            priorityColor: Colors.red,
+            title: 'Leak detected in hydraulic system, reducing efficiency',
+            asset: 'Hydraulic Press',
+            location: 'Assembly Line',
+            avatars: 2,
+            dueDate: 'Due in 3 days',
+            isAssigned: true,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OpenIssuesCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text('Open Issues', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              SizedBox(width: 8),
+              Icon(Icons.help_outline, size: 16, color: Colors.blue.shade300),
+            ],
+          ),
+          SizedBox(height: 16),
+          _IssueItem(
+            title: 'Software malfunction leading to inconsistent performance',
+            asset: 'Control Panel',
+            location: 'Control Room',
+            reporter: 'Jamie L.',
+            timeAgo: '4 days ago',
+            comments: 3,
+            isAssigned: true,
+          ),
+          Divider(height: 32),
+          _IssueItem(
+            title: 'Frequent voltage fluctuations causing unexpected shutdowns',
+            asset: 'Power Distribution Panel',
+            location: 'Electrical Room',
+            reporter: 'Alex M.',
+            timeAgo: '1 day ago',
+            comments: 2,
+            isAssigned: true,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TechnicianWorkloadCard extends StatelessWidget {
+  final List<Map<String, dynamic>> technicians = [
+    {'name': 'Ryan Carter', 'workorders': 12, 'progress': 0.8},
+    {'name': 'Jacob Myers', 'workorders': 7, 'progress': 0.6},
+    {'name': 'Nathan Brooks', 'workorders': 10, 'progress': 0.7},
+    {'name': 'Tyler Dawson', 'workorders': 12, 'progress': 0.85},
+    {'name': 'Brandon Ellis', 'workorders': 4, 'progress': 0.9},
+    {'name': 'Lucas Hayes', 'workorders': 2, 'progress': 0.3},
+    {'name': 'Jordan Parker', 'workorders': 4, 'progress': 0.5},
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Technician Workload',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(width: 8),
+              Icon(Icons.help_outline, size: 16, color: Colors.blue.shade300),
+            ],
+          ),
+          SizedBox(height: 16),
+          ...technicians.map(
+            (tech) => Padding(
+              padding: EdgeInsets.only(bottom: 16),
+              child: _TechnicianWorkloadItem(
+                name: tech['name'],
+                workorders: tech['workorders'],
+                progress: tech['progress'],
+              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _WorkorderItem extends StatelessWidget {
+  final String priority;
+  final Color priorityColor;
+  final String title;
+  final String asset;
+  final String location;
+  final int avatars;
+  final String dueDate;
+  final bool isAssigned;
+
+  const _WorkorderItem({
+    required this.priority,
+    required this.priorityColor,
+    required this.title,
+    required this.asset,
+    required this.location,
+    required this.avatars,
+    required this.dueDate,
+    required this.isAssigned,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.green, size: 20),
+            SizedBox(width: 8),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: priorityColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                priority,
+                style: TextStyle(color: priorityColor, fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Spacer(),
+            if (isAssigned)
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.circle, size: 8, color: Colors.blue),
+                    SizedBox(width: 4),
+                    Text(
+                      'Assigned',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        SizedBox(height: 8),
+        Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+        SizedBox(height: 12),
+        Row(
+          children: [
+            Icon(Icons.image, size: 40, color: Colors.grey.shade300),
+            SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(asset, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.location_on, size: 12, color: Colors.grey),
+                    SizedBox(width: 4),
+                    Text(location, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+        SizedBox(height: 12),
+        Row(
+          children: [
+            _AvatarStack(count: avatars),
+            Spacer(),
+            Text(dueDate, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _IssueItem extends StatelessWidget {
+  final String title;
+  final String asset;
+  final String location;
+  final String reporter;
+  final String timeAgo;
+  final int comments;
+  final bool isAssigned;
+
+  const _IssueItem({
+    required this.title,
+    required this.asset,
+    required this.location,
+    required this.reporter,
+    required this.timeAgo,
+    required this.comments,
+    required this.isAssigned,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Spacer(),
+            if (isAssigned)
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.circle, size: 8, color: Colors.blue),
+                    SizedBox(width: 4),
+                    Text(
+                      'Assigned',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        SizedBox(height: 8),
+        Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+        SizedBox(height: 12),
+        Row(
+          children: [
+            Icon(Icons.image, size: 40, color: Colors.grey.shade300),
+            SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(asset, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.location_on, size: 12, color: Colors.grey),
+                    SizedBox(width: 4),
+                    Text(location, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+        SizedBox(height: 12),
+        Row(
+          children: [
+            Icon(Icons.person_outline, size: 16, color: Colors.grey),
+            SizedBox(width: 4),
+            Text(reporter, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+            SizedBox(width: 16),
+            Text(timeAgo, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+            Spacer(),
+            Icon(Icons.chat_bubble_outline, size: 16, color: Colors.grey),
+            SizedBox(width: 4),
+            Text('$comments', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _TechnicianWorkloadItem extends StatelessWidget {
+  final String name;
+  final int workorders;
+  final double progress;
+
+  const _TechnicianWorkloadItem({
+    required this.name,
+    required this.workorders,
+    required this.progress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 16,
+          backgroundColor: Colors.blue.shade100,
+          child: Text(name[0], style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+        ),
+        SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(name, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+              SizedBox(height: 4),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  backgroundColor: Colors.grey.shade200,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                  minHeight: 6,
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(width: 12),
+        Text(
+          '$workorders WOs',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.blue),
+        ),
+      ],
+    );
+  }
+}
+
+class _AvatarStack extends StatelessWidget {
+  final int count;
+
+  const _AvatarStack({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: count * 20.0 + 10,
+      height: 30,
+      child: Stack(
+        children: List.generate(count, (index) {
+          return Positioned(
+            left: index * 20.0,
+            child: CircleAvatar(
+              radius: 15,
+              backgroundColor: Colors.primaries[index % Colors.primaries.length],
+              child: Text(
+                String.fromCharCode(65 + index),
+                style: TextStyle(color: Colors.white, fontSize: 11),
+              ),
+            ),
+          );
+        }),
       ),
     );
   }

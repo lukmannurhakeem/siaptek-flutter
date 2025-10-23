@@ -201,18 +201,21 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         final currentMenuItem = _getCurrentMenuItem(menuItems);
 
         return Scaffold(
-          appBar: AppBar(
-            automaticallyImplyLeading: false,
-            title: Text(
-              currentMenuItem?.title ?? '',
-              style: context.topology.textTheme.titleMedium?.copyWith(
-                color: context.colors.primary,
-              ),
-            ),
-            centerTitle: true,
-            iconTheme: IconThemeData(color: context.colors.primary),
-            backgroundColor: context.colors.onPrimary,
-          ),
+          appBar:
+              (currentMenuItem?.title == 'Dashboard')
+                  ? null
+                  : AppBar(
+                    automaticallyImplyLeading: false,
+                    title: Text(
+                      currentMenuItem?.title ?? '',
+                      style: context.topology.textTheme.titleMedium?.copyWith(
+                        color: context.colors.primary,
+                      ),
+                    ),
+                    centerTitle: true,
+                    iconTheme: IconThemeData(color: context.colors.primary),
+                    backgroundColor: context.colors.onPrimary,
+                  ),
           body: Row(
             children: [
               // Animated Sidebar
@@ -223,6 +226,26 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 child: SafeArea(
                   child: Column(
                     children: [
+                      // Logo Section
+                      Container(
+                        height: 100,
+                        alignment: Alignment.center,
+                        padding: EdgeInsets.all(16),
+                        child:
+                            _isSidebarExpanded
+                                ? Image.asset(
+                                  'assets/images/logo.jpg', // Replace with your logo path
+                                  height: 60,
+                                  fit: BoxFit.contain,
+                                )
+                                : Image.asset(
+                                  'assets/images/logo_small.jpg', // Replace with your icon/small logo path
+                                  height: 40,
+                                  fit: BoxFit.contain,
+                                ),
+                      ),
+                      Divider(height: 1),
+
                       // Toggle Button
                       Container(
                         height: 56,
