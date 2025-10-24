@@ -1,7 +1,10 @@
 import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/service/local_storage.dart';
 import 'package:base_app/core/service/local_storage_constant.dart';
+import 'package:base_app/providers/customer_provider.dart';
+import 'package:base_app/providers/site_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -43,8 +46,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           // Header with user info, notification, and location filter
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // User Info
+              // --- USER INFO ---
               Row(
                 children: [
                   CircleAvatar(
@@ -66,13 +70,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Text(
                         '$_firstName $_lastName'.trim(),
                         style: context.topology.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+                          color: context.colors.primary,
                         ),
                       ),
                       Text(
                         _email,
                         style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: Colors.grey.shade600,
+                          color: context.colors.primary,
                         ),
                       ),
                     ],
@@ -80,8 +84,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
 
-              // Notification and Location Filter
+              // --- NOTIFICATION + CUSTOMER DROPDOWN ---
               Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Notification Icon
                   Stack(
@@ -103,63 +109,134 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ],
                   ),
-                  SizedBox(width: 8),
+                  SizedBox(width: 12),
 
-                  // Location Filter
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        Text('All Locations'),
-                        SizedBox(width: 8),
-                        Icon(Icons.keyboard_arrow_down, size: 20),
-                      ],
+                  // Customer Dropdown
+                  SizedBox(
+                    width: 200,
+                    child: Consumer2<CustomerProvider, SiteProvider>(
+                      builder: (context, customerProvider, siteProvider, _) {
+                        final customers = customerProvider.customers;
+
+                        return DropdownButtonFormField<String>(
+                          value: siteProvider.selectedCustomerId,
+                          decoration: InputDecoration(
+                            hintText: 'Select Customer',
+                            border: OutlineInputBorder(),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 12,
+                            ),
+                            hintStyle: context.topology.textTheme.bodySmall?.copyWith(
+                              color: Colors.grey,
+                            ),
+                          ),
+                          items:
+                              customers.map((customer) {
+                                return DropdownMenuItem<String>(
+                                  value: customer.customerid,
+                                  child: Text(
+                                    customer.customername ?? '-',
+                                    style: context.topology.textTheme.bodySmall?.copyWith(
+                                      color: context.colors.primary,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                          onChanged: (value) {
+                            siteProvider.setSelectedCustomer(value);
+                          },
+                        );
+                      },
                     ),
                   ),
                 ],
               ),
             ],
           ),
+
           SizedBox(height: 24),
 
-          // Top Row - Statistics Cards
+          // Top Row - Statistics Cards (Always in one row)
           LayoutBuilder(
             builder: (context, constraints) {
-              final isWideScreen = constraints.maxWidth > 1200;
-              final cardCount = isWideScreen ? 4 : 2;
+              final availableWidth = constraints.maxWidth;
+              final cardWidth = (availableWidth - (3 * 16)) / 4; // 4 cards with 3 gaps of 16px
+              final minCardWidth = 250.0;
 
-              return Wrap(
-                spacing: 16,
-                runSpacing: 16,
+              // If calculated width is too small, use horizontal scroll
+              if (cardWidth < minCardWidth) {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _StatCard(
+                        title: 'Workorders By Status',
+                        child: _WorkordersByStatusChart(),
+                        width: minCardWidth,
+                      ),
+                      SizedBox(width: 16),
+                      _StatCard(
+                        title: 'Maintenance Type',
+                        child: _MaintenanceTypePieChart(),
+                        width: minCardWidth,
+                      ),
+                      SizedBox(width: 16),
+                      _StatCard(
+                        title: 'On-Time Completion Rate',
+                        child: _CompletionRateChart(),
+                        width: minCardWidth,
+                      ),
+                      SizedBox(width: 16),
+                      _StatCard(
+                        title: 'Last 30 Days Downtime',
+                        child: _DowntimeDisplay(),
+                        width: minCardWidth,
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              // Otherwise, fill the available width
+              return Row(
                 children: [
-                  _StatCard(
-                    title: 'Workorders By Status',
-                    child: _WorkordersByStatusChart(),
-                    width: (constraints.maxWidth - 16) / cardCount,
+                  Expanded(
+                    child: _StatCard(
+                      title: 'Workorders By Status',
+                      child: _WorkordersByStatusChart(),
+                      width: cardWidth,
+                    ),
                   ),
-                  _StatCard(
-                    title: 'Maintenance Type',
-                    child: _MaintenanceTypePieChart(),
-                    width: (constraints.maxWidth - 16) / cardCount,
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _StatCard(
+                      title: 'Maintenance Type',
+                      child: _MaintenanceTypePieChart(),
+                      width: cardWidth,
+                    ),
                   ),
-                  _StatCard(
-                    title: 'On-Time Completion Rate',
-                    child: _CompletionRateChart(),
-                    width: (constraints.maxWidth - 16) / cardCount,
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _StatCard(
+                      title: 'On-Time Completion Rate',
+                      child: _CompletionRateChart(),
+                      width: cardWidth,
+                    ),
                   ),
-                  _StatCard(
-                    title: 'Last 30 Days Downtime',
-                    child: _DowntimeDisplay(),
-                    width: (constraints.maxWidth - 16) / cardCount,
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _StatCard(
+                      title: 'Last 30 Days Downtime',
+                      child: _DowntimeDisplay(),
+                      width: cardWidth,
+                    ),
                   ),
                 ],
               );
             },
           ),
+
           SizedBox(height: 24),
 
           // Bottom Row - Work Orders and Issues
@@ -208,6 +285,7 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: width,
+      height: 240,
       constraints: BoxConstraints(minWidth: 250),
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -223,14 +301,10 @@ class _StatCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
-            ),
+            style: context.topology.textTheme.titleMedium?.copyWith(color: context.colors.primary),
           ),
           SizedBox(height: 20),
-          child,
+          Expanded(child: child),
         ],
       ),
     );
@@ -338,7 +412,10 @@ class _LegendItem extends StatelessWidget {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         SizedBox(width: 8),
-        Text(label, style: TextStyle(fontSize: 13)),
+        Text(
+          label,
+          style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+        ),
       ],
     );
   }
@@ -404,7 +481,12 @@ class _OpenWorkordersCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('Open Workorders', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(
+                'Open Workorders',
+                style: context.topology.textTheme.titleMedium?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
               SizedBox(width: 8),
               Icon(Icons.help_outline, size: 16, color: Colors.blue.shade300),
             ],
@@ -452,9 +534,14 @@ class _OpenIssuesCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('Open Issues', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(
+                'Open Issues',
+                style: context.topology.textTheme.titleMedium?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
               SizedBox(width: 8),
-              Icon(Icons.help_outline, size: 16, color: Colors.blue.shade300),
+              Icon(Icons.help_outline, size: 16, color: context.colors.primary),
             ],
           ),
           SizedBox(height: 16),
@@ -510,10 +597,12 @@ class _TechnicianWorkloadCard extends StatelessWidget {
             children: [
               Text(
                 'Technician Workload',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: context.topology.textTheme.titleMedium?.copyWith(
+                  color: context.colors.primary,
+                ),
               ),
               SizedBox(width: 8),
-              Icon(Icons.help_outline, size: 16, color: Colors.blue.shade300),
+              Icon(Icons.help_outline, size: 16, color: context.colors.primary),
             ],
           ),
           SizedBox(height: 16),
@@ -600,7 +689,10 @@ class _WorkorderItem extends StatelessWidget {
           ],
         ),
         SizedBox(height: 8),
-        Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+        Text(
+          title,
+          style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
+        ),
         SizedBox(height: 12),
         Row(
           children: [
@@ -609,7 +701,12 @@ class _WorkorderItem extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(asset, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                Text(
+                  asset,
+                  style: context.topology.textTheme.titleSmall?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                ),
                 SizedBox(height: 4),
                 Row(
                   children: [
@@ -687,7 +784,10 @@ class _IssueItem extends StatelessWidget {
           ],
         ),
         SizedBox(height: 8),
-        Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+        Text(
+          title,
+          style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
+        ),
         SizedBox(height: 12),
         Row(
           children: [
@@ -696,7 +796,12 @@ class _IssueItem extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(asset, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                Text(
+                  asset,
+                  style: context.topology.textTheme.titleSmall?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                ),
                 SizedBox(height: 4),
                 Row(
                   children: [
@@ -753,7 +858,12 @@ class _TechnicianWorkloadItem extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(name, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+              Text(
+                name,
+                style: context.topology.textTheme.bodySmall?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
               SizedBox(height: 4),
               ClipRRect(
                 borderRadius: BorderRadius.circular(4),
