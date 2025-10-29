@@ -20,7 +20,6 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
   @override
   void initState() {
     super.initState();
-    // Fetch data when screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SystemProvider>().fetchDivision();
     });
@@ -28,129 +27,206 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
 
   @override
   Widget build(BuildContext context) {
-    return context.isTablet
-        ? Consumer<SystemProvider>(
-          builder: (context, provider, child) {
-            // Show success snackbar when data is loaded
-            if (provider.hasData && !provider.isLoading) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                final count = provider.divisions.length ?? 0;
-                CommonSnackbar.showSuccess(
-                  context,
-                  "Successfully loaded $count division${count == 1 ? '' : 's'}",
-                );
-              });
-            }
-
-            // Show error snackbar when there's an error
-            if (provider.hasError && !provider.isLoading) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                CommonSnackbar.showError(context, provider.errorMessage!);
-              });
-            }
-
-            if (provider.isLoading && !provider.hasData) {
-              return const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text('Loading divisions...'),
-                  ],
-                ),
-              );
-            }
-
-            if (provider.hasError && !provider.hasData) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-                    const SizedBox(height: 16),
-                    Text('Failed to load divisions', style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(height: 8),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: Text(
-                        provider.errorMessage!,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: () => provider.fetchDivision(),
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            if (!provider.hasData || provider.divisions?.isEmpty == true) {
-              return const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.business, size: 64, color: Colors.grey),
-                    SizedBox(height: 16),
-                    Text('No divisions found'),
-                  ],
-                ),
-              );
-            }
-
-            return Column(
+    return Consumer<SystemProvider>(
+      builder: (context, provider, child) {
+        if (provider.isLoading && !provider.hasData) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  padding: EdgeInsets.only(right: 30),
-                  width: context.screenWidth,
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Container(
-                      width: 150,
-                      child: CommonButton(
-                        onPressed: () {
-                          NavigationService().navigateTo(AppRoutes.companyCreateDivision);
-                        },
-                        iconSize: 15,
-                        icon: Icons.add,
-                        text: 'Create',
-                      ),
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Loading divisions...'),
+              ],
+            ),
+          );
+        }
+
+        if (provider.hasError && !provider.hasData) {
+          return _buildErrorState(context, provider);
+        }
+
+        if (!provider.hasData) {
+          return _buildEmptyState(context);
+        }
+
+        return _buildDivisionsList(context, provider);
+      },
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, SystemProvider provider) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
+          const SizedBox(height: 16),
+          Text('Failed to load divisions', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              provider.errorMessage ?? 'An error occurred',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => provider.fetchDivision(),
+            icon: const Icon(Icons.refresh),
+            label: const Text('Retry'),
+            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: Image.asset(
+            'assets/images/bg_4.png',
+            fit: BoxFit.contain,
+            alignment: Alignment.bottomRight,
+            errorBuilder: (context, error, stackTrace) {
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+        SizedBox(
+          width: double.infinity,
+          height: MediaQuery.of(context).size.height - kToolbarHeight * 2,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              const SizedBox(height: 100),
+              Text('No divisions found', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Text(
+                'Create your first division',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          bottom: 50,
+          right: 30,
+          child: FloatingActionButton(
+            onPressed: () {
+              NavigationService().navigateTo(AppRoutes.companyCreateDivision);
+            },
+            tooltip: 'Create Division',
+            backgroundColor: Theme.of(context).primaryColor,
+            child: const Icon(Icons.add),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDivisionsList(BuildContext context, SystemProvider provider) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Scaffold(
+      body: SafeArea(
+        child: Stack(
+          children: [
+            // --- Background image (fixed bottom layer) ---
+            Positioned.fill(
+              child: Align(
+                alignment: Alignment.bottomRight,
+                child: IgnorePointer(
+                  child: Opacity(
+                    opacity: 0.15,
+                    child: Image.asset(
+                      'assets/images/bg_4.png',
+                      fit: BoxFit.contain,
+                      alignment: Alignment.bottomRight,
+                      errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
                     ),
                   ),
                 ),
-                RefreshIndicator(
-                  onRefresh: () => provider.fetchDivision(),
-                  child: _buildDivisionsListContent(provider.divisions),
-                ),
-              ],
-            );
-          },
-        )
-        : Text('data');
-  }
+              ),
+            ),
 
-  Widget _buildDivisionsListContent(List<GetCompanyDivision> divisions) {
-    return Container(
-      width: context.screenWidth,
-      height: context.screenHeight - (kToolbarHeight * 1.25),
-      child: ListView.builder(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        itemCount: divisions.length,
-        itemBuilder: (context, index) {
-          final division = divisions[index];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: _buildDivisionCard(division, index),
-          );
-        },
+            // --- Foreground (non-scrollable container) ---
+            Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: SizedBox(
+                  width: double.infinity,
+                  // Fixes entire screen height so background won’t scroll
+                  height: screenHeight - 32, // Safe padding adjustment
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // --- Fixed "Create" button ---
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: SizedBox(
+                          width: 150,
+                          child: CommonButton(
+                            onPressed: () {
+                              NavigationService().navigateTo(AppRoutes.companyCreateDivision);
+                            },
+                            iconSize: 15,
+                            icon: Icons.add,
+                            text: 'Create',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // --- Scrollable card list (bounded within fixed height) ---
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: RefreshIndicator(
+                            onRefresh: () => provider.fetchDivision(),
+                            child:
+                                provider.divisions.isEmpty
+                                    ? ListView(
+                                      physics: const AlwaysScrollableScrollPhysics(),
+                                      children: const [
+                                        SizedBox(height: 100),
+                                        Center(child: Text('No divisions available')),
+                                      ],
+                                    )
+                                    : ListView.builder(
+                                      key: const ValueKey('divisions_list'),
+                                      physics: const AlwaysScrollableScrollPhysics(),
+                                      padding: const EdgeInsets.all(8),
+                                      itemCount: provider.divisions.length,
+                                      itemBuilder: (context, index) {
+                                        final division = provider.divisions[index];
+                                        return Padding(
+                                          padding: const EdgeInsets.only(bottom: 12),
+                                          child: _buildDivisionCard(division, index),
+                                        );
+                                      },
+                                    ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -175,7 +251,7 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
                   ),
                   child: Text(
                     division.divisioncode!,
-                    style: context.topology.textTheme.bodySmall?.copyWith(
+                    style: context.topology.textTheme.titleSmall?.copyWith(
                       color: context.colors.primary,
                     ),
                   ),
@@ -187,7 +263,6 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Contact information
                 if (_hasContactInfo(division)) ...[
                   _buildSectionHeader('Contact Information', Icons.contact_phone),
                   const SizedBox(height: 12),
@@ -202,27 +277,25 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
                     _buildContactItem(Icons.web, 'Website', division.website!),
                   const SizedBox(height: 20),
                 ],
-
-                // System information
                 _buildSectionHeader('System Information', Icons.settings),
                 const SizedBox(height: 12),
                 if (division.customerid != null)
                   _buildInfoItem('Customer ID', division.customerid!),
-                if (division.culture != null) _buildInfoItem('Culture', division.culture!),
+                if (division.culture != null && division.culture!.isNotEmpty)
+                  _buildInfoItem('Culture', division.culture!),
                 if (division.timezone != null) _buildInfoItem('Timezone', division.timezone!),
                 if (division.divisionid != null)
                   _buildInfoItem('Division ID', division.divisionid!),
-                context.vM,
+                const SizedBox(height: 16),
 
                 Row(
                   children: [
                     Expanded(
                       child: CommonButton(
                         text: 'Edit',
-                        backgroundColor: context.colors.primary,
+                        backgroundColor: Theme.of(context).primaryColor,
                         icon: Icons.edit,
                         onPressed: () {
-                          // Navigate to edit screen
                           NavigationService().navigateTo(
                             AppRoutes.companyCreateDivision,
                             arguments: division,
@@ -230,7 +303,7 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
                         },
                       ),
                     ),
-                    context.hM,
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Consumer<SystemProvider>(
                         builder: (context, provider, child) {
@@ -263,7 +336,7 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
         const SizedBox(width: 8),
         Text(
           title,
-          style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
+          style: context.topology.textTheme.titleMedium?.copyWith(color: context.colors.primary),
         ),
       ],
     );
@@ -274,10 +347,11 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
       return CircleAvatar(
         radius: 24,
         backgroundImage: NetworkImage(division.logo!),
-        onBackgroundImageError: (_, __) {},
+        onBackgroundImageError: (exception, stackTrace) {
+          debugPrint('Error loading logo: $exception');
+        },
       );
     }
-
     return CircleAvatar(
       radius: 24,
       backgroundColor: Theme.of(context).primaryColor,
@@ -295,7 +369,7 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 18, color: Colors.grey[600]),
-          context.hS,
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,16 +402,16 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 80,
+            width: 100,
             child: Text(
               '$label:',
-              style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+              style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
+              style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
             ),
           ),
         ],
@@ -363,14 +437,24 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
             children: [
               Icon(Icons.warning, color: Colors.orange[600]),
               const SizedBox(width: 8),
-              const Text('Confirm Delete'),
+              Text(
+                'Confirm Delete',
+                style: context.topology.textTheme.titleSmall?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
             ],
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Are you sure you want to delete this division?'),
+              Text(
+                'Are you sure you want to delete this division?',
+                style: context.topology.textTheme.bodyMedium?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -383,16 +467,24 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
                   children: [
                     Text(
                       'Division: ${division.divisionname ?? 'Unknown'}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: context.topology.textTheme.bodySmall?.copyWith(
+                        color: context.colors.primary,
+                      ),
                     ),
-                    if (division.divisioncode != null) Text('Code: ${division.divisioncode}'),
+                    if (division.divisioncode != null)
+                      Text(
+                        'Code: ${division.divisioncode}',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
                   ],
                 ),
               ),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'This action cannot be undone.',
-                style: TextStyle(color: Colors.red, fontStyle: FontStyle.italic),
+                style: context.topology.textTheme.titleSmall?.copyWith(color: Colors.red),
               ),
             ],
           ),
@@ -440,7 +532,6 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
     final provider = context.read<SystemProvider>();
     final success = await provider.deleteDivision(division);
 
-    // Close the dialog
     Navigator.of(dialogContext).pop();
 
     if (success) {

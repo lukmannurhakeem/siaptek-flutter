@@ -1,4 +1,3 @@
-import 'package:base_app/core/extension/date_time_extension.dart';
 import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/providers/job_provider.dart';
@@ -394,8 +393,8 @@ class _JobScreenState extends State<JobScreen> {
                         },
                       ),
                     ],
-                    rows: List.generate(jobProvider.jobModel!.data!.length, (index) {
-                      final data = jobProvider.jobModel!.data!.elementAt(index);
+                    rows: List.generate(filteredJobs.length, (index) {
+                      final data = filteredJobs[index];
                       final isEven = index % 2 == 0;
 
                       return DataRow(
@@ -596,16 +595,62 @@ class _JobScreenState extends State<JobScreen> {
     );
   }
 
+  Widget _buildEmptyState(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          width: double.infinity,
+          height: context.screenHeight - kToolbarHeight * 2,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              context.vXxl,
+              if (selectedColumn == null && selectedValue == null)
+                Text(
+                  'You have no job created',
+                  textAlign: TextAlign.center,
+                  style: context.topology.textTheme.titleMedium?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                ),
+              Text(
+                selectedColumn != null && selectedValue != null
+                    ? 'No jobs found matching your filter'
+                    : 'Add your first job',
+                textAlign: TextAlign.center,
+                style: context.topology.textTheme.bodySmall?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          bottom: 0,
+          right: 0, // Changed from -15 to 0
+          child: Image.asset(
+            'assets/images/bg_2.png',
+            fit: BoxFit.contain,
+            alignment: Alignment.bottomRight, // Changed from bottomCenter to bottomRight
+            height: context.screenHeight * 0.70,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<JobProvider>(
       builder: (context, jobProvider, child) {
-        if (jobProvider.jobModel?.data == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
         final filteredJobs = _getFilteredJobs(jobProvider);
 
+        // Show empty state
+        if (filteredJobs.isEmpty || jobProvider.jobModel?.data?.isEmpty == true) {
+          return _buildEmptyState(context);
+        }
+
+        // Show job data
         return Scaffold(
           body: SizedBox(
             width: context.screenWidth,

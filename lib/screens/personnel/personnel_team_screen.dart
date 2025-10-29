@@ -5,7 +5,6 @@ import 'package:base_app/providers/personnel_provider.dart';
 import 'package:base_app/route/route.dart';
 import 'package:base_app/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 class PersonnelTeamScreen extends StatefulWidget {
@@ -103,14 +102,13 @@ class _PersonnelTeamScreenState extends State<PersonnelTeamScreen> {
     return Stack(
       children: [
         Positioned(
-          bottom: 10,
-          left: 0,
-          right: 0,
-          child: SvgPicture.asset(
-            'assets/images/no-file.svg',
+          bottom: 0,
+          left: -10,
+
+          child: Image.asset(
+            'assets/images/bg_3.png',
             fit: BoxFit.contain,
-            alignment: Alignment.bottomCenter,
-            height: context.screenHeight * 0.3,
+            alignment: Alignment.bottomLeft,
           ),
         ),
         Container(

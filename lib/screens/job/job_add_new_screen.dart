@@ -5,7 +5,6 @@ import 'package:base_app/providers/site_provider.dart';
 import 'package:base_app/route/route.dart';
 import 'package:base_app/widget/common_button.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 class JobAddNewScreen extends StatefulWidget {
@@ -27,20 +26,19 @@ class _JobAddNewScreen extends State<JobAddNewScreen> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // ✅ Background SVG at the bottom
+        // Background image at bottom right
         Positioned(
-          bottom: 10,
-          left: 0,
+          bottom: 0,
           right: 0,
-          child: SvgPicture.asset(
-            'assets/images/todo.svg',
+          child: Image.asset(
+            'assets/images/bg_2.png',
             fit: BoxFit.contain,
-            alignment: Alignment.bottomCenter,
-            height: context.screenHeight * 0.3,
+            alignment: Alignment.bottomRight,
+            height: context.screenHeight * 0.70,
           ),
         ),
 
-        // Foreground content centered
+        // Foreground content
         Container(
           width: double.infinity,
           height: context.screenHeight - kToolbarHeight * 2,
@@ -110,8 +108,9 @@ class _JobAddNewScreen extends State<JobAddNewScreen> {
                 ],
               ),
 
-              SizedBox(height: 16), // Add spacing between dropdowns
-              // Site Dropdown - FIXED
+              SizedBox(height: 16),
+
+              // Site Dropdown
               Row(
                 children: [
                   Expanded(
@@ -136,7 +135,7 @@ class _JobAddNewScreen extends State<JobAddNewScreen> {
                           decoration: InputDecoration(
                             hintText:
                                 siteProvider.selectedCustomerId == null
-                                    ? 'Select Customer First'
+                                    ? 'Select Site First'
                                     : (sites.isEmpty ? 'No Sites Available' : 'Select Site'),
                             border: OutlineInputBorder(),
                             contentPadding: const EdgeInsets.symmetric(
@@ -150,10 +149,9 @@ class _JobAddNewScreen extends State<JobAddNewScreen> {
                           items:
                               sites.map((site) {
                                 return DropdownMenuItem<String>(
-                                  value: site.siteid, // Use siteid as value
+                                  value: site.siteid,
                                   child: Text(
                                     '${site.siteName ?? site.siteCode ?? '-'} (${site.siteCode ?? ''})',
-                                    // Show siteName with siteCode
                                     style: context.topology.textTheme.bodySmall?.copyWith(
                                       color: context.colors.primary,
                                     ),
@@ -165,14 +163,16 @@ class _JobAddNewScreen extends State<JobAddNewScreen> {
                                   ? (value) {
                                     siteProvider.setSelectedCustomerById(value);
                                   }
-                                  : null, // Disable when no customer selected or no sites
+                                  : null,
                         );
                       },
                     ),
                   ),
                 ],
               ),
+
               context.vXxl,
+
               Consumer<SiteProvider>(
                 builder: (context, value, child) {
                   return CommonButton(
