@@ -5,13 +5,15 @@ class MenuItem {
   final IconData icon;
   final int index;
   final Widget? screen;
+  final Widget Function()? builder;
   final List<MenuItem>? children;
 
-  const MenuItem({
+  MenuItem({
     required this.title,
     required this.icon,
     required this.index,
     this.screen,
+    this.builder,
     this.children,
   });
 }

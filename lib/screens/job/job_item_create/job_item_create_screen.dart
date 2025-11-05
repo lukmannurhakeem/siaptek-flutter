@@ -2,6 +2,7 @@ import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/providers/category_provider.dart';
 import 'package:base_app/providers/job_provider.dart';
+import 'package:base_app/widget/common_button.dart';
 import 'package:base_app/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -21,7 +22,6 @@ class _JobItemCreateScreenState extends State<JobItemCreateScreen> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _detailedLocationController = TextEditingController();
-
   final TextEditingController _internalNotesController = TextEditingController();
   final TextEditingController _externalNotesController = TextEditingController();
   final TextEditingController _manufacturerController = TextEditingController();
@@ -30,11 +30,11 @@ class _JobItemCreateScreenState extends State<JobItemCreateScreen> {
   final TextEditingController _firstUseDateController = TextEditingController();
 
   CategoryItem? _selectedCategory;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    // Load categories when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CategoryProvider>().fetchCategories();
     });
@@ -47,6 +47,12 @@ class _JobItemCreateScreenState extends State<JobItemCreateScreen> {
     _descriptionController.dispose();
     _locationController.dispose();
     _detailedLocationController.dispose();
+    _internalNotesController.dispose();
+    _externalNotesController.dispose();
+    _manufacturerController.dispose();
+    _manufacturerAddressController.dispose();
+    _manufacturerDateController.dispose();
+    _firstUseDateController.dispose();
     super.dispose();
   }
 
@@ -66,102 +72,55 @@ class _JobItemCreateScreenState extends State<JobItemCreateScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Create Job Item',
-          style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
-        ),
-        centerTitle: true,
-        iconTheme: IconThemeData(color: context.colors.primary),
-        backgroundColor: context.colors.onPrimary,
-        leading: IconButton(
-          onPressed: () {
-            NavigationService().goBack();
-          },
-          icon: const Icon(Icons.chevron_left),
-        ),
-        actions: [
-          TextButton(
-            onPressed: _saveJobItem,
-            child: Text('Save', style: TextStyle(color: context.colors.primary)),
+  Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      decoration: BoxDecoration(
+        color: context.colors.primary.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(8),
+        border: Border(left: BorderSide(color: context.colors.primary, width: 3)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: context.colors.primary, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: context.topology.textTheme.titleMedium?.copyWith(
+              color: context.colors.primary,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: context.isTablet ? _buildTabletLayout(context) : _buildMobileLayout(context),
-        ),
-      ),
     );
   }
 
-  Widget _buildTabletLayout(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [_buildFormFields(context)],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMobileLayout(BuildContext context) {
-    return SingleChildScrollView(child: Column(children: [_buildFormFields(context)]));
-  }
-
-  Widget _buildFormFields(BuildContext context) {
-    return Column(
-      children: [
-        _buildCategoryRow(context),
-        context.vM,
-        _buildRow(context, 'Item No', _itemNoController),
-        context.vM,
-        _buildRow(context, 'Description', _descriptionController, maxLines: 3),
-        context.vM,
-        _buildRow(context, 'Location', _locationController),
-        context.vM,
-        _buildRow(context, 'Detailed Location', _detailedLocationController, maxLines: 2),
-        context.vM,
-        _buildRow(context, 'Internal Notes', _internalNotesController, maxLines: 3),
-        context.vM,
-        _buildRow(context, 'External Notes', _externalNotesController, maxLines: 3),
-        context.vM,
-        _buildRow(context, 'Manufacturer', _manufacturerController, maxLines: 3),
-        context.vM,
-        _buildRow(context, 'Manufacturer Address', _manufacturerAddressController, maxLines: 3),
-        context.vM,
-        _buildRow(context, 'Manufacture Date', _manufacturerDateController),
-        context.vM,
-        _buildRow(context, 'First Use Date', _firstUseDateController),
-      ],
-    );
-  }
-
-  Widget _buildCategoryRow(BuildContext context) {
+  Widget _buildCategoryRow(BuildContext context, {IconData? icon}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           flex: 2,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 12.0),
-            child: Text(
-              'Category *',
-              style: context.topology.textTheme.titleSmall?.copyWith(
-                color: context.colors.primary,
-                fontWeight: FontWeight.w500,
+          child: Row(
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 16, color: context.colors.primary.withOpacity(0.7)),
+                const SizedBox(width: 6),
+              ],
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 12.0),
+                  child: Text(
+                    'Category *',
+                    style: context.topology.textTheme.titleSmall?.copyWith(
+                      color: context.colors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ),
         context.hS,
@@ -190,18 +149,33 @@ class _JobItemCreateScreenState extends State<JobItemCreateScreen> {
     String title,
     TextEditingController controller, {
     int maxLines = 1,
+    bool isRequired = false,
+    IconData? icon,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           flex: 2,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 12.0),
-            child: Text(
-              title,
-              style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
-            ),
+          child: Row(
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 16, color: context.colors.primary.withOpacity(0.7)),
+                const SizedBox(width: 6),
+              ],
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 12.0),
+                  child: Text(
+                    title + (isRequired ? ' *' : ''),
+                    style: context.topology.textTheme.titleSmall?.copyWith(
+                      color: context.colors.primary,
+                      fontWeight: isRequired ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         context.hS,
@@ -217,21 +191,328 @@ class _JobItemCreateScreenState extends State<JobItemCreateScreen> {
     );
   }
 
+  Widget _buildFormFields(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(context, 'Basic Information', Icons.info_outline),
+        context.vM,
+        _buildCategoryRow(context, icon: Icons.category),
+        context.vS,
+        _buildRow(context, 'Item No', _itemNoController, isRequired: true, icon: Icons.tag),
+        context.vS,
+        _buildRow(
+          context,
+          'Description',
+          _descriptionController,
+          maxLines: 3,
+          icon: Icons.description,
+        ),
+        context.vL,
+        _buildSectionHeader(context, 'Location Details', Icons.location_on),
+        context.vM,
+        _buildRow(context, 'Location', _locationController, icon: Icons.place),
+        context.vS,
+        _buildRow(
+          context,
+          'Detailed Location',
+          _detailedLocationController,
+          maxLines: 2,
+          icon: Icons.my_location,
+        ),
+        context.vL,
+        _buildSectionHeader(context, 'Manufacturer Information', Icons.factory),
+        context.vM,
+        _buildRow(
+          context,
+          'Manufacturer',
+          _manufacturerController,
+          maxLines: 3,
+          icon: Icons.business,
+        ),
+        context.vS,
+        _buildRow(
+          context,
+          'Manufacturer Address',
+          _manufacturerAddressController,
+          maxLines: 3,
+          icon: Icons.home,
+        ),
+        context.vS,
+        _buildRow(
+          context,
+          'Manufacture Date',
+          _manufacturerDateController,
+          icon: Icons.calendar_today,
+        ),
+        context.vS,
+        _buildRow(context, 'First Use Date', _firstUseDateController, icon: Icons.event),
+        context.vL,
+        _buildSectionHeader(context, 'Notes', Icons.note_outlined),
+        context.vM,
+        _buildRow(
+          context,
+          'Internal Notes',
+          _internalNotesController,
+          maxLines: 3,
+          icon: Icons.notes,
+        ),
+        context.vS,
+        _buildRow(
+          context,
+          'External Notes',
+          _externalNotesController,
+          maxLines: 3,
+          icon: Icons.speaker_notes,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabletLayout(BuildContext context) {
+    return Padding(
+      padding: context.paddingHorizontal,
+      child: Column(
+        children: [
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader(context, 'Basic Information', Icons.info_outline),
+                        context.vM,
+                        _buildCategoryRow(context, icon: Icons.category),
+                        context.vS,
+                        _buildRow(
+                          context,
+                          'Item No',
+                          _itemNoController,
+                          isRequired: true,
+                          icon: Icons.tag,
+                        ),
+                        context.vS,
+                        _buildRow(
+                          context,
+                          'Description',
+                          _descriptionController,
+                          maxLines: 3,
+                          icon: Icons.description,
+                        ),
+                        context.vL,
+                        _buildSectionHeader(context, 'Location Details', Icons.location_on),
+                        context.vM,
+                        _buildRow(context, 'Location', _locationController, icon: Icons.place),
+                        context.vS,
+                        _buildRow(
+                          context,
+                          'Detailed Location',
+                          _detailedLocationController,
+                          maxLines: 2,
+                          icon: Icons.my_location,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                context.hXl,
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader(context, 'Manufacturer Information', Icons.factory),
+                        context.vM,
+                        _buildRow(
+                          context,
+                          'Manufacturer',
+                          _manufacturerController,
+                          maxLines: 3,
+                          icon: Icons.business,
+                        ),
+                        context.vS,
+                        _buildRow(
+                          context,
+                          'Manufacturer Address',
+                          _manufacturerAddressController,
+                          maxLines: 3,
+                          icon: Icons.home,
+                        ),
+                        context.vS,
+                        _buildRow(
+                          context,
+                          'Manufacture Date',
+                          _manufacturerDateController,
+                          icon: Icons.calendar_today,
+                        ),
+                        context.vS,
+                        _buildRow(
+                          context,
+                          'First Use Date',
+                          _firstUseDateController,
+                          icon: Icons.event,
+                        ),
+                        context.vL,
+                        _buildSectionHeader(context, 'Notes', Icons.note_outlined),
+                        context.vM,
+                        _buildRow(
+                          context,
+                          'Internal Notes',
+                          _internalNotesController,
+                          maxLines: 3,
+                          icon: Icons.notes,
+                        ),
+                        context.vS,
+                        _buildRow(
+                          context,
+                          'External Notes',
+                          _externalNotesController,
+                          maxLines: 3,
+                          icon: Icons.speaker_notes,
+                        ),
+                        context.vS,
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          context.vL,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 200,
+                child: CommonButton(
+                  text: _isLoading ? 'Saving...' : 'Save Item',
+                  onPressed: _isLoading ? null : _saveJobItem,
+                ),
+              ),
+            ],
+          ),
+          context.vM,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context) {
+    return SingleChildScrollView(
+      padding: context.paddingHorizontal,
+      child: Column(
+        children: [
+          context.vM,
+          _buildFormFields(context),
+          context.vL,
+          CommonButton(
+            text: _isLoading ? 'Saving...' : 'Save Item',
+            onPressed: _isLoading ? null : _saveJobItem,
+          ),
+          context.vL,
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.add_box, color: context.colors.primary, size: 22),
+            const SizedBox(width: 8),
+            Text(
+              'Create Job Item',
+              style: context.topology.textTheme.titleMedium?.copyWith(
+                color: context.colors.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        centerTitle: true,
+        iconTheme: IconThemeData(color: context.colors.primary),
+        backgroundColor: context.colors.onPrimary,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () {
+            NavigationService().goBack();
+          },
+          icon: const Icon(Icons.arrow_back_ios),
+        ),
+      ),
+      body: SafeArea(
+        child:
+            _isLoading
+                ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(color: context.colors.primary),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Saving job item...',
+                        style: context.topology.textTheme.bodyMedium?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+                : (context.isTablet ? _buildTabletLayout(context) : _buildMobileLayout(context)),
+      ),
+    );
+  }
+
   void _saveJobItem() {
     // Validate required fields
     if (_selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a category'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 8),
+              const Expanded(child: Text('Please select a category')),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          duration: const Duration(seconds: 3),
+        ),
       );
       return;
     }
 
     if (_itemNoController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter an item number'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 8),
+              const Expanded(child: Text('Please enter an item number')),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          duration: const Duration(seconds: 3),
+        ),
       );
       return;
     }
+
+    setState(() {
+      _isLoading = true;
+    });
 
     final jobItemData = {
       'jobID': widget.jobId,
@@ -243,16 +524,48 @@ class _JobItemCreateScreenState extends State<JobItemCreateScreen> {
       'detailedLocation': _detailedLocationController.text.trim(),
       "internalNotes": _internalNotesController.text.trim(),
       "externalNotes": _externalNotesController.text.trim(),
-      "manufacturer": _manufacturerDateController.text.trim(),
+      "manufacturer": _manufacturerController.text.trim(),
       "manufacturerAddress": _manufacturerAddressController.text.trim(),
       // "manufacturerDate": _manufacturerDateController.text.trim(),
       // "firstUseDate": _firstUseDateController.text.trim(),
     };
 
-    context.read<JobProvider>().createJobItem(context, jobItemData, widget.jobId);
+    context
+        .read<JobProvider>()
+        .createJobItem(context, jobItemData, widget.jobId)
+        .then((_) {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+          }
+        })
+        .catchError((error) {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.white),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text('Error: ${error.toString()}')),
+                  ],
+                ),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        });
   }
 }
 
+// CategorySelectionDialog remains the same
 class CategorySelectionDialog extends StatefulWidget {
   final Function(CategoryItem) onCategorySelected;
   final CategoryItem? selectedCategory;
@@ -299,7 +612,6 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Header
             Row(
               children: [
                 Expanded(
@@ -318,8 +630,6 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
               ],
             ),
             const Divider(),
-
-            // Search field
             CommonTextField(
               controller: _searchController,
               hintText: 'Search categories...',
@@ -327,8 +637,6 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
               suffixIcon: Icon(Icons.search, color: context.colors.primary),
             ),
             context.vM,
-
-            // Category list
             Expanded(
               child: Consumer<CategoryProvider>(
                 builder: (context, provider, child) {
@@ -384,8 +692,6 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                 },
               ),
             ),
-
-            // Action buttons
             const Divider(),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -438,14 +744,10 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
           borderRadius: BorderRadius.circular(4),
           border: isSelected ? Border.all(color: context.colors.primary, width: 1) : null,
         ),
-        margin: EdgeInsets.only(
-          left: category.level * 16.0, // Indent based on level
-          bottom: 4,
-        ),
+        margin: EdgeInsets.only(left: category.level * 16.0, bottom: 4),
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         child: Row(
           children: [
-            // Expansion indicator
             SizedBox(
               width: 20,
               child:
@@ -460,8 +762,6 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                       : _getIndentationIcon(category.level),
             ),
             const SizedBox(width: 8),
-
-            // Selection indicator
             Container(
               width: 20,
               height: 20,
@@ -476,7 +776,6 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
               child: isSelected ? const Icon(Icons.check, size: 14, color: Colors.white) : null,
             ),
             const SizedBox(width: 12),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -503,8 +802,6 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                 ],
               ),
             ),
-
-            // Children count badge
             if (category.children.isNotEmpty) ...[
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -531,7 +828,6 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
     if (category.level == 0) {
       return Colors.transparent;
     } else {
-      // Different opacity for different levels
       double opacity = 0.02 + (category.level * 0.01);
       return context.colors.primary.withOpacity(opacity);
     }

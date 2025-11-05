@@ -2,7 +2,6 @@ import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/model/personnel_team_model.dart';
 import 'package:base_app/providers/personnel_provider.dart';
-import 'package:base_app/route/route.dart';
 import 'package:base_app/widget/add_member_dialog_widget.dart';
 import 'package:base_app/widget/common_button.dart';
 import 'package:base_app/widget/common_textfield.dart';
@@ -31,40 +30,33 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
   int sortColumnIndex = 0;
   String? _selectedTeamId;
 
-  // Store temporary members before saving the team
   List<Map<String, dynamic>> _pendingMembers = [];
 
   @override
   void initState() {
     super.initState();
 
-    // Fetch personnel and team data when screen initializes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final provider = context.read<PersonnelProvider>();
-      provider.fetchTeamPersonnel();
-      provider.fetchPersonnel(); // Fetch personnel list for the dropdown
+      await provider.fetchTeamPersonnel();
+      await provider.fetchPersonnel();
 
-      // If teamPersonnelId is provided, load the team data for editing
       if (widget.teamPersonnelId != null) {
-        _loadTeamData(widget.teamPersonnelId!);
+        await _loadTeamData(widget.teamPersonnelId!);
       }
     });
 
-    // Listen to search text changes
     _searchController.addListener(_onSearchChanged);
   }
 
   Future<void> _loadTeamData(String teamPersonnelId) async {
     final provider = context.read<PersonnelProvider>();
 
-    // Wait for team list to be loaded
     if (provider.teamPersonnelList.isEmpty) {
       await provider.fetchTeamPersonnel();
     }
 
-    // Find the team
     final team = provider.getTeamById(teamPersonnelId);
-
     if (team != null) {
       setState(() {
         _isEditMode = true;
@@ -74,8 +66,6 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
         _descriptionController.text = team.description ?? '';
         _pendingMembers.clear();
       });
-
-      // Fetch team members
       await provider.fetchTeamMembers(teamPersonnelId);
     }
   }
@@ -95,7 +85,6 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
       builder:
           (context) => AddMemberDialog(
             onMemberSelected: (personnelId, isTeamLeader, isPrimaryLeader) {
-              // Add to pending members if creating new team
               if (_selectedTeamId == null) {
                 setState(() {
                   _pendingMembers.add({
@@ -109,32 +98,31 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
           ),
     ).then((result) {
       if (result == true && _selectedTeamId != null) {
-        // Member was added successfully for existing team, refresh the list
         context.read<PersonnelProvider>().fetchTeamMembers(_selectedTeamId!);
       }
     });
   }
 
   void _onSearchChanged() {
-    final personnelProvider = context.read<PersonnelProvider>();
+    final provider = context.read<PersonnelProvider>();
     final query = _searchController.text.toLowerCase();
 
     if (query.isEmpty) {
-      setState(() {
-        _filteredTeams = [];
-      });
+      setState(() => _filteredTeams = []);
       return;
     }
 
-    // Filter teams based on search query
-    final allTeams = personnelProvider.teamPersonnelList;
+    final allTeams = provider.teamPersonnelList;
     setState(() {
       _filteredTeams =
-          allTeams.where((team) {
-            return (team.name?.toLowerCase().contains(query) ?? false) ||
-                (team.type?.toLowerCase().contains(query) ?? false) ||
-                (team.description?.toLowerCase().contains(query) ?? false);
-          }).toList();
+          allTeams
+              .where(
+                (team) =>
+                    (team.name?.toLowerCase().contains(query) ?? false) ||
+                    (team.type?.toLowerCase().contains(query) ?? false) ||
+                    (team.description?.toLowerCase().contains(query) ?? false),
+              )
+              .toList();
     });
   }
 
@@ -150,34 +138,27 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
         iconTheme: IconThemeData(color: context.colors.primary),
         backgroundColor: context.colors.onPrimary,
         leading: IconButton(
-          onPressed: () {
-            NavigationService().goBack();
-          },
+          onPressed: () => NavigationService().goBack(),
           icon: const Icon(Icons.chevron_left),
         ),
       ),
       body: Consumer<PersonnelProvider>(
-        builder: (context, personnelProvider, child) {
-          // Show loading indicator
-          if (personnelProvider.isLoading) {
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Show error message
-          if (personnelProvider.errorMessage != null) {
-            return _buildErrorState(context, personnelProvider);
+          if (provider.errorMessage != null) {
+            return _buildErrorState(context, provider);
           }
 
-          // Get team list (filtered or full list)
           final teamList =
-              _searchController.text.isEmpty ? personnelProvider.teamPersonnelList : _filteredTeams;
+              _searchController.text.isEmpty ? provider.teamPersonnelList : _filteredTeams;
 
-          // Show empty state
           if (teamList.isEmpty && !_isEditMode) {
             return _buildEmptyState(context);
           }
 
-          // Show team data
           return context.isTablet
               ? _buildTabletLayout(context, teamList)
               : _buildMobileLayout(context, teamList);
@@ -186,7 +167,7 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
     );
   }
 
-  Widget _buildErrorState(BuildContext context, PersonnelProvider personnelProvider) {
+  Widget _buildErrorState(BuildContext context, PersonnelProvider provider) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -194,15 +175,12 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
           Icon(Icons.error_outline, size: 64, color: context.colors.error),
           const SizedBox(height: 16),
           Text(
-            personnelProvider.errorMessage!,
+            provider.errorMessage!,
             textAlign: TextAlign.center,
             style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.error),
           ),
           const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => personnelProvider.fetchTeamPersonnel(),
-            child: const Text('Retry'),
-          ),
+          ElevatedButton(onPressed: provider.fetchTeamPersonnel, child: const Text('Retry')),
         ],
       ),
     );
@@ -222,13 +200,10 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
             height: context.screenHeight * 0.3,
           ),
         ),
-        SizedBox(
-          width: double.infinity,
-          height: context.screenHeight - kToolbarHeight * 2,
+        Center(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              context.vXxl,
               Text(
                 _searchController.text.isEmpty
                     ? 'No teams found'
@@ -271,106 +246,201 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
   }
 
   Widget _buildTabletLayout(BuildContext context, List<PersonnelTeamModel> teamList) {
-    return Consumer<PersonnelProvider>(
-      builder: (context, provider, child) {
-        return SingleChildScrollView(
-          padding: context.paddingHorizontal,
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return SingleChildScrollView(
+      padding: context.paddingHorizontal,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            context.vM,
+            Text(
+              _isEditMode ? 'Edit Team Information' : 'Team Information',
+              style: context.topology.textTheme.titleMedium?.copyWith(
+                color: context.colors.primary,
+              ),
+            ),
+            context.vM,
+            _widgetForm('Name', controller: _nameController, required: true),
+            context.vS,
+            _widgetForm('Type', controller: _typeController, required: true),
+            context.vS,
+            _widgetForm('Description', controller: _descriptionController),
+            context.vM,
+            context.divider,
+            context.vM,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                context.vM,
-
-                // Team Info Section
                 Text(
-                  'Team Information',
+                  'Team Members',
                   style: context.topology.textTheme.titleMedium?.copyWith(
                     color: context.colors.primary,
                   ),
                 ),
-                context.vM,
-
-                _widgetForm('Name', controller: _nameController, required: true),
-                context.vS,
-                _widgetForm('Type', controller: _typeController, required: true),
-                context.vS,
-                _widgetForm('Description', controller: _descriptionController, required: false),
-                context.vM,
-                context.divider,
-                context.vM,
-
-                // Members Section
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Team Members',
-                      style: context.topology.textTheme.titleMedium?.copyWith(
-                        color: context.colors.primary,
-                      ),
+                SizedBox(
+                  width: 160,
+                  child: CommonButton(
+                    icon: Icons.add,
+                    text: 'Add Member',
+                    onPressed: () => _showAddMemberDialog(context),
+                  ),
+                ),
+              ],
+            ),
+            context.vM,
+            _buildMembersTable(context, context.read<PersonnelProvider>()),
+            context.vL,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (_isEditMode) ...[
+                  SizedBox(
+                    width: 160,
+                    child: CommonButton(
+                      icon: Icons.cancel,
+                      text: 'Cancel',
+                      onPressed: () {
+                        setState(() {
+                          _isEditMode = false;
+                          _selectedTeamId = null;
+                          _clearForm();
+                        });
+                      },
                     ),
-                    SizedBox(
-                      width: 150,
-                      child: CommonButton(
-                        icon: Icons.add,
-                        text: 'Add Member',
-                        onPressed: () => _showAddMemberDialog(context),
-                      ),
-                    ),
-                  ],
+                  ),
+                  const SizedBox(width: 16),
+                ],
+                SizedBox(
+                  width: 200,
+                  child: CommonButton(
+                    icon: _selectedTeamId == null ? Icons.save : Icons.update,
+                    text:
+                        context.read<PersonnelProvider>().isLoading
+                            ? (_selectedTeamId == null ? 'Saving...' : 'Updating...')
+                            : (_selectedTeamId == null ? 'Save Team' : 'Update Team'),
+                    onPressed: context.read<PersonnelProvider>().isLoading ? null : _submitForm,
+                  ),
+                ),
+              ],
+            ),
+            context.vXxl,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context, List<PersonnelTeamModel> teamList) {
+    final screenHeight = context.screenHeight - (kToolbarHeight * 1.25);
+
+    return SizedBox(
+      width: context.screenWidth,
+      height: screenHeight,
+      child: Stack(
+        children: [
+          Padding(
+            padding: context.paddingAll,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CommonTextField(
+                  controller: _searchController,
+                  hintText: 'Search by name, type, or description...',
+                  style: context.topology.textTheme.bodySmall?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                  suffixIcon: Icon(Icons.search, color: context.colors.primary),
                 ),
                 context.vM,
-
-                _buildMembersTable(context, provider),
-
-                context.vL,
-
-                // Action buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (_isEditMode) ...[
-                      SizedBox(
-                        width: 150,
-                        child: CommonButton(
-                          icon: Icons.cancel,
-                          text: 'Cancel',
-                          onPressed: () {
-                            setState(() {
-                              _isEditMode = false;
-                              _selectedTeamId = null;
-                              _clearForm();
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                    ],
-                    SizedBox(
-                      width: 200,
-                      child: CommonButton(
-                        icon: _selectedTeamId == null ? Icons.save : Icons.update,
-                        text:
-                            provider.isLoading
-                                ? (_selectedTeamId == null ? 'Saving...' : 'Updating...')
-                                : (_selectedTeamId == null ? 'Save Team' : 'Update Team'),
-                        onPressed: provider.isLoading ? null : _submitForm,
+                Text(
+                  '${teamList.length} teams found',
+                  style: context.topology.textTheme.bodySmall?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                ),
+                context.vM,
+                Expanded(
+                  child: Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        sortColumnIndex: sortColumnIndex,
+                        showCheckboxColumn: false,
+                        columns: _buildColumns(context),
+                        rows: List.generate(teamList.length, (index) {
+                          final data = teamList[index];
+                          final isEven = index % 2 == 0;
+                          return _buildRow(context, data, isEven);
+                        }),
                       ),
                     ),
-                  ],
+                  ),
                 ),
-                context.vXxl,
               ],
             ),
           ),
-        );
-      },
+          Positioned(
+            bottom: 30,
+            right: 20,
+            child: FloatingActionButton(
+              onPressed: () {
+                setState(() {
+                  _isEditMode = true;
+                  _selectedTeamId = null;
+                  _clearForm();
+                });
+              },
+              tooltip: 'Add New Team',
+              backgroundColor: context.colors.primary,
+              child: const Icon(Icons.add),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _widgetForm(String label, {TextEditingController? controller, bool required = false}) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: Row(
+            children: [
+              if (required) const Text('* ', style: TextStyle(color: Colors.red)),
+              Text(
+                label,
+                style: context.topology.textTheme.titleSmall?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: CommonTextField(
+            controller: controller,
+            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+            validator:
+                required
+                    ? (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return '$label is required';
+                      }
+                      return null;
+                    }
+                    : null,
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildMembersTable(BuildContext context, PersonnelProvider provider) {
-    // Use pending members for new teams, or fetched members for existing teams
     final displayMembers =
         _selectedTeamId == null
             ? _pendingMembers
@@ -495,12 +565,10 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
                         icon: Icon(Icons.delete, color: context.colors.error, size: 20),
                         onPressed: () {
                           if (_selectedTeamId == null) {
-                            // Remove from pending members
                             setState(() {
                               _pendingMembers.removeWhere((m) => m['personnel_id'] == personnelId);
                             });
                           } else {
-                            // Remove from existing team
                             _removeMember(
                               context,
                               member['personnel_members_id'] as String,
@@ -543,7 +611,6 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
     if (confirm == true && _selectedTeamId != null && mounted) {
       final provider = context.read<PersonnelProvider>();
       final success = await provider.removeTeamMember(memberId, _selectedTeamId!);
-
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -555,211 +622,62 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
     }
   }
 
-  Widget _widgetForm(String text, {TextEditingController? controller, bool required = false}) {
-    return Row(
-      children: [
-        Expanded(
-          flex: 2,
-          child: Row(
-            children: [
-              if (required) const Text('* ', style: TextStyle(color: Colors.red)),
-              Text(
-                text,
-                style: context.topology.textTheme.titleSmall?.copyWith(
-                  color: context.colors.primary,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          flex: 3,
-          child: CommonTextField(
-            controller: controller,
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-            validator:
-                required
-                    ? (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return '$text is required';
-                      }
-                      return null;
-                    }
-                    : null,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMobileLayout(BuildContext context, List<PersonnelTeamModel> teamList) {
-    final screenHeight = context.screenHeight - (kToolbarHeight * 1.25);
-    final screenWidth = context.screenWidth;
-
-    return SizedBox(
-      width: screenWidth,
-      height: screenHeight,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Padding(
-              padding: context.paddingAll,
-              child: Column(
-                children: [
-                  // Search Field
-                  CommonTextField(
-                    controller: _searchController,
-                    hintText: 'Search by name, type, or description...',
-                    style: context.topology.textTheme.bodySmall?.copyWith(
-                      color: context.colors.primary,
-                    ),
-                    suffixIcon: Icon(Icons.search, color: context.colors.primary),
-                  ),
-                  context.vM,
-
-                  // Team count
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      '${teamList.length} teams found',
-                      style: context.topology.textTheme.bodySmall?.copyWith(
-                        color: context.colors.primary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Data Table in horizontal scroll
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        sortColumnIndex: sortColumnIndex,
-                        showCheckboxColumn: false,
-                        columns: _buildColumns(context),
-                        rows: List.generate(teamList.length, (index) {
-                          final data = teamList[index];
-                          final isEven = index % 2 == 0;
-                          return _buildRow(context, data, isEven);
-                        }),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 50,
-            right: 30,
-            child: FloatingActionButton(
-              onPressed: () {
-                setState(() {
-                  _isEditMode = true;
-                  _selectedTeamId = null;
-                  _clearForm();
-                });
-              },
-              tooltip: 'Add New Team',
-              backgroundColor: context.colors.primary,
-              child: const Icon(Icons.add),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     final personnelData = _buildPersonnelTeamData();
     final provider = context.read<PersonnelProvider>();
 
     if (_selectedTeamId == null) {
-      // Create new team
       final success = await provider.createTeamPersonnel(personnelData);
-
       if (success && mounted) {
-        // Get the newly created team ID from the response
         final createdTeam = provider.teamPersonnelList.firstWhere(
           (team) => team.name == _nameController.text.trim(),
           orElse: () => provider.teamPersonnelList.last,
         );
-
         final teamId = createdTeam.teamPersonnelId;
 
-        // Set the team ID BEFORE adding members
-        setState(() {
-          _selectedTeamId = teamId;
-        });
+        setState(() => _selectedTeamId = teamId);
 
-        // Add all pending members to the newly created team
-        if (_pendingMembers.isNotEmpty) {
-          for (var memberData in _pendingMembers) {
-            memberData['team_personnel_id'] = teamId;
-            await provider.addTeamMember(memberData);
-          }
+        for (var memberData in _pendingMembers) {
+          memberData['team_personnel_id'] = teamId;
+          await provider.addTeamMember(memberData);
         }
 
-        // Fetch the team members to display them
         await provider.fetchTeamMembers(teamId!);
+        setState(() => _pendingMembers.clear());
 
-        // Clear pending members AFTER fetching
-        setState(() {
-          _pendingMembers.clear();
-        });
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Team created successfully with members!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to create team. Please try again.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } else {
-      // Update existing team (unchanged)
-      final success = await provider.updateTeamPersonnel(_selectedTeamId!, personnelData);
-
-      if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Team updated successfully!'),
+            content: Text('Team created successfully with members!'),
             backgroundColor: Colors.green,
           ),
         );
       } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to update team. Please try again.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to create team. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
+    } else {
+      final success = await provider.updateTeamPersonnel(_selectedTeamId!, personnelData);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? 'Team updated successfully!' : 'Failed to update team.'),
+          backgroundColor: success ? Colors.green : Colors.red,
+        ),
+      );
     }
   }
 
   Map<String, dynamic> _buildPersonnelTeamData() {
     return {
-      "name": _nameController.text.trim(),
-      "parent_team": "none",
-      "type": _typeController.text.trim(),
-      "description": _descriptionController.text.trim(),
+      'name': _nameController.text.trim(),
+      'type': _typeController.text.trim(),
+      'description': _descriptionController.text.trim(),
+      'members': _pendingMembers,
     };
   }
 
@@ -768,105 +686,40 @@ class _PersonnelCreateTeamScreenState extends State<PersonnelCreateTeamScreen> {
     _typeController.clear();
     _descriptionController.clear();
     _pendingMembers.clear();
-    context.read<PersonnelProvider>().clearData();
   }
 
   List<DataColumn> _buildColumns(BuildContext context) {
     return [
-      DataColumn(
-        label: Expanded(
-          child: Text(
-            'Team Name',
-            style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
-          ),
-        ),
-        onSort: (columnIndex, _) {
-          setState(() {
-            sortColumnIndex = columnIndex;
-          });
-        },
-      ),
-      DataColumn(
-        label: Expanded(
-          child: Text(
-            'Type',
-            style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
-          ),
-        ),
-        onSort: (columnIndex, _) {
-          setState(() {
-            sortColumnIndex = columnIndex;
-          });
-        },
-      ),
-      DataColumn(
-        label: Expanded(
-          child: Text(
-            'Description',
-            style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
-          ),
-        ),
-        onSort: (columnIndex, _) {
-          setState(() {
-            sortColumnIndex = columnIndex;
-          });
-        },
-      ),
-      DataColumn(
-        label: Expanded(
-          child: Text(
-            'Created At',
-            style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
-          ),
-        ),
-        onSort: (columnIndex, _) {
-          setState(() {
-            sortColumnIndex = columnIndex;
-          });
-        },
-      ),
+      DataColumn(label: Text('Name', style: context.topology.textTheme.bodySmall)),
+      DataColumn(label: Text('Type', style: context.topology.textTheme.bodySmall)),
+      DataColumn(label: Text('Description', style: context.topology.textTheme.bodySmall)),
+      DataColumn(label: Text('Actions', style: context.topology.textTheme.bodySmall)),
     ];
   }
 
-  DataRow _buildRow(BuildContext context, PersonnelTeamModel data, bool isEven) {
+  DataRow _buildRow(BuildContext context, PersonnelTeamModel team, bool isEven) {
     return DataRow(
-      color: MaterialStateProperty.resolveWith<Color?>(
-        (_) => isEven ? context.colors.primary.withOpacity(0.05) : null,
+      color: MaterialStateProperty.resolveWith(
+        (states) => isEven ? context.colors.primary.withOpacity(0.05) : null,
       ),
-      onSelectChanged: (_) {
-        // Navigate to create/edit screen with team data
-        NavigationService().navigateTo(
-          AppRoutes.createTeamPersonnel,
-          arguments: data.teamPersonnelId,
-        );
-      },
       cells: [
+        DataCell(Text(team.name ?? '-', style: context.topology.textTheme.bodySmall)),
+        DataCell(Text(team.type ?? '-', style: context.topology.textTheme.bodySmall)),
+        DataCell(Text(team.description ?? '-', style: context.topology.textTheme.bodySmall)),
         DataCell(
-          Text(
-            data.name ?? '-',
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-          ),
-        ),
-        DataCell(
-          Text(
-            data.type ?? '-',
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-          ),
-        ),
-        DataCell(
-          Text(
-            data.description ?? '-',
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        DataCell(
-          Text(
-            data.createdAt != null
-                ? '${data.createdAt!.day}/${data.createdAt!.month}/${data.createdAt!.year}'
-                : '-',
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit, size: 18),
+                onPressed: () {
+                  _loadTeamData(team.teamPersonnelId!);
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete, size: 18, color: Colors.red),
+                onPressed: () => _removeMember(context, team.teamPersonnelId!, team.name),
+              ),
+            ],
           ),
         ),
       ],

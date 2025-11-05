@@ -1,7 +1,10 @@
 import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/providers/customer_provider.dart';
+import 'package:base_app/providers/personnel_provider.dart';
+import 'package:base_app/providers/system_provider.dart';
 import 'package:base_app/widget/common_button.dart';
+import 'package:base_app/widget/common_dropdown.dart';
 import 'package:base_app/widget/common_file_upload_input.dart';
 import 'package:base_app/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
@@ -15,11 +18,44 @@ class CustomerCreateNewScreen extends StatefulWidget {
 }
 
 class _CustomerCreateNewScreenState extends State<CustomerCreateNewScreen> {
+  String? selectedAgentId;
+  String? selectedDivisionId;
+  final TextEditingController notesController = TextEditingController();
+  final TextEditingController agentController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch data when screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final personnelProvider = Provider.of<PersonnelProvider>(context, listen: false);
+      final systemProvider = Provider.of<SystemProvider>(context, listen: false);
+
+      // Fetch personnel list if not already loaded
+      if (personnelProvider.personnelList.isEmpty) {
+        personnelProvider.fetchPersonnel();
+      }
+
+      // Fetch divisions if not already loaded
+      if (systemProvider.divisions.isEmpty) {
+        systemProvider.fetchDivision();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    notesController.dispose();
+    agentController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final customerProvider = Provider.of<CustomerProvider>(context, listen: false);
     final screenHeight = context.screenHeight - (kToolbarHeight * 1.25);
     final screenWidth = context.screenWidth;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -93,6 +129,7 @@ class _CustomerCreateNewScreenState extends State<CustomerCreateNewScreen> {
                   ],
                 ),
                 context.vS,
+                // Agent Dropdown
                 Row(
                   children: [
                     Expanded(
@@ -106,11 +143,43 @@ class _CustomerCreateNewScreenState extends State<CustomerCreateNewScreen> {
                     ),
                     Expanded(
                       flex: 3,
-                      child: CommonTextField(
-                        hintText: 'Enter Agent',
-                        style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary,
-                        ),
+                      child: Consumer<PersonnelProvider>(
+                        builder: (context, personnelProvider, child) {
+                          if (personnelProvider.isLoading) {
+                            return Center(
+                              child: SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            );
+                          }
+
+                          return CommonDropdown<String>(
+                            value: selectedAgentId,
+                            items:
+                                personnelProvider.personnelList.map((personnelData) {
+                                  return DropdownMenuItem<String>(
+                                    value: personnelData.personnel.personnelID,
+                                    child: Text(
+                                      personnelData.displayName,
+                                      style: context.topology.textTheme.bodySmall,
+                                    ),
+                                  );
+                                }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedAgentId = value;
+                                // Store the agent ID in a controller for submission
+                                agentController.text = value ?? '';
+                              });
+                            },
+                            borderColor: context.colors.primary,
+                            textStyle: context.topology.textTheme.bodySmall?.copyWith(
+                              color: context.colors.primary,
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -131,6 +200,7 @@ class _CustomerCreateNewScreenState extends State<CustomerCreateNewScreen> {
                       flex: 3,
                       child: CommonTextField(
                         hintText: 'Enter Notes',
+                        controller: notesController,
                         style: context.topology.textTheme.bodySmall?.copyWith(
                           color: context.colors.primary,
                         ),
@@ -139,6 +209,7 @@ class _CustomerCreateNewScreenState extends State<CustomerCreateNewScreen> {
                   ],
                 ),
                 context.vS,
+                // Division Dropdown
                 Row(
                   children: [
                     Expanded(
@@ -152,12 +223,43 @@ class _CustomerCreateNewScreenState extends State<CustomerCreateNewScreen> {
                     ),
                     Expanded(
                       flex: 3,
-                      child: CommonTextField(
-                        hintText: 'Enter Division',
-                        controller: customerProvider.divisionController,
-                        style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary,
-                        ),
+                      child: Consumer<SystemProvider>(
+                        builder: (context, systemProvider, child) {
+                          if (systemProvider.isLoading) {
+                            return Center(
+                              child: SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            );
+                          }
+
+                          return CommonDropdown<String>(
+                            value: selectedDivisionId,
+                            items:
+                                systemProvider.divisions.map((division) {
+                                  return DropdownMenuItem<String>(
+                                    value: division.divisionid,
+                                    child: Text(
+                                      division.divisionname ?? 'Unknown',
+                                      style: context.topology.textTheme.bodySmall,
+                                    ),
+                                  );
+                                }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedDivisionId = value;
+                                // Store the division ID in the controller for submission
+                                customerProvider.divisionController.text = value ?? '';
+                              });
+                            },
+                            borderColor: context.colors.primary,
+                            textStyle: context.topology.textTheme.bodySmall?.copyWith(
+                              color: context.colors.primary,
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -177,7 +279,7 @@ class _CustomerCreateNewScreenState extends State<CustomerCreateNewScreen> {
                     Expanded(
                       flex: 3,
                       child: CommonTextField(
-                        hintText: 'Enter Division',
+                        hintText: 'Enter Status',
                         controller: customerProvider.statusController,
                         style: context.topology.textTheme.bodySmall?.copyWith(
                           color: context.colors.primary,
@@ -186,7 +288,6 @@ class _CustomerCreateNewScreenState extends State<CustomerCreateNewScreen> {
                     ),
                   ],
                 ),
-
                 context.vS,
                 Row(
                   children: [
@@ -230,6 +331,9 @@ class _CustomerCreateNewScreenState extends State<CustomerCreateNewScreen> {
                 CommonButton(
                   text: 'Save',
                   onPressed: () {
+                    // The dropdown values are already stored in the controllers
+                    // divisionController.text has the division ID
+                    // agentController.text has the agent ID (though not used in current API)
                     customerProvider.createCustomer(context);
                   },
                 ),

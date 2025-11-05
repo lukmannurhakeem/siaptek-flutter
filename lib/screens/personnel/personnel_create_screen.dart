@@ -1,7 +1,9 @@
 import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/providers/personnel_provider.dart';
+import 'package:base_app/providers/system_provider.dart';
 import 'package:base_app/widget/common_button.dart';
+import 'package:base_app/widget/common_dropdown.dart';
 import 'package:base_app/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +18,9 @@ class PersonnelCreateScreen extends StatefulWidget {
 class _PersonnelCreateScreenState extends State<PersonnelCreateScreen> {
   int _currentStep = 0;
   final List<String> _steps = ['Overview', 'Contact', 'Company', 'Misc Notes'];
+
+  // Division selection
+  String? selectedDivisionId;
 
   // Form controllers for Overview step
   final TextEditingController _divisionController = TextEditingController();
@@ -55,6 +60,18 @@ class _PersonnelCreateScreenState extends State<PersonnelCreateScreen> {
 
   // Form validation
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch divisions when screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final systemProvider = Provider.of<SystemProvider>(context, listen: false);
+      if (systemProvider.divisions.isEmpty) {
+        systemProvider.fetchDivision();
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -211,7 +228,7 @@ class _PersonnelCreateScreenState extends State<PersonnelCreateScreen> {
       case 0:
         return Column(
           children: [
-            _widgetForm('Division', _divisionController, isRequired: true),
+            _buildDivisionDropdown(),
             context.vS,
             _widgetForm('Title', _titleController),
             context.vS,
@@ -315,6 +332,60 @@ class _PersonnelCreateScreenState extends State<PersonnelCreateScreen> {
     }
   }
 
+  Widget _buildDivisionDropdown() {
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(
+            'Division *',
+            style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: Consumer<SystemProvider>(
+            builder: (context, systemProvider, child) {
+              if (systemProvider.isLoading) {
+                return Center(
+                  child: SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                );
+              }
+
+              return CommonDropdown<String>(
+                value: selectedDivisionId,
+                items:
+                    systemProvider.divisions.map((division) {
+                      return DropdownMenuItem<String>(
+                        value: division.divisionid,
+                        child: Text(
+                          division.divisionname ?? 'Unknown',
+                          style: context.topology.textTheme.bodySmall,
+                        ),
+                      );
+                    }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedDivisionId = value;
+                    _divisionController.text = value ?? '';
+                  });
+                },
+                borderColor: context.colors.primary,
+                textStyle: context.topology.textTheme.bodySmall?.copyWith(
+                  color: context.colors.primary,
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _widgetForm(String text, TextEditingController controller, {bool isRequired = false}) {
     return Row(
       children: [
@@ -360,7 +431,8 @@ class _PersonnelCreateScreenState extends State<PersonnelCreateScreen> {
   bool _validateCurrentStep() {
     // Basic validation for required fields in step 0
     if (_currentStep == 0) {
-      if (_divisionController.text.isEmpty ||
+      if (selectedDivisionId == null ||
+          selectedDivisionId!.isEmpty ||
           _firstNameController.text.isEmpty ||
           _lastNameController.text.isEmpty) {
         ScaffoldMessenger.of(

@@ -39,8 +39,6 @@ class Endpoint {
   //job
   static const String jobView = '/job/view';
 
-  // static String jobRegister = '/jobitems/view';
-
   static String jobRegister({String? jobId}) {
     return jobId != null ? '/jobitems/$jobId' : '/jobitems';
   }
@@ -71,4 +69,22 @@ class Endpoint {
   }
 
   static const String deleteDivision = '/division/delete';
+
+  // Inspection Plans
+  static const String inspectionPlansView = '/inspectionplans/view';
+  static const String inspectionPlansCreate = '/inspectionplans/create';
+  static const String inspectionPlansUpdate = '/inspectionplans/update';
+  static const String inspectionPlansDelete = '/inspectionplans/delete';
+
+  static String getInspectionPlanById(String planId) {
+    return '/inspectionplans/$planId';
+  }
+
+  static String getInspectionPlansByJob(String jobId) {
+    return '/inspectionplans/job/$jobId';
+  }
+
+  static String getInspectionPlansByAssignee(String assigneeId) {
+    return '/inspectionplans/assignee/$assigneeId';
+  }
 }

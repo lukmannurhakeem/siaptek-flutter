@@ -7,6 +7,8 @@ import 'package:base_app/repositories/job/job_impl.dart';
 import 'package:base_app/repositories/job/job_repository.dart';
 import 'package:base_app/repositories/personnel/personnel_impl.dart';
 import 'package:base_app/repositories/personnel/personnel_repository.dart';
+import 'package:base_app/repositories/planner/planner_impl.dart';
+import 'package:base_app/repositories/planner/planner_repository.dart';
 import 'package:base_app/repositories/site/site_impl.dart';
 import 'package:base_app/repositories/site/site_repository.dart';
 import 'package:base_app/repositories/system/system.impl.dart';
@@ -29,6 +31,7 @@ class ServiceLocator {
 
   // Repositories (lazy initialization)
   CustomerRepository? _customerRepository;
+  PlannerRepository? _plannerRepository;
   JobRepository? _jobRepository;
   SiteRepository? _siteRepository;
   SystemRepository? _systemRepository;
@@ -53,6 +56,11 @@ class ServiceLocator {
   UserRepository get userRepository {
     _userRepository ??= UserImpl(httpService);
     return _userRepository!;
+  }
+
+  PlannerRepository get plannerRepository {
+    _plannerRepository ??= PlannerImpl(httpService);
+    return _plannerRepository!;
   }
 
   // Get Customer Repository
@@ -100,6 +108,7 @@ class ServiceLocator {
     _systemRepository = null;
     _categoryRepository = null;
     _personnelRepository = null;
+    _plannerRepository = null;
   }
 }
 

@@ -2,7 +2,9 @@ import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/providers/customer_provider.dart';
 import 'package:base_app/providers/site_provider.dart';
+import 'package:base_app/providers/system_provider.dart';
 import 'package:base_app/widget/common_button.dart';
+import 'package:base_app/widget/common_dropdown.dart';
 import 'package:base_app/widget/common_file_upload_input.dart';
 import 'package:base_app/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
@@ -16,11 +18,23 @@ class SiteCreateNewScreen extends StatefulWidget {
 }
 
 class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
+  String? selectedDivisionId;
+
   @override
   void initState() {
     super.initState();
-    final customerProvider = Provider.of<CustomerProvider>(context, listen: false);
-    customerProvider.fetchCustomers(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final customerProvider = Provider.of<CustomerProvider>(context, listen: false);
+      final systemProvider = Provider.of<SystemProvider>(context, listen: false);
+
+      // Fetch customers
+      customerProvider.fetchCustomers(context);
+
+      // Fetch divisions
+      if (systemProvider.divisions.isEmpty) {
+        systemProvider.fetchDivision();
+      }
+    });
   }
 
   @override
@@ -28,6 +42,7 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
     final siteProvider = Provider.of<SiteProvider>(context, listen: false);
     final screenHeight = context.screenHeight - (kToolbarHeight * 1.25);
     final screenWidth = context.screenWidth;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -159,7 +174,6 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
                     ),
                   ],
                 ),
-
                 context.vS,
                 Row(
                   children: [
@@ -184,7 +198,6 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
                   ],
                 ),
                 context.vS,
-
                 Row(
                   children: [
                     Expanded(
@@ -232,8 +245,8 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
                     ),
                   ],
                 ),
-
                 context.vS,
+                // Division Dropdown
                 Row(
                   children: [
                     Expanded(
@@ -247,18 +260,48 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
                     ),
                     Expanded(
                       flex: 3,
-                      child: CommonTextField(
-                        hintText: 'Enter Division',
-                        controller: siteProvider.divisionController,
-                        style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary,
-                        ),
+                      child: Consumer<SystemProvider>(
+                        builder: (context, systemProvider, child) {
+                          if (systemProvider.isLoading) {
+                            return Center(
+                              child: SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            );
+                          }
+
+                          return CommonDropdown<String>(
+                            value: selectedDivisionId,
+                            items:
+                                systemProvider.divisions.map((division) {
+                                  return DropdownMenuItem<String>(
+                                    value: division.divisionid,
+                                    child: Text(
+                                      division.divisionname ?? 'Unknown',
+                                      style: context.topology.textTheme.bodySmall,
+                                    ),
+                                  );
+                                }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedDivisionId = value;
+                                // Store the division ID in the controller for submission
+                                siteProvider.divisionController.text = value ?? '';
+                              });
+                            },
+                            borderColor: context.colors.primary,
+                            textStyle: context.topology.textTheme.bodySmall?.copyWith(
+                              color: context.colors.primary,
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],
                 ),
                 context.vS,
-
                 Row(
                   children: [
                     Expanded(

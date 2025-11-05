@@ -42,7 +42,10 @@ class _CommonFileUploadInputState extends State<CommonFileUploadInput> {
         ),
         const SizedBox(height: 12),
         if (_pickedFile != null)
-          Text('Selected File: ${_pickedFile!.name}', style: const TextStyle(fontSize: 16)),
+          Text(
+            'Selected File: ${_pickedFile!.name}',
+            style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
+          ),
       ],
     );
   }

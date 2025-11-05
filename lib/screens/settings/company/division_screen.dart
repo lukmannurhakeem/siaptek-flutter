@@ -135,98 +135,88 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
   Widget _buildDivisionsList(BuildContext context, SystemProvider provider) {
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return Scaffold(
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // --- Background image (fixed bottom layer) ---
-            Positioned.fill(
-              child: Align(
-                alignment: Alignment.bottomRight,
-                child: IgnorePointer(
-                  child: Opacity(
-                    opacity: 0.15,
-                    child: Image.asset(
-                      'assets/images/bg_4.png',
-                      fit: BoxFit.contain,
-                      alignment: Alignment.bottomRight,
-                      errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+    return SizedBox(
+      height: screenHeight - kToolbarHeight - MediaQuery.of(context).padding.top,
+      child: Stack(
+        children: [
+          // --- Background image (fixed at bottom right) ---
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: 0.15,
+                child: Image.asset(
+                  'assets/images/bg_4.png',
+                  fit: BoxFit.contain,
+                  alignment: Alignment.bottomRight,
+                  errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                ),
+              ),
+            ),
+          ),
+
+          // --- Foreground scrollable content ---
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // --- Fixed "Create" button ---
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: SizedBox(
+                    width: 150,
+                    child: CommonButton(
+                      onPressed: () {
+                        NavigationService().navigateTo(AppRoutes.companyCreateDivision);
+                      },
+                      iconSize: 15,
+                      icon: Icons.add,
+                      text: 'Create',
                     ),
                   ),
                 ),
-              ),
-            ),
+                const SizedBox(height: 16),
 
-            // --- Foreground (non-scrollable container) ---
-            Align(
-              alignment: Alignment.topCenter,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: SizedBox(
-                  width: double.infinity,
-                  // Fixes entire screen height so background won’t scroll
-                  height: screenHeight - 32, // Safe padding adjustment
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // --- Fixed "Create" button ---
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: SizedBox(
-                          width: 150,
-                          child: CommonButton(
-                            onPressed: () {
-                              NavigationService().navigateTo(AppRoutes.companyCreateDivision);
-                            },
-                            iconSize: 15,
-                            icon: Icons.add,
-                            text: 'Create',
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // --- Scrollable card list (bounded within fixed height) ---
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: RefreshIndicator(
-                            onRefresh: () => provider.fetchDivision(),
-                            child:
-                                provider.divisions.isEmpty
-                                    ? ListView(
-                                      physics: const AlwaysScrollableScrollPhysics(),
-                                      children: const [
-                                        SizedBox(height: 100),
-                                        Center(child: Text('No divisions available')),
-                                      ],
-                                    )
-                                    : ListView.builder(
-                                      key: const ValueKey('divisions_list'),
-                                      physics: const AlwaysScrollableScrollPhysics(),
-                                      padding: const EdgeInsets.all(8),
-                                      itemCount: provider.divisions.length,
-                                      itemBuilder: (context, index) {
-                                        final division = provider.divisions[index];
-                                        return Padding(
-                                          padding: const EdgeInsets.only(bottom: 12),
-                                          child: _buildDivisionCard(division, index),
-                                        );
-                                      },
-                                    ),
-                          ),
-                        ),
-                      ),
-                    ],
+                // --- Scrollable card list ---
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: RefreshIndicator(
+                      onRefresh: () => provider.fetchDivision(),
+                      child:
+                          provider.divisions.isEmpty
+                              ? ListView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                children: const [
+                                  SizedBox(height: 100),
+                                  Center(child: Text('No divisions available')),
+                                ],
+                              )
+                              : ListView.builder(
+                                key: const ValueKey('divisions_list'),
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                padding: const EdgeInsets.all(8),
+                                itemCount: provider.divisions.length,
+                                itemBuilder: (context, index) {
+                                  final division = provider.divisions[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: _buildDivisionCard(division, index),
+                                  );
+                                },
+                              ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

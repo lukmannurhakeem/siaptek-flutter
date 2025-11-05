@@ -1,3 +1,4 @@
+import 'package:base_app/core/extension/date_time_extension.dart';
 import 'package:base_app/core/extension/theme_extension.dart';
 import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/providers/job_provider.dart';
@@ -5,6 +6,7 @@ import 'package:base_app/route/route.dart';
 import 'package:base_app/widget/common_button.dart';
 import 'package:base_app/widget/common_dialog.dart';
 import 'package:base_app/widget/common_dropdown.dart';
+import 'package:base_app/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -18,6 +20,8 @@ class JobScreen extends StatefulWidget {
 }
 
 class _JobScreenState extends State<JobScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
   // Search filters
   SearchColumn? selectedColumn;
   dynamic selectedValue;
@@ -28,6 +32,34 @@ class _JobScreenState extends State<JobScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<JobProvider>().fetchJobModel(context);
     });
+
+    // Listen to search text changes
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    setState(() {
+      // Trigger rebuild to update filtered jobs
+    });
+  }
+
+  // Helper method to format date
+  String _formatDate(dynamic date) {
+    if (date == null) return '-';
+    if (date is String) {
+      final parsed = date.tryParseDateTime();
+      return parsed?.formatShortDate ?? date;
+    }
+    if (date is DateTime) {
+      return date.formatShortDate;
+    }
+    return '-';
   }
 
   // Get values based on selected column
@@ -67,6 +99,22 @@ class _JobScreenState extends State<JobScreen> {
 
     var filteredList = jobProvider.jobModel!.data!;
 
+    // Apply text search
+    if (_searchController.text.isNotEmpty) {
+      final searchText = _searchController.text.toLowerCase();
+      filteredList =
+          filteredList.where((job) {
+            final jobNo = (job.jobId ?? '').toLowerCase();
+            final customer = (job.clientName ?? '').toLowerCase();
+            final site = (job.siteName ?? '').toLowerCase();
+
+            return jobNo.contains(searchText) ||
+                customer.contains(searchText) ||
+                site.contains(searchText);
+          }).toList();
+    }
+
+    // Apply column filter
     if (selectedColumn != null && selectedValue != null) {
       switch (selectedColumn!) {
         case SearchColumn.customer:
@@ -108,7 +156,7 @@ class _JobScreenState extends State<JobScreen> {
     return value.toString();
   }
 
-  void _showSearchDialog(BuildContext context, JobProvider jobProvider) {
+  void _showFilterDialog(BuildContext context, JobProvider jobProvider) {
     // Temporary variables for dialog
     SearchColumn? tempColumn = selectedColumn;
     dynamic tempValue = selectedValue;
@@ -130,7 +178,7 @@ class _JobScreenState extends State<JobScreen> {
                     Expanded(
                       flex: 1,
                       child: Text(
-                        'Search By',
+                        'Filter By',
                         style: context.topology.textTheme.bodySmall?.copyWith(
                           color: context.colors.primary,
                         ),
@@ -256,7 +304,7 @@ class _JobScreenState extends State<JobScreen> {
                     context.hS,
                     Expanded(
                       child: CommonButton(
-                        text: 'Search',
+                        text: 'Apply',
                         onPressed: () {
                           setState(() {
                             selectedColumn = tempColumn;
@@ -281,226 +329,215 @@ class _JobScreenState extends State<JobScreen> {
     JobProvider jobProvider,
     List<dynamic> filteredJobs,
   ) {
-    return Container(
-      padding: context.paddingHorizontal,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return ListView(
-            children: [
-              ConstrainedBox(
-                constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                child: IntrinsicWidth(
-                  stepWidth: double.infinity,
-                  child: DataTable(
-                    sortColumnIndex: jobProvider.sortColumnIndex,
-                    showCheckboxColumn: false,
-                    columnSpacing: 20,
-                    dataRowMinHeight: 56,
-                    dataRowMaxHeight: 56,
-                    columns: [
-                      DataColumn(
-                        label: Expanded(
-                          child: Text(
-                            'Job No',
-                            style: context.topology.textTheme.titleSmall?.copyWith(
-                              color: context.colors.primary,
-                            ),
-                          ),
-                        ),
-                        onSort: (columnIndex, _) {
-                          setState(() {
-                            jobProvider.sortColumnIndex = columnIndex;
-                          });
-                        },
-                      ),
-                      DataColumn(
-                        label: Expanded(
-                          flex: 2,
-                          child: Text(
-                            'Customer',
-                            style: context.topology.textTheme.titleSmall?.copyWith(
-                              color: context.colors.primary,
-                            ),
-                          ),
-                        ),
-                        onSort: (columnIndex, _) {
-                          setState(() {
-                            jobProvider.sortColumnIndex = columnIndex;
-                          });
-                        },
-                      ),
-                      DataColumn(
-                        label: Expanded(
-                          flex: 2,
-                          child: Text(
-                            'Site',
-                            style: context.topology.textTheme.titleSmall?.copyWith(
-                              color: context.colors.primary,
-                            ),
-                          ),
-                        ),
-                        onSort: (columnIndex, _) {
-                          setState(() {
-                            jobProvider.sortColumnIndex = columnIndex;
-                          });
-                        },
-                      ),
-                      DataColumn(
-                        label: Expanded(
-                          child: Center(
-                            child: Text(
-                              'Status',
-                              style: context.topology.textTheme.titleSmall?.copyWith(
-                                color: context.colors.primary,
-                              ),
-                            ),
-                          ),
-                        ),
-                        onSort: (columnIndex, _) {
-                          setState(() {
-                            jobProvider.sortColumnIndex = columnIndex;
-                          });
-                        },
-                      ),
-                      DataColumn(
-                        label: Expanded(
-                          child: Text(
-                            'Start Date',
-                            style: context.topology.textTheme.titleSmall?.copyWith(
-                              color: context.colors.primary,
-                            ),
-                          ),
-                        ),
-                        onSort: (columnIndex, _) {
-                          setState(() {
-                            jobProvider.sortColumnIndex = columnIndex;
-                          });
-                        },
-                      ),
-                      DataColumn(
-                        label: Expanded(
-                          child: Text(
-                            'End Date',
-                            style: context.topology.textTheme.titleSmall?.copyWith(
-                              color: context.colors.primary,
-                            ),
-                          ),
-                        ),
-                        onSort: (columnIndex, _) {
-                          setState(() {
-                            jobProvider.sortColumnIndex = columnIndex;
-                          });
-                        },
-                      ),
-                    ],
-                    rows: List.generate(filteredJobs.length, (index) {
-                      final data = filteredJobs[index];
-                      final isEven = index % 2 == 0;
-
-                      return DataRow(
-                        onSelectChanged: (selected) {
-                          if (selected == true) {
-                            NavigationService().navigateTo(
-                              AppRoutes.jobRegister,
-                              arguments: {'jobId': data.jobId},
-                            );
-                          }
-                        },
-                        color: MaterialStateProperty.resolveWith<Color?>((
-                          Set<MaterialState> states,
-                        ) {
-                          return isEven ? context.colors.primary.withOpacity(0.05) : null;
-                        }),
-                        cells: [
-                          DataCell(
-                            SizedBox(
-                              width: double.infinity,
-                              child: Text(
-                                data.jobId ?? '-',
-                                style: context.topology.textTheme.bodySmall?.copyWith(
-                                  color: context.colors.primary,
-                                ),
-                              ),
-                            ),
-                          ),
-                          DataCell(
-                            SizedBox(
-                              width: double.infinity,
-                              child: Text(
-                                data.clientName ?? '-',
-                                style: context.topology.textTheme.bodySmall?.copyWith(
-                                  color: context.colors.primary,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 2,
-                              ),
-                            ),
-                          ),
-                          DataCell(
-                            SizedBox(
-                              width: double.infinity,
-                              child: Text(
-                                data.siteName ?? '-',
-                                style: context.topology.textTheme.bodySmall?.copyWith(
-                                  color: context.colors.primary,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 2,
-                              ),
-                            ),
-                          ),
-                          DataCell(
-                            Center(
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: _getStatusColor(data.startJobNow ?? false),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    _getStatusText(data.startJobNow ?? false),
-                                    style: context.topology.textTheme.bodySmall?.copyWith(
-                                      color: context.colors.onPrimary,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          DataCell(
-                            SizedBox(
-                              width: double.infinity,
-                              child: Text(
-                                data.estimatedStartDate!.formatFullDate ?? '-',
-                                style: context.topology.textTheme.bodySmall?.copyWith(
-                                  color: context.colors.primary,
-                                ),
-                              ),
-                            ),
-                          ),
-                          DataCell(
-                            SizedBox(
-                              width: double.infinity,
-                              child: Text(
-                                data.estimatedEndDate!.formatFullDate ?? '-',
-                                style: context.topology.textTheme.bodySmall?.copyWith(
-                                  color: context.colors.primary,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    }),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: MediaQuery.of(context).size.width - 64, // Account for padding
+        ),
+        child: DataTable(
+          sortColumnIndex: jobProvider.sortColumnIndex,
+          showCheckboxColumn: false,
+          columnSpacing: 20,
+          dataRowMinHeight: 56,
+          dataRowMaxHeight: 56,
+          columns: [
+            DataColumn(
+              label: Expanded(
+                child: Text(
+                  'Job No',
+                  style: context.topology.textTheme.titleSmall?.copyWith(
+                    color: context.colors.primary,
                   ),
                 ),
               ),
-            ],
-          );
-        },
+              onSort: (columnIndex, _) {
+                setState(() {
+                  jobProvider.sortColumnIndex = columnIndex;
+                });
+              },
+            ),
+            DataColumn(
+              label: Expanded(
+                flex: 2,
+                child: Text(
+                  'Customer',
+                  style: context.topology.textTheme.titleSmall?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                ),
+              ),
+              onSort: (columnIndex, _) {
+                setState(() {
+                  jobProvider.sortColumnIndex = columnIndex;
+                });
+              },
+            ),
+            DataColumn(
+              label: Expanded(
+                flex: 2,
+                child: Text(
+                  'Site',
+                  style: context.topology.textTheme.titleSmall?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                ),
+              ),
+              onSort: (columnIndex, _) {
+                setState(() {
+                  jobProvider.sortColumnIndex = columnIndex;
+                });
+              },
+            ),
+            DataColumn(
+              label: Expanded(
+                child: Center(
+                  child: Text(
+                    'Status',
+                    style: context.topology.textTheme.titleSmall?.copyWith(
+                      color: context.colors.primary,
+                    ),
+                  ),
+                ),
+              ),
+              onSort: (columnIndex, _) {
+                setState(() {
+                  jobProvider.sortColumnIndex = columnIndex;
+                });
+              },
+            ),
+            DataColumn(
+              label: Expanded(
+                child: Text(
+                  'Start Date',
+                  style: context.topology.textTheme.titleSmall?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                ),
+              ),
+              onSort: (columnIndex, _) {
+                setState(() {
+                  jobProvider.sortColumnIndex = columnIndex;
+                });
+              },
+            ),
+            DataColumn(
+              label: Expanded(
+                child: Text(
+                  'End Date',
+                  style: context.topology.textTheme.titleSmall?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                ),
+              ),
+              onSort: (columnIndex, _) {
+                setState(() {
+                  jobProvider.sortColumnIndex = columnIndex;
+                });
+              },
+            ),
+          ],
+          rows: List.generate(filteredJobs.length, (index) {
+            final data = filteredJobs[index];
+            final isEven = index % 2 == 0;
+
+            return DataRow(
+              onSelectChanged: (selected) {
+                if (selected == true) {
+                  NavigationService().navigateTo(
+                    AppRoutes.jobRegister,
+                    arguments: {'jobId': data.jobId},
+                  );
+                }
+              },
+              color: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+                return isEven ? context.colors.primary.withOpacity(0.05) : null;
+              }),
+              cells: [
+                DataCell(
+                  SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      data.jobId ?? '-',
+                      style: context.topology.textTheme.bodySmall?.copyWith(
+                        color: context.colors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+                DataCell(
+                  SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      data.clientName ?? '-',
+                      style: context.topology.textTheme.bodySmall?.copyWith(
+                        color: context.colors.primary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    ),
+                  ),
+                ),
+                DataCell(
+                  SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      data.siteName ?? '-',
+                      style: context.topology.textTheme.bodySmall?.copyWith(
+                        color: context.colors.primary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    ),
+                  ),
+                ),
+                DataCell(
+                  Center(
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(data.startJobNow ?? false),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          _getStatusText(data.startJobNow ?? false),
+                          style: context.topology.textTheme.bodySmall?.copyWith(
+                            color: context.colors.onPrimary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                DataCell(
+                  SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      _formatDate(data.estimatedStartDate),
+                      style: context.topology.textTheme.bodySmall?.copyWith(
+                        color: context.colors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+                DataCell(
+                  SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      _formatDate(data.estimatedEndDate),
+                      style: context.topology.textTheme.bodySmall?.copyWith(
+                        color: context.colors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }),
+        ),
       ),
     );
   }
@@ -510,10 +547,9 @@ class _JobScreenState extends State<JobScreen> {
     JobProvider jobProvider,
     List<dynamic> filteredJobs,
   ) {
-    return ListView.builder(
-      padding: context.paddingHorizontal,
-      itemCount: filteredJobs.length,
-      itemBuilder: (context, index) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(filteredJobs.length, (index) {
         final data = filteredJobs[index];
 
         return Card(
@@ -533,11 +569,13 @@ class _JobScreenState extends State<JobScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        data.jobId ?? '-',
-                        style: context.topology.textTheme.titleMedium?.copyWith(
-                          color: context.colors.primary,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Text(
+                          data.jobId ?? '-',
+                          style: context.topology.textTheme.titleMedium?.copyWith(
+                            color: context.colors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       Container(
@@ -578,10 +616,12 @@ class _JobScreenState extends State<JobScreen> {
                         color: context.colors.primary.withOpacity(0.6),
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        '${data.estimatedStartDate ?? '-'} - ${data.estimatedEndDate ?? '-'}',
-                        style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary.withOpacity(0.6),
+                      Expanded(
+                        child: Text(
+                          '${_formatDate(data.estimatedStartDate)} - ${_formatDate(data.estimatedEndDate)}',
+                          style: context.topology.textTheme.bodySmall?.copyWith(
+                            color: context.colors.primary.withOpacity(0.6),
+                          ),
                         ),
                       ),
                     ],
@@ -591,51 +631,67 @@ class _JobScreenState extends State<JobScreen> {
             ),
           ),
         );
-      },
+      }),
     );
   }
 
   Widget _buildEmptyState(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          width: double.infinity,
-          height: context.screenHeight - kToolbarHeight * 2,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              context.vXxl,
-              if (selectedColumn == null && selectedValue == null)
+    final hasSearchOrFilter =
+        _searchController.text.isNotEmpty || (selectedColumn != null && selectedValue != null);
+
+    return SizedBox(
+      width: double.infinity,
+      child: Stack(
+        children: [
+          Padding(
+            padding: context.paddingAll,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 100),
                 Text(
-                  'You have no job created',
+                  hasSearchOrFilter ? 'No jobs found' : 'You have no job created',
                   textAlign: TextAlign.center,
                   style: context.topology.textTheme.titleMedium?.copyWith(
                     color: context.colors.primary,
                   ),
                 ),
-              Text(
-                selectedColumn != null && selectedValue != null
-                    ? 'No jobs found matching your filter'
-                    : 'Add your first job',
-                textAlign: TextAlign.center,
-                style: context.topology.textTheme.bodySmall?.copyWith(
-                  color: context.colors.primary,
+                const SizedBox(height: 8),
+                Text(
+                  hasSearchOrFilter ? 'Try adjusting your search or filter' : 'Add your first job',
+                  textAlign: TextAlign.center,
+                  style: context.topology.textTheme.bodySmall?.copyWith(
+                    color: context.colors.primary,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        Positioned(
-          bottom: 0,
-          right: 0, // Changed from -15 to 0
-          child: Image.asset(
-            'assets/images/bg_2.png',
-            fit: BoxFit.contain,
-            alignment: Alignment.bottomRight, // Changed from bottomCenter to bottomRight
-            height: context.screenHeight * 0.70,
+          Positioned(
+            bottom: -200,
+            right: 0,
+            child: Image.asset(
+              'assets/images/bg_2.png',
+              fit: BoxFit.contain,
+              alignment: Alignment.bottomRight,
+              height: context.screenHeight * 0.70,
+            ),
           ),
-        ),
-      ],
+          // Positioned(
+          //   bottom: 16,
+          //   right: 16,
+          //   child: FloatingActionButton(
+          //     onPressed: () {
+          //       // Navigate to create job screen
+          //       NavigationService().navigateTo(AppRoutes.jobItemCreateScreen, arguments: null);
+          //     },
+          //     tooltip: 'Add New Job',
+          //     backgroundColor: context.colors.primary,
+          //     child: const Icon(Icons.add),
+          //   ),
+          // ),
+        ],
+      ),
     );
   }
 
@@ -646,35 +702,157 @@ class _JobScreenState extends State<JobScreen> {
         final filteredJobs = _getFilteredJobs(jobProvider);
 
         // Show empty state
-        if (filteredJobs.isEmpty || jobProvider.jobModel?.data?.isEmpty == true) {
+        if (jobProvider.jobModel?.data?.isEmpty == true) {
           return _buildEmptyState(context);
         }
 
-        // Show job data
-        return Scaffold(
-          body: SizedBox(
-            width: context.screenWidth,
-            height: context.screenHeight - (kToolbarHeight * 1.25),
-            child: Stack(
-              children: [
-                // Main content - adapt based on screen size
-                context.isTablet
-                    ? _buildDataTable(context, jobProvider, filteredJobs)
-                    : _buildMobileList(context, jobProvider, filteredJobs),
+        final screenHeight = context.screenHeight - (kToolbarHeight * 1.25);
+        final screenWidth = context.screenWidth;
 
-                // Floating Action Button
-                Positioned(
-                  bottom: 50,
-                  right: 30,
-                  child: FloatingActionButton(
-                    onPressed: () => _showSearchDialog(context, jobProvider),
-                    tooltip: 'Search',
-                    backgroundColor: context.colors.primary,
-                    child: const Icon(Icons.search),
+        // Show job data
+        return SizedBox(
+          width: screenWidth,
+          height: screenHeight,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Padding(
+                  padding: context.paddingAll,
+                  child: Column(
+                    children: [
+                      // Search bar
+                      CommonTextField(
+                        controller: _searchController,
+                        hintText: 'Search by job no, customer, or site...',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                        suffixIcon: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_searchController.text.isNotEmpty)
+                              IconButton(
+                                icon: Icon(Icons.clear, color: context.colors.primary),
+                                onPressed: () {
+                                  _searchController.clear();
+                                },
+                              ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.filter_list,
+                                color:
+                                    (selectedColumn != null && selectedValue != null)
+                                        ? context.colors.primary
+                                        : context.colors.primary.withOpacity(0.5),
+                              ),
+                              onPressed: () => _showFilterDialog(context, jobProvider),
+                            ),
+                          ],
+                        ),
+                      ),
+                      context.vM,
+                      // Result count and active filter indicator
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '${filteredJobs.length} job${filteredJobs.length != 1 ? 's' : ''} found',
+                              style: context.topology.textTheme.bodySmall?.copyWith(
+                                color: context.colors.primary,
+                              ),
+                            ),
+                            if (selectedColumn != null && selectedValue != null)
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    selectedColumn = null;
+                                    selectedValue = null;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: context.colors.primary.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Filter: ${_getColumnLabel(selectedColumn!)}: ${_getValueLabel(selectedColumn!, selectedValue)}',
+                                        style: context.topology.textTheme.bodySmall?.copyWith(
+                                          color: context.colors.primary,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Icon(Icons.close, size: 14, color: context.colors.primary),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      // Job list or table
+                      Expanded(
+                        child:
+                            filteredJobs.isEmpty
+                                ? Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.search_off,
+                                        size: 64,
+                                        color: context.colors.primary.withOpacity(0.3),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'No jobs found',
+                                        style: context.topology.textTheme.titleMedium?.copyWith(
+                                          color: context.colors.primary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Try adjusting your search or filter',
+                                        style: context.topology.textTheme.bodySmall?.copyWith(
+                                          color: context.colors.primary.withOpacity(0.7),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                                : RefreshIndicator(
+                                  onRefresh: () => jobProvider.fetchJobModel(context),
+                                  child:
+                                      context.isTablet
+                                          ? _buildDataTable(context, jobProvider, filteredJobs)
+                                          : _buildMobileList(context, jobProvider, filteredJobs),
+                                ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+              // Floating Action Button
+              Positioned(
+                bottom: 50,
+                right: 30,
+                child: FloatingActionButton(
+                  onPressed: () {
+                    // Navigate to create job screen
+                    NavigationService().navigateTo(AppRoutes.jobAddNewScreen, arguments: null);
+                  },
+                  tooltip: 'Add New Job',
+                  backgroundColor: context.colors.primary,
+                  child: const Icon(Icons.add),
+                ),
+              ),
+            ],
           ),
         );
       },

@@ -43,13 +43,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       icon: Icons.calendar_month,
       index: 1,
       children: [
-        MenuItem(
-          title: 'Individual Planner',
-          icon: Icons.person,
-          index: 10,
-          screen: PlannerScreen(),
-        ),
-        MenuItem(title: 'Team Planner', icon: Icons.groups, index: 11, screen: TeamPlannerScreen()),
+        MenuItem(title: 'View Planner', icon: Icons.view_array, index: 30, screen: PlannerScreen()),
+        MenuItem(title: 'Add Planner', icon: Icons.add, index: 31, screen: TeamPlannerScreen()),
       ],
     ),
     MenuItem(
@@ -202,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
         return Scaffold(
           appBar:
-              (currentMenuItem?.title == 'Dashboard')
+              (currentMenuItem?.title == 'Dashboard' || currentMenuItem?.title == 'Add Planner')
                   ? null
                   : AppBar(
                     automaticallyImplyLeading: false,
@@ -353,12 +348,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
 
               // Main Content
-              Expanded(
-                child: SafeArea(
-                  top: true,
-                  child: SingleChildScrollView(child: _getBodyContent(currentMenuItem)),
-                ),
-              ),
+              Expanded(child: SafeArea(top: true, child: _getBodyContent(currentMenuItem))),
             ],
           ),
         );
@@ -503,6 +493,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   Widget _getBodyContent(MenuItem? currentMenuItem) {
-    return currentMenuItem?.screen ?? Center(child: Text("${currentMenuItem?.title} Content"));
+    if (currentMenuItem == null) {
+      return const Center(child: Text("No screen found"));
+    }
+    if (currentMenuItem.builder != null) {
+      return currentMenuItem.builder!();
+    }
+    return currentMenuItem.screen ?? Center(child: Text("${currentMenuItem.title} Content"));
   }
 }

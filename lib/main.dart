@@ -11,6 +11,7 @@ import 'package:base_app/providers/category_provider.dart';
 import 'package:base_app/providers/customer_provider.dart';
 import 'package:base_app/providers/job_provider.dart';
 import 'package:base_app/providers/personnel_provider.dart';
+import 'package:base_app/providers/planner_provider.dart';
 import 'package:base_app/providers/site_provider.dart';
 import 'package:base_app/providers/system_provider.dart';
 import 'package:base_app/route/route.dart';
@@ -45,6 +46,7 @@ void mainCommon(FlavorType flavor) async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthenticateProvider()),
+        ChangeNotifierProvider(create: (_) => PlannerProvider()),
         ChangeNotifierProvider(create: (_) => SiteProvider()),
         ChangeNotifierProvider(create: (_) => CustomerProvider()),
         ChangeNotifierProvider(create: (_) => SystemProvider()),
