@@ -8,7 +8,7 @@ import 'package:base_app/repositories/system/system_repository.dart';
 import 'package:base_app/route/endpoint.dart';
 
 class SystemImpl implements SystemRepository {
-  final OfflineHttpService _api; // Changed from ApiClient
+  final OfflineHttpService _api;
 
   SystemImpl(this._api);
 
@@ -72,7 +72,6 @@ class SystemImpl implements SystemRepository {
         },
       );
 
-      // Check if queued
       if (response.statusCode == 202 && response.data['queued'] == true) {
         throw Exception('Division saved locally. Will sync when online.');
       }
@@ -105,7 +104,6 @@ class SystemImpl implements SystemRepository {
         data: requestBody,
       );
 
-      // Check if queued
       if (response.statusCode == 202 && response.data['queued'] == true) {
         throw Exception('Division deletion queued. Will sync when online.');
       }
@@ -117,13 +115,24 @@ class SystemImpl implements SystemRepository {
   @override
   Future<Map<String, dynamic>?> createReport(Map<String, dynamic> requestBody) async {
     try {
+      // Ensure the request body follows the exact format
+      final formattedBody = {
+        "reportType": requestBody["reportType"] ?? {},
+        "competencyReports": requestBody["competencyReports"] ?? [],
+        "reportTypeDates": requestBody["reportTypeDates"] ?? [],
+        "statusRuleReports": requestBody["statusRuleReports"] ?? [],
+        "reportFields": requestBody["reportFields"] ?? [],
+        "actionReports": requestBody["actionReports"] ?? [],
+      };
+
+      print('Creating report with body: $formattedBody'); // Debug log
+
       final response = await _api.post(
         Endpoint.createReport,
         requiresAuth: true,
-        data: requestBody,
+        data: formattedBody,
       );
 
-      // Check if queued
       if (response.statusCode == 202 && response.data['queued'] == true) {
         return {'message': 'Report saved locally. Will sync when online.', 'queued': true};
       }
@@ -140,13 +149,24 @@ class SystemImpl implements SystemRepository {
     Map<String, dynamic> requestBody,
   ) async {
     try {
+      // Ensure the request body follows the exact format
+      final formattedBody = {
+        "reportType": requestBody["reportType"] ?? {},
+        "competencyReports": requestBody["competencyReports"] ?? [],
+        "reportTypeDates": requestBody["reportTypeDates"] ?? [],
+        "statusRuleReports": requestBody["statusRuleReports"] ?? [],
+        "reportFields": requestBody["reportFields"] ?? [],
+        "actionReports": requestBody["actionReports"] ?? [],
+      };
+
+      print('Updating report $reportId with body: $formattedBody'); // Debug log
+
       final response = await _api.put(
         '${Endpoint.reportType}/$reportId',
         requiresAuth: true,
-        data: requestBody,
+        data: formattedBody,
       );
 
-      // Check if queued
       if (response.statusCode == 202 && response.data['queued'] == true) {
         return {'message': 'Report update queued. Will sync when online.', 'queued': true};
       }
@@ -165,7 +185,6 @@ class SystemImpl implements SystemRepository {
         requiresAuth: true,
       );
 
-      // Check if queued
       if (response.statusCode == 202 && response.data['queued'] == true) {
         throw Exception('Report deletion queued. Will sync when online.');
       }
@@ -218,7 +237,6 @@ class SystemImpl implements SystemRepository {
         },
       );
 
-      // Check if queued
       if (response.statusCode == 202 && response.data['queued'] == true) {
         throw Exception('Division update queued. Will sync when online.');
       }
@@ -227,6 +245,7 @@ class SystemImpl implements SystemRepository {
     }
   }
 
+  @override
   Future<Map<String, dynamic>?> getReportFields(String reportTypeId) async {
     try {
       final response = await _api.get(Endpoint.getReportField(reportTypeId), requiresAuth: true);
@@ -245,7 +264,6 @@ class SystemImpl implements SystemRepository {
         data: requestBody,
       );
 
-      // Check if queued
       if (response.statusCode == 202 && response.data['queued'] == true) {
         return {'message': 'Report data saved locally. Will sync when online.', 'queued': true};
       }
@@ -280,9 +298,6 @@ class SystemImpl implements SystemRepository {
   @override
   Future<Uint8List?> fetchPdfReportById(String reportTypeId) async {
     try {
-      // Note: UnifiedHttpService doesn't have getBytes yet
-      // We'll need to add it or handle binary data differently
-      // For now, using regular get with binary handling
       final response = await _api.get(
         Endpoint.fetchPdfReportById(reportTypeId),
         requiresAuth: true,
@@ -296,6 +311,49 @@ class SystemImpl implements SystemRepository {
       throw Exception('Invalid PDF response format');
     } catch (e) {
       throw Exception('Failed to fetch PDF: $e');
+    }
+  }
+
+  // Add this method to your SystemImpl class
+
+  @override
+  Future<Map<String, dynamic>?> createCycle({
+    required String reportTypeId,
+    String? categoryId,
+    String? customerId,
+    String? siteId,
+    required String unit,
+    required int duration,
+    int? minLength,
+    int? maxLength,
+  }) async {
+    try {
+      final requestBody = {
+        "reportTypeId": reportTypeId,
+        if (categoryId != null) "categoryId": categoryId,
+        if (customerId != null) "customerId": customerId,
+        if (siteId != null) "siteId": siteId,
+        "unit": unit,
+        "duration": duration,
+        if (minLength != null) "minLength": minLength,
+        if (maxLength != null) "maxLength": maxLength,
+      };
+
+      print('Creating cycle with body: $requestBody'); // Debug log
+
+      final response = await _api.post(
+        Endpoint.createCycle, // You'll need to add this endpoint
+        requiresAuth: true,
+        data: requestBody,
+      );
+
+      if (response.statusCode == 202 && response.data['queued'] == true) {
+        return {'message': 'Cycle saved locally. Will sync when online.', 'queued': true};
+      }
+
+      return response.data is Map<String, dynamic> ? response.data : null;
+    } catch (e) {
+      throw Exception('Failed to create cycle: $e');
     }
   }
 }
