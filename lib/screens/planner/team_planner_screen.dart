@@ -1032,14 +1032,14 @@ class _TeamPlannerScreenState extends State<TeamPlannerScreen> {
       children: [
         _buildSectionHeader(context, 'Duration & Schedule', Icons.schedule),
         context.vM,
-        _buildRow(
-          context,
-          'Estimated Duration (minutes)',
-          controller: _estimatedDurationController,
-          icon: Icons.timer,
-          keyboardType: TextInputType.number,
-        ),
-        context.vS,
+        // _buildRow(
+        //   context,
+        //   'Estimated Duration (minutes)',
+        //   controller: _estimatedDurationController,
+        //   icon: Icons.timer,
+        //   keyboardType: TextInputType.number,
+        // ),
+        // context.vS,
         _buildDateField(
           context,
           'Planned Start Date',

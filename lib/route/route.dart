@@ -26,6 +26,7 @@ import 'package:base_app/screens/profile/profile_screen.dart';
 import 'package:base_app/screens/settings/access/acccess_view_screen.dart';
 import 'package:base_app/screens/settings/access/accesss_create_screen.dart';
 import 'package:base_app/screens/settings/company/division_crete_screen.dart';
+import 'package:base_app/screens/settings/report_setup/create_cycle_screen.dart';
 import 'package:base_app/screens/settings/report_setup/report_create_screen.dart';
 import 'package:base_app/screens/settings/report_setup/report_types_detail_screen.dart';
 import 'package:base_app/screens/site/site_create_new_screen.dart';
@@ -74,6 +75,8 @@ class AppRoutes {
   static const String accessView = '/accessView';
 
   static const String reportFieldsScreen = '/reportFieldsScreen ';
+
+  static const String createCycle = '/createCycle';
 
   // Route generator function
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -205,6 +208,9 @@ class AppRoutes {
           builder: (_) => const CustomerCreateNewScreen(),
           settings: settings,
         );
+
+      case createCycle:
+        return MaterialPageRoute(builder: (_) => const CreateCycleScreen(), settings: settings);
 
       case companyCreateDivision:
         final args = settings.arguments;

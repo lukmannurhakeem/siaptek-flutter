@@ -309,7 +309,7 @@ class CategoryProvider with ChangeNotifier {
     required String categoryCode,
     required String description,
     required String descriptionTemplate,
-    String? parentId,
+    String? parentId, // Parent category ID from dropdown
     int? replacementPeriod,
     String instructions = '',
     String notes = '',
@@ -324,13 +324,15 @@ class CategoryProvider with ChangeNotifier {
 
     try {
       if (categoryId != null) {
-        // Update existing category (you'll need to implement updateCategory in repository)
+        // Update existing category
         await _categoryRepository.updateCategory(
           categoryId: categoryId,
           categoryName: categoryName,
           categoryCode: categoryCode,
           description: description,
           descriptionTemplate: descriptionTemplate,
+          parentId: parentId,
+          // Pass parentId to update
           replacementPeriod: replacementPeriod ?? 0,
           instructions: instructions,
           notes: notes,
@@ -346,6 +348,8 @@ class CategoryProvider with ChangeNotifier {
           categoryCode: categoryCode,
           description: description,
           descriptionTemplate: descriptionTemplate,
+          parentId: parentId,
+          // Pass parentId to create
           replacementPeriod: replacementPeriod ?? 0,
           instructions: instructions,
           notes: notes,

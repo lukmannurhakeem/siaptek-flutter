@@ -1,3 +1,4 @@
+// category_repository.dart
 import 'package:base_app/model/create_category_model.dart';
 import 'package:base_app/model/get_category_model.dart';
 
@@ -11,6 +12,7 @@ abstract class CategoryRepository {
     String? categoryCode,
     String? description,
     String? descriptionTemplate,
+    String? parentId, // Added parentId
     int? replacementPeriod,
     String? instructions,
     String? notes,
@@ -26,6 +28,7 @@ abstract class CategoryRepository {
     String? categoryCode,
     String? description,
     String? descriptionTemplate,
+    String? parentId, // Added parentId
     int? replacementPeriod,
     String? instructions,
     String? notes,

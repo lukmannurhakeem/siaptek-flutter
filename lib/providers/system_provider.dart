@@ -28,16 +28,22 @@ class SystemProvider extends ChangeNotifier {
 
   bool get hasReport => _getReportTypeModel?.data != null && _getReportTypeModel!.data!.isNotEmpty;
 
-  bool get hasItemReport => _itemReportModel != null;
+  // Updated: Better null handling for item reports
+  bool get hasItemReport => _itemReportModel != null && _itemReportModel!.isNotEmpty;
 
   bool get hasError => _errorMessage != null;
 
   GetReportTypeModel? get getReportTypeModel => _getReportTypeModel;
 
   List<ItemReportModel>? get itemReportModel => _itemReportModel;
+
   Uint8List? _pdfData;
 
   Uint8List? get pdfData => _pdfData;
+
+  bool _isCreatingCycle = false;
+
+  bool get isCreatingCycle => _isCreatingCycle;
 
   // Division Methods
   Future<void> fetchDivision() async {
@@ -46,7 +52,7 @@ class SystemProvider extends ChangeNotifier {
 
     try {
       final result = await _systemRepository.fetchCompanyDivision();
-      _division = result;
+      _division = result ?? [];
     } catch (e) {
       _setError(e.toString());
     } finally {
@@ -174,20 +180,46 @@ class SystemProvider extends ChangeNotifier {
       _getReportTypeModel = result;
     } catch (e) {
       _setError(e.toString());
+      _getReportTypeModel = null;
     } finally {
       _setLoading(false);
     }
   }
 
+  // Updated: Better error and null handling for report data
   Future<void> fetchReportDataType(String reportTypeId) async {
     _setLoading(true);
     _clearError();
+    _itemReportModel = null; // Reset before fetching
 
     try {
+      if (reportTypeId.isEmpty) {
+        // If no report type ID, just set empty list
+        _itemReportModel = [];
+        return;
+      }
+
       final result = await _systemRepository.fetchReportDataTypeModel(reportTypeId);
-      _itemReportModel = result;
+
+      // Handle null or empty response
+      if (result == null || result.isEmpty) {
+        _itemReportModel = [];
+      } else {
+        _itemReportModel = result;
+      }
     } catch (e) {
-      _setError(e.toString());
+      // Don't set error for "no data" scenarios
+      final errorMessage = e.toString().toLowerCase();
+      if (errorMessage.contains('not found') ||
+          errorMessage.contains('no data') ||
+          errorMessage.contains('404')) {
+        // Just set empty list, no error
+        _itemReportModel = [];
+      } else {
+        // Real error occurred
+        _setError(e.toString());
+        _itemReportModel = null;
+      }
     } finally {
       _setLoading(false);
     }
@@ -288,8 +320,6 @@ class SystemProvider extends ChangeNotifier {
     }
   }
 
-  // Add this method to your SystemProvider class
-
   Future<Map<String, dynamic>?> getReportFields(String reportTypeId) async {
     _setLoading(true);
     _clearError();
@@ -382,6 +412,7 @@ class SystemProvider extends ChangeNotifier {
   void clearData() {
     _division = [];
     _getReportTypeModel = null;
+    _itemReportModel = null;
     _errorMessage = null;
     _isLoading = false;
     notifyListeners();
@@ -396,8 +427,49 @@ class SystemProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clearItemReportData() {
+    _itemReportModel = null;
+    notifyListeners();
+  }
+
   void clearDivisionData() {
     _division = [];
     notifyListeners();
+  }
+
+  Future<Map<String, dynamic>?> createCycle({
+    required String reportTypeId,
+    String? categoryId,
+    String? customerId,
+    String? siteId,
+    required String unit,
+    required int duration,
+    int? minLength,
+    int? maxLength,
+  }) async {
+    _isCreatingCycle = true;
+    notifyListeners();
+
+    try {
+      final result = await _systemRepository.createCycle(
+        reportTypeId: reportTypeId,
+        categoryId: categoryId,
+        customerId: customerId,
+        siteId: siteId,
+        unit: unit,
+        duration: duration,
+        minLength: minLength,
+        maxLength: maxLength,
+      );
+
+      _isCreatingCycle = false;
+      notifyListeners();
+
+      return result;
+    } catch (e) {
+      _isCreatingCycle = false;
+      notifyListeners();
+      rethrow;
+    }
   }
 }

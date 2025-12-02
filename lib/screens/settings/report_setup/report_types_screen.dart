@@ -4,11 +4,15 @@ import 'package:base_app/providers/system_provider.dart';
 import 'package:base_app/route/route.dart';
 import 'package:base_app/screens/job/job_item_details/item_files_screen.dart';
 import 'package:base_app/widget/common_button.dart';
+import 'package:base_app/widget/common_dialog.dart';
+import 'package:base_app/widget/common_dropdown.dart';
 import 'package:base_app/widget/common_snackbar.dart';
+import 'package:base_app/widget/common_textfield.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+
+enum ReportSearchColumn { name, description, category, documentCode, status }
 
 class ReportTypeScreen extends StatefulWidget {
   const ReportTypeScreen({super.key});
@@ -20,14 +24,321 @@ class ReportTypeScreen extends StatefulWidget {
 class _ReportTypeScreenState extends State<ReportTypeScreen> with TickerProviderStateMixin {
   List<FileItem> _files = [];
   bool _isUploading = false;
+  int sortColumnIndex = 0;
+  final TextEditingController _searchController = TextEditingController();
+
+  // Search filters
+  ReportSearchColumn? selectedColumn;
+  dynamic selectedValue;
 
   @override
   void initState() {
     super.initState();
-    // Fetch data when screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SystemProvider>().fetchReportType();
     });
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    setState(() {
+      // Trigger rebuild to update filtered reports
+    });
+  }
+
+  // Get values based on selected column
+  List<dynamic> _getColumnValues(List<dynamic> reports, ReportSearchColumn column) {
+    if (reports.isEmpty) return [];
+
+    switch (column) {
+      case ReportSearchColumn.name:
+        return reports
+            .map((e) => e.reportType?.reportName ?? '')
+            .where((name) => name.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
+      case ReportSearchColumn.description:
+        return reports
+            .map((e) => e.reportType?.description ?? '')
+            .where((desc) => desc.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
+      case ReportSearchColumn.category:
+        return reports
+            .map((e) => e.reportType?.categoryId ?? '')
+            .where((cat) => cat.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
+      case ReportSearchColumn.documentCode:
+        return reports
+            .map((e) => e.reportType?.documentCode ?? '')
+            .where((code) => code.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
+      case ReportSearchColumn.status:
+        return [true, false]; // Archived, Active
+    }
+  }
+
+  // Apply filters to report list
+  List<dynamic> _getFilteredReports(List<dynamic> reports) {
+    if (reports.isEmpty) return [];
+
+    var filteredList = reports;
+
+    // Apply text search
+    if (_searchController.text.isNotEmpty) {
+      final searchText = _searchController.text.toLowerCase();
+      filteredList =
+          filteredList.where((report) {
+            final name = (report.reportType?.reportName ?? '').toLowerCase();
+            final description = (report.reportType?.description ?? '').toLowerCase();
+            final category = (report.reportType?.categoryId ?? '').toLowerCase();
+            final documentCode = (report.reportType?.documentCode ?? '').toLowerCase();
+
+            return name.contains(searchText) ||
+                description.contains(searchText) ||
+                category.contains(searchText) ||
+                documentCode.contains(searchText);
+          }).toList();
+    }
+
+    // Apply column filter
+    if (selectedColumn != null && selectedValue != null) {
+      switch (selectedColumn!) {
+        case ReportSearchColumn.name:
+          filteredList =
+              filteredList
+                  .where((report) => report.reportType?.reportName == selectedValue)
+                  .toList();
+          break;
+        case ReportSearchColumn.description:
+          filteredList =
+              filteredList
+                  .where((report) => report.reportType?.description == selectedValue)
+                  .toList();
+          break;
+        case ReportSearchColumn.category:
+          filteredList =
+              filteredList
+                  .where((report) => report.reportType?.categoryId == selectedValue)
+                  .toList();
+          break;
+        case ReportSearchColumn.documentCode:
+          filteredList =
+              filteredList
+                  .where((report) => report.reportType?.documentCode == selectedValue)
+                  .toList();
+          break;
+        case ReportSearchColumn.status:
+          filteredList =
+              filteredList
+                  .where((report) => (report.reportType?.archived ?? false) == selectedValue)
+                  .toList();
+          break;
+      }
+    }
+
+    return filteredList;
+  }
+
+  String _getColumnLabel(ReportSearchColumn column) {
+    switch (column) {
+      case ReportSearchColumn.name:
+        return 'Report Name';
+      case ReportSearchColumn.description:
+        return 'Description';
+      case ReportSearchColumn.category:
+        return 'Category';
+      case ReportSearchColumn.documentCode:
+        return 'Document Code';
+      case ReportSearchColumn.status:
+        return 'Status';
+    }
+  }
+
+  String _getValueLabel(ReportSearchColumn column, dynamic value) {
+    if (column == ReportSearchColumn.status) {
+      return value == true ? 'Archived' : 'Active';
+    }
+    return value.toString();
+  }
+
+  void _showFilterDialog(BuildContext context, List<dynamic> reports) {
+    ReportSearchColumn? tempColumn = selectedColumn;
+    dynamic tempValue = selectedValue;
+
+    CommonDialog.show(
+      context,
+      widget: StatefulBuilder(
+        builder: (context, setDialogState) {
+          final columnValues =
+              tempColumn != null ? _getColumnValues(reports, tempColumn!) : <dynamic>[];
+
+          return SizedBox(
+            height: context.screenHeight / 3.5,
+            child: Column(
+              children: [
+                // Column Type Dropdown
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        'Filter By',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: CommonDropdown<ReportSearchColumn>(
+                        value: tempColumn,
+                        items: [
+                          DropdownMenuItem<ReportSearchColumn>(
+                            value: null,
+                            child: Text(
+                              'Select Column',
+                              style: context.topology.textTheme.bodySmall?.copyWith(
+                                color: context.colors.primary.withOpacity(0.6),
+                              ),
+                            ),
+                          ),
+                          ...ReportSearchColumn.values.map((column) {
+                            return DropdownMenuItem<ReportSearchColumn>(
+                              value: column,
+                              child: Text(
+                                _getColumnLabel(column),
+                                style: context.topology.textTheme.bodySmall?.copyWith(
+                                  color: context.colors.primary,
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
+                        onChanged: (value) {
+                          setDialogState(() {
+                            tempColumn = value;
+                            tempValue = null;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                context.vS,
+                // Value Dropdown
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        'Value',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child:
+                          tempColumn == null
+                              ? Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                                decoration: BoxDecoration(
+                                  color: context.colors.surface,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: context.colors.primary.withOpacity(0.3),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Select a column first',
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary.withOpacity(0.5),
+                                  ),
+                                ),
+                              )
+                              : CommonDropdown<dynamic>(
+                                value: tempValue,
+                                items: [
+                                  DropdownMenuItem<dynamic>(
+                                    value: null,
+                                    child: Text(
+                                      'All',
+                                      style: context.topology.textTheme.bodySmall?.copyWith(
+                                        color: context.colors.primary.withOpacity(0.6),
+                                      ),
+                                    ),
+                                  ),
+                                  ...columnValues.map((value) {
+                                    return DropdownMenuItem<dynamic>(
+                                      value: value,
+                                      child: Text(
+                                        _getValueLabel(tempColumn!, value),
+                                        style: context.topology.textTheme.bodySmall?.copyWith(
+                                          color: context.colors.primary,
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ],
+                                onChanged: (value) {
+                                  setDialogState(() {
+                                    tempValue = value;
+                                  });
+                                },
+                              ),
+                    ),
+                  ],
+                ),
+                context.vL,
+                Row(
+                  children: [
+                    Expanded(
+                      child: CommonButton(
+                        text: 'Clear',
+                        onPressed: () {
+                          setState(() {
+                            selectedColumn = null;
+                            selectedValue = null;
+                          });
+                          NavigationService().goBack();
+                        },
+                      ),
+                    ),
+                    context.hS,
+                    Expanded(
+                      child: CommonButton(
+                        text: 'Apply',
+                        onPressed: () {
+                          setState(() {
+                            selectedColumn = tempColumn;
+                            selectedValue = tempValue;
+                          });
+                          NavigationService().goBack();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -63,169 +374,558 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> with TickerProvider
 
         // Error state
         if (provider.hasError && !provider.hasReport) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-                const SizedBox(height: 16),
-                Text('Failed to load report', style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: Text(
-                    provider.errorMessage!,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: () => provider.fetchReportType(),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Retry'),
-                ),
-              ],
-            ),
-          );
+          return _buildErrorState(context, provider);
         }
+
+        final allReports = provider.getReportTypeModel?.data ?? [];
+        final filteredReports = _getFilteredReports(allReports);
 
         // Empty state
-        if (!provider.hasReport || provider.getReportTypeModel?.data?.isEmpty == true) {
-          return SizedBox(
-            width: double.infinity,
-            height: MediaQuery.of(context).size.height - kToolbarHeight * 2,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SvgPicture.asset(
-                  'assets/images/no-file.svg',
-                  fit: BoxFit.contain,
-                  height: MediaQuery.of(context).size.height * 0.3,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'No report found',
-                  style: context.topology.textTheme.titleSmall?.copyWith(
-                    color: context.colors.primary,
-                  ),
-                ),
-                context.vM,
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.5,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: CommonButton(
-                          text: 'Create',
-                          icon: Icons.add,
-                          onPressed: () {
-                            NavigationService().navigateTo(AppRoutes.reportCreate);
-                          },
-                        ),
-                      ),
-                      context.hM,
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _pickAndUploadFiles,
-                          icon: const Icon(Icons.add),
-                          label: const Text('Choose Files'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: context.colors.primary,
-                            foregroundColor: context.colors.onPrimary,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
+        if (allReports.isEmpty) {
+          return _buildEmptyState(context);
         }
 
-        // Main content with data
-        return Column(
-          children: [
-            // Header with Create button
-            Container(
-              padding: const EdgeInsets.only(right: 30),
-              width: double.infinity,
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    SizedBox(
-                      width: 150,
-                      child: CommonButton(
-                        onPressed: () {
-                          NavigationService().navigateTo(AppRoutes.reportCreate);
-                        },
-                        iconSize: 15,
-                        icon: Icons.add,
-                        text: 'Create',
-                      ),
-                    ),
-                    context.hM,
-                    SizedBox(
-                      width: 150,
-                      child: ElevatedButton.icon(
-                        onPressed: _pickAndUploadFiles,
-                        icon: const Icon(Icons.add),
-                        label: const Text('Import'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: context.colors.primary,
-                          foregroundColor: context.colors.onPrimary,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Data table
-            Expanded(
-              child:
-                  context.isTablet
-                      ? _buildTabletView(context, provider)
-                      : _buildMobileView(context, provider),
-            ),
-          ],
-        );
+        return context.isTablet
+            ? _buildTabletLayout(context, filteredReports, allReports)
+            : _buildMobileLayout(context, filteredReports, allReports);
       },
     );
   }
 
-  Widget _buildTabletView(BuildContext context, SystemProvider provider) {
-    return SingleChildScrollView(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minWidth: MediaQuery.of(context).size.width - 32, // Account for padding
+  Widget _buildErrorState(BuildContext context, SystemProvider provider) {
+    return Stack(
+      children: [
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: IgnorePointer(
+            child: Opacity(
+              opacity: 0.15,
+              child: Image.asset(
+                'assets/images/bg_4.png',
+                fit: BoxFit.contain,
+                alignment: Alignment.bottomRight,
+                errorBuilder: (context, error, stackTrace) {
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          ),
         ),
-        child: DataTable(
-          showCheckboxColumn: false,
-          columns: _buildDataColumns(context),
-          rows: _buildDataRows(context, provider),
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+              const SizedBox(height: 16),
+              Text('Failed to load report', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  provider.errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () => provider.fetchReportType(),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+              ),
+            ],
+          ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: IgnorePointer(
+            child: Opacity(
+              opacity: 0.15,
+              child: Image.asset(
+                'assets/images/bg_4.png',
+                fit: BoxFit.contain,
+                alignment: Alignment.bottomRight,
+                errorBuilder: (context, error, stackTrace) {
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          width: double.infinity,
+          height: context.screenHeight - kToolbarHeight * 2,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              context.vXxl,
+              Text(
+                'You do not have any reports right now',
+                style: context.topology.textTheme.titleMedium?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
+              Text(
+                'Add your first report',
+                textAlign: TextAlign.center,
+                style: context.topology.textTheme.bodySmall?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          bottom: 50,
+          right: 30,
+          child: FloatingActionButton(
+            onPressed: () {
+              NavigationService().navigateTo(AppRoutes.reportCreate);
+            },
+            tooltip: 'Add New',
+            backgroundColor: context.colors.primary,
+            child: const Icon(Icons.add),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabletLayout(
+    BuildContext context,
+    List<dynamic> filteredReports,
+    List<dynamic> allReports,
+  ) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return SizedBox(
+      height: screenHeight - kToolbarHeight - MediaQuery.of(context).padding.top,
+      child: Stack(
+        children: [
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: 0.15,
+                child: Image.asset(
+                  'assets/images/bg_4.png',
+                  fit: BoxFit.contain,
+                  alignment: Alignment.bottomRight,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: context.paddingAll,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          NavigationService().navigateTo(AppRoutes.reportCreate);
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text('Create New'),
+                        style: ElevatedButton.styleFrom(backgroundColor: context.colors.primary),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        onPressed: _pickAndUploadFiles,
+                        icon: const Icon(Icons.upload_file),
+                        label: const Text('Import'),
+                        style: ElevatedButton.styleFrom(backgroundColor: context.colors.primary),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                CommonTextField(
+                  controller: _searchController,
+                  hintText: 'Search by name, description, category, or document code...',
+                  style: context.topology.textTheme.bodySmall?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_searchController.text.isNotEmpty)
+                        IconButton(
+                          icon: Icon(Icons.clear, color: context.colors.primary),
+                          onPressed: () {
+                            _searchController.clear();
+                          },
+                        ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.filter_list,
+                          color:
+                              (selectedColumn != null && selectedValue != null)
+                                  ? context.colors.primary
+                                  : context.colors.primary.withOpacity(0.5),
+                        ),
+                        onPressed: () => _showFilterDialog(context, allReports),
+                      ),
+                    ],
+                  ),
+                ),
+                context.vM,
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${filteredReports.length} report${filteredReports.length != 1 ? 's' : ''} found',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
+                      if (selectedColumn != null && selectedValue != null)
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              selectedColumn = null;
+                              selectedValue = null;
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: context.colors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Filter: ${_getColumnLabel(selectedColumn!)}: ${_getValueLabel(selectedColumn!, selectedValue)}',
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(Icons.close, size: 14, color: context.colors.primary),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child:
+                      filteredReports.isEmpty
+                          ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.search_off,
+                                  size: 64,
+                                  color: context.colors.primary.withOpacity(0.3),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No reports found',
+                                  style: context.topology.textTheme.titleMedium?.copyWith(
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Try adjusting your search or filter',
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary.withOpacity(0.7),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                          : RefreshIndicator(
+                            onRefresh: () async {
+                              await Provider.of<SystemProvider>(
+                                context,
+                                listen: false,
+                              ).fetchReportType();
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.9),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return SingleChildScrollView(
+                                    scrollDirection: Axis.vertical,
+                                    padding: const EdgeInsets.all(8),
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        minWidth: constraints.maxWidth - 16,
+                                      ),
+                                      child: DataTable(
+                                        sortColumnIndex: sortColumnIndex,
+                                        showCheckboxColumn: false,
+                                        columnSpacing: 20,
+                                        dataRowMinHeight: 56,
+                                        dataRowMaxHeight: 56,
+                                        columns: _buildDataColumns(context),
+                                        rows: List.generate(filteredReports.length, (index) {
+                                          final reportItem = filteredReports[index];
+                                          final isEven = index % 2 == 0;
+                                          return _buildRow(context, reportItem, isEven, index);
+                                        }),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildMobileView(BuildContext context, SystemProvider provider) {
-    return SingleChildScrollView(
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          columns: _buildDataColumns(context),
-          rows: _buildDataRows(context, provider),
-        ),
+  Widget _buildMobileLayout(
+    BuildContext context,
+    List<dynamic> filteredReports,
+    List<dynamic> allReports,
+  ) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return SizedBox(
+      height: screenHeight - kToolbarHeight - MediaQuery.of(context).padding.top,
+      child: Stack(
+        children: [
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: 0.15,
+                child: Image.asset(
+                  'assets/images/bg_4.png',
+                  fit: BoxFit.contain,
+                  alignment: Alignment.bottomRight,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: context.paddingAll,
+            child: Column(
+              children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          NavigationService().navigateTo(AppRoutes.reportCreate);
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text('Create'),
+                        style: ElevatedButton.styleFrom(backgroundColor: context.colors.primary),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        onPressed: _pickAndUploadFiles,
+                        icon: const Icon(Icons.upload_file),
+                        label: const Text('Import'),
+                        style: ElevatedButton.styleFrom(backgroundColor: context.colors.primary),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                CommonTextField(
+                  controller: _searchController,
+                  hintText: 'Search by name, description, category...',
+                  style: context.topology.textTheme.bodySmall?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_searchController.text.isNotEmpty)
+                        IconButton(
+                          icon: Icon(Icons.clear, color: context.colors.primary),
+                          onPressed: () {
+                            _searchController.clear();
+                          },
+                        ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.filter_list,
+                          color:
+                              (selectedColumn != null && selectedValue != null)
+                                  ? context.colors.primary
+                                  : context.colors.primary.withOpacity(0.5),
+                        ),
+                        onPressed: () => _showFilterDialog(context, allReports),
+                      ),
+                    ],
+                  ),
+                ),
+                context.vM,
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${filteredReports.length} report${filteredReports.length != 1 ? 's' : ''} found',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
+                      if (selectedColumn != null && selectedValue != null)
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              selectedColumn = null;
+                              selectedValue = null;
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: context.colors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Filter: ${_getColumnLabel(selectedColumn!)}: ${_getValueLabel(selectedColumn!, selectedValue)}',
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(Icons.close, size: 14, color: context.colors.primary),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child:
+                      filteredReports.isEmpty
+                          ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.search_off,
+                                  size: 64,
+                                  color: context.colors.primary.withOpacity(0.3),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No reports found',
+                                  style: context.topology.textTheme.titleMedium?.copyWith(
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Try adjusting your search or filter',
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary.withOpacity(0.7),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                          : RefreshIndicator(
+                            onRefresh: () async {
+                              await Provider.of<SystemProvider>(
+                                context,
+                                listen: false,
+                              ).fetchReportType();
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.9),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    padding: const EdgeInsets.all(8),
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        minWidth: constraints.maxWidth - 16,
+                                      ),
+                                      child: DataTable(
+                                        sortColumnIndex: sortColumnIndex,
+                                        showCheckboxColumn: false,
+                                        columnSpacing: 20,
+                                        dataRowMinHeight: 56,
+                                        dataRowMaxHeight: 56,
+                                        columns: _buildDataColumns(context),
+                                        rows: List.generate(filteredReports.length, (index) {
+                                          final reportItem = filteredReports[index];
+                                          final isEven = index % 2 == 0;
+                                          return _buildRow(context, reportItem, isEven, index);
+                                        }),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                ),
+              ],
+            ),
+          ),
+          if (filteredReports.isNotEmpty)
+            Positioned(
+              bottom: 50,
+              right: 30,
+              child: FloatingActionButton(
+                onPressed: () {
+                  NavigationService().navigateTo(AppRoutes.reportCreate);
+                },
+                tooltip: 'Add New',
+                backgroundColor: context.colors.primary,
+                child: const Icon(Icons.add),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -239,6 +939,11 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> with TickerProvider
             style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
           ),
         ),
+        onSort: (columnIndex, _) {
+          setState(() {
+            sortColumnIndex = columnIndex;
+          });
+        },
       ),
       DataColumn(
         label: Expanded(
@@ -247,6 +952,11 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> with TickerProvider
             style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
           ),
         ),
+        onSort: (columnIndex, _) {
+          setState(() {
+            sortColumnIndex = columnIndex;
+          });
+        },
       ),
       DataColumn(
         label: Expanded(
@@ -255,6 +965,11 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> with TickerProvider
             style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
           ),
         ),
+        onSort: (columnIndex, _) {
+          setState(() {
+            sortColumnIndex = columnIndex;
+          });
+        },
       ),
       DataColumn(
         label: Expanded(
@@ -263,6 +978,11 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> with TickerProvider
             style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
           ),
         ),
+        onSort: (columnIndex, _) {
+          setState(() {
+            sortColumnIndex = columnIndex;
+          });
+        },
       ),
       DataColumn(
         label: Expanded(
@@ -271,16 +991,25 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> with TickerProvider
             style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
           ),
         ),
+        onSort: (columnIndex, _) {
+          setState(() {
+            sortColumnIndex = columnIndex;
+          });
+        },
       ),
       DataColumn(
         label: Expanded(
           child: Text(
-            'Archived',
+            'Status',
             style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
           ),
         ),
+        onSort: (columnIndex, _) {
+          setState(() {
+            sortColumnIndex = columnIndex;
+          });
+        },
       ),
-      // Add Actions column
       DataColumn(
         label: Expanded(
           child: Text(
@@ -292,109 +1021,100 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> with TickerProvider
     ];
   }
 
-  List<DataRow> _buildDataRows(BuildContext context, SystemProvider provider) {
-    return List.generate(provider.getReportTypeModel!.data!.length, (index) {
-      final data = provider.getReportTypeModel!.data![index].reportType;
-      final reportItem = provider.getReportTypeModel!.data![index];
-      final isEven = index % 2 == 0;
+  DataRow _buildRow(BuildContext context, dynamic reportItem, bool isEven, int index) {
+    final data = reportItem.reportType;
 
-      return DataRow(
-        onSelectChanged: (selected) {
-          if (selected == true) {
-            // Navigate to View Report Template screen (details view)
-            NavigationService().navigateTo(
-              AppRoutes.reportTypeDetails,
-              arguments: {
-                'reportTypeID':
-                    data?.reportTypeId ??
-                    data?.categoryId ??
-                    reportItem.reportType?.reportTypeId ??
-                    'default-id',
-                'jobID': data?.jobId,
-                'reportName': data?.reportName,
-              },
-            );
-          }
-        },
-        color: MaterialStateProperty.resolveWith<Color?>((states) {
-          return isEven ? context.colors.primary.withOpacity(0.05) : null;
-        }),
-        cells: [
-          DataCell(
-            Text(
-              data?.reportName ?? '-',
-              style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-            ),
+    return DataRow(
+      color: MaterialStateProperty.resolveWith<Color?>(
+        (_) => isEven ? context.colors.primary.withOpacity(0.05) : null,
+      ),
+      onSelectChanged: (selected) {
+        if (selected == true) {
+          NavigationService().navigateTo(
+            AppRoutes.reportTypeDetails,
+            arguments: {
+              'reportTypeID':
+                  data?.reportTypeId ??
+                  data?.categoryId ??
+                  reportItem.reportType?.reportTypeId ??
+                  'default-id',
+              'jobID': data?.jobId,
+              'reportName': data?.reportName,
+            },
+          );
+        }
+      },
+      cells: [
+        DataCell(
+          Text(
+            data?.reportName ?? '-',
+            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
           ),
-          DataCell(
-            Text(
-              data?.description ?? '-',
-              style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-            ),
+        ),
+        DataCell(
+          Text(
+            data?.description ?? '-',
+            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
           ),
-          DataCell(
-            Text(
-              data?.categoryId ?? '-',
-              style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-            ),
+        ),
+        DataCell(
+          Text(
+            data?.categoryId ?? '-',
+            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
           ),
-          DataCell(
-            Text(
-              data?.documentCode ?? '-',
-              style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-            ),
+        ),
+        DataCell(
+          Text(
+            data?.documentCode ?? '-',
+            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
           ),
-          DataCell(
-            Text(
-              data?.competencyId ?? '-',
-              style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-            ),
+        ),
+        DataCell(
+          Text(
+            data?.competencyId ?? '-',
+            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
           ),
-          DataCell(
-            Text(
-              data?.archived == true ? 'Archived' : 'Active',
-              style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-            ),
+        ),
+        DataCell(
+          Text(
+            data?.archived == true ? 'Archived' : 'Active',
+            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
           ),
-          // Add Actions cell with Edit and Delete buttons
-          DataCell(
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Edit Button
-                IconButton(
-                  icon: Icon(Icons.edit, color: context.colors.primary, size: 20),
-                  onPressed: () => _editReport(reportItem, index),
-                  tooltip: 'Edit Report',
-                  padding: const EdgeInsets.all(8),
-                  constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                ),
-                const SizedBox(width: 4),
-                // Delete Button
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red, size: 20),
-                  onPressed: () => _showDeleteDialog(reportItem, index),
-                  tooltip: 'Delete Report',
-                  padding: const EdgeInsets.all(8),
-                  constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                ),
-              ],
-            ),
+        ),
+        DataCell(
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: Icon(Icons.edit, color: context.colors.primary, size: 20),
+                onPressed: () => _editReport(reportItem, index),
+                tooltip: 'Edit Report',
+                padding: const EdgeInsets.all(8),
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                onPressed: () => _showDeleteDialog(reportItem, index),
+                tooltip: 'Delete Report',
+                padding: const EdgeInsets.all(8),
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+              ),
+            ],
           ),
-        ],
-      );
-    });
+        ),
+      ],
+    );
   }
 
   void _editReport(dynamic reportItem, int index) {
-    // Navigate to create screen with edit mode and report data
     NavigationService().navigateTo(
       AppRoutes.reportCreate,
       arguments: {
         'isEdit': true,
         'reportData': reportItem.reportType,
         'reportIndex': index,
-        'fullReportItem': reportItem, // Pass the full report item for complete data
+        'fullReportItem': reportItem,
       },
     );
   }
@@ -480,15 +1200,11 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> with TickerProvider
   Future<void> _deleteReport(dynamic reportItem, int index) async {
     try {
       final provider = Provider.of<SystemProvider>(context, listen: false);
-
-      // Show loading indicator
       CommonSnackbar.showInfo(context, "Deleting report...");
 
-      // Use categoryId or any unique identifier for the report
       final reportId =
           reportItem.reportType.reportTypeId ?? reportItem.reportType?.jobID ?? index.toString();
 
-      // Call delete API
       await provider.deleteReport(reportId);
 
       if (mounted) {
@@ -529,19 +1245,15 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> with TickerProvider
         }
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Successfully uploaded ${result.files.length} file(s)'),
-              backgroundColor: Colors.green,
-            ),
+          CommonSnackbar.showSuccess(
+            context,
+            'Successfully uploaded ${result.files.length} file(s)',
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error uploading files: $e'), backgroundColor: Colors.red),
-        );
+        CommonSnackbar.showError(context, 'Error uploading files: $e');
       }
     } finally {
       if (mounted) {

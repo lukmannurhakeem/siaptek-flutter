@@ -9,6 +9,29 @@ import 'package:base_app/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+// Model for field configuration
+class FieldConfig {
+  final String name;
+  final String label;
+  final String type;
+  final String? defaultValue;
+  final List<String>? options;
+  final String? section;
+  final bool required;
+  final String? infoText;
+
+  FieldConfig({
+    required this.name,
+    required this.label,
+    required this.type,
+    this.defaultValue,
+    this.options,
+    this.section,
+    this.required = false,
+    this.infoText,
+  });
+}
+
 class ReportFieldsScreen extends StatefulWidget {
   final String reportTypeId;
   final String reportName;
@@ -27,8 +50,9 @@ class ReportFieldsScreen extends StatefulWidget {
 
 class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
   // State variables
+  Map<String, dynamic> _fieldValues = {};
   Map<String, TextEditingController> _controllers = {};
-  List<String> _fields = [];
+  List<FieldConfig> _fields = [];
   bool _isLoading = true;
   bool _isSubmitting = false;
   String? _errorMessage;
@@ -44,7 +68,13 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
   @override
   void initState() {
     super.initState();
+
+    // Pre-fill item data if available
+    _itemIdController.text = widget.item.itemId ?? '';
+    _itemNoController.text = widget.item.itemNo ?? '';
+
     _fetchReportFields();
+
     // Fetch personnel data for the dropdown
     Future.microtask(() {
       context.read<PersonnelProvider>().fetchPersonnel();
@@ -61,42 +91,87 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
       final provider = context.read<SystemProvider>();
       final result = await provider.getReportFields(widget.reportTypeId);
 
-      if (result != null && result['data'] != null) {
-        final List<dynamic> data = result['data'];
+      if (result == null || result['data'] == null) {
+        setState(() {
+          _fields = [];
+          _isLoading = false;
+        });
+        return;
+      }
 
-        // Parse the comma-separated fields from the response
-        List<String> allFields = [];
+      final dynamic data = result['data'];
+
+      // Parse field configurations
+      List<FieldConfig> parsedFields = [];
+
+      if (data is List) {
         for (var item in data) {
-          if (item is String) {
-            // Split by comma and trim whitespace
-            final fields = item.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-            allFields.addAll(fields);
+          if (item is Map<String, dynamic>) {
+            // Parse structured field configuration
+            parsedFields.add(_parseFieldConfig(item));
+          } else if (item is String && item.isNotEmpty) {
+            // Legacy: simple text field
+            parsedFields.add(FieldConfig(name: item.trim(), label: item.trim(), type: 'text'));
           }
         }
+      }
 
+      setState(() {
+        _fields = parsedFields;
+        // Initialize controllers and values for each field
+        for (var field in _fields) {
+          if (field.type == 'text' || field.type == 'textarea' || field.type == 'number') {
+            _controllers[field.name] = TextEditingController(text: field.defaultValue);
+          } else if (field.type == 'dropdown') {
+            _fieldValues[field.name] = field.defaultValue;
+          } else if (field.type == 'checkbox') {
+            _fieldValues[field.name] = field.defaultValue == 'true';
+          } else if (field.type == 'date') {
+            _fieldValues[field.name] = null;
+          } else if (field.type == 'file') {
+            _fieldValues[field.name] = null;
+          }
+        }
+        _isLoading = false;
+      });
+    } catch (e) {
+      final errorMessage = e.toString().toLowerCase();
+
+      if (errorMessage.contains('not found') ||
+          errorMessage.contains('no data') ||
+          errorMessage.contains('404')) {
         setState(() {
-          _fields = allFields;
-          // Initialize controllers for each field
-          _controllers = {for (var field in _fields) field: TextEditingController()};
+          _fields = [];
           _isLoading = false;
         });
       } else {
         setState(() {
-          _errorMessage = 'No fields data available';
+          _errorMessage = e.toString();
           _isLoading = false;
         });
       }
-    } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
     }
+  }
+
+  FieldConfig _parseFieldConfig(Map<String, dynamic> data) {
+    return FieldConfig(
+      name: data['name'] ?? data['field_name'] ?? '',
+      label: data['label'] ?? data['label_text'] ?? data['labelText'] ?? '',
+      type: (data['type'] ?? data['field_type'] ?? data['fieldType'] ?? 'text').toLowerCase(),
+      defaultValue: data['default_value']?.toString() ?? data['defaultValue']?.toString(),
+      options:
+          data['options'] != null
+              ? (data['options'] as String).split(',').map((e) => e.trim()).toList()
+              : null,
+      section: data['section'],
+      required:
+          data['required'] == true || data['required'] == 'true' || data['isRequired'] == true,
+      infoText: data['info_text'] ?? data['infoText'],
+    );
   }
 
   @override
   void dispose() {
-    // Dispose all controllers
     for (var controller in _controllers.values) {
       controller.dispose();
     }
@@ -306,26 +381,47 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
 
     if (_errorMessage != null) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Error: $_errorMessage',
-              style: context.topology.textTheme.bodyMedium?.copyWith(color: Colors.red),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: _fetchReportFields, child: const Text('Retry')),
-          ],
-        ),
-      );
-    }
-
-    if (_fields.isEmpty) {
-      return Center(
-        child: Text(
-          'No fields available for this report',
-          style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.error_outline, size: 40, color: Colors.red[400]),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Failed to Load Fields',
+                style: context.topology.textTheme.titleMedium?.copyWith(
+                  color: context.colors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _errorMessage ?? 'Unknown error occurred',
+                style: context.topology.textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: _fetchReportFields,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Try Again'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: context.colors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -350,16 +446,100 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
           _buildInspectedByDropdown(),
           const SizedBox(height: 12),
           _buildRequiredField('Regulation', _regulationController, 'Enter regulation'),
-          context.vL,
-          Text(
-            'Report Fields',
-            style: context.topology.textTheme.titleMedium?.copyWith(
-              color: context.colors.primary,
-              fontWeight: FontWeight.bold,
+
+          // BEAUTIFIED REPORT FIELDS SECTION
+          if (_fields.isNotEmpty) ...[
+            const SizedBox(height: 32),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    context.colors.primary.withOpacity(0.08),
+                    context.colors.primary.withOpacity(0.03),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: context.colors.primary.withOpacity(0.2), width: 1.5),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: context.colors.primary.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Icons.article_outlined,
+                          color: context.colors.primary,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Report Fields',
+                              style: context.topology.textTheme.titleLarge?.copyWith(
+                                color: context.colors.primary,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${_fields.where((f) => f.type.toLowerCase() != 'section').length} field(s)',
+                              style: context.topology.textTheme.bodySmall?.copyWith(
+                                color: context.colors.primary.withOpacity(0.7),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  ..._buildDynamicFields(),
+                ],
+              ),
             ),
-          ),
-          context.vM,
-          ..._buildFieldRows(),
+          ],
+
+          if (_fields.isEmpty) ...[
+            context.vL,
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.blue.withOpacity(0.2), width: 1),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'No custom fields defined for this report type. You can submit with the required information above.',
+                      style: context.topology.textTheme.bodySmall?.copyWith(
+                        color: Colors.blue[700],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
           context.vL,
           _buildSubmitButton(),
         ],
@@ -379,7 +559,11 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        CommonTextField(controller: controller, hintText: hint),
+        CommonTextField(
+          controller: controller,
+          hintText: hint,
+          style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+        ),
       ],
     );
   }
@@ -387,14 +571,53 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
   Widget _buildInspectedByDropdown() {
     return Consumer<PersonnelProvider>(
       builder: (context, personnelProvider, _) {
-        final personnelList = personnelProvider.personnelList;
+        final personnelList = personnelProvider.personnelList ?? [];
 
-        // Build dropdown items from personnel list
+        if (personnelList.isEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Inspected By',
+                style: context.topology.textTheme.bodyMedium?.copyWith(
+                  color: context.colors.primary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.withOpacity(0.3), width: 1),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning_amber, color: Colors.orange[700], size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'No personnel available. Please add personnel first.',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: Colors.orange[700],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }
+
         final items =
             personnelList.map((personnel) {
               final displayName =
-                  personnel.displayName.isNotEmpty ? personnel.displayName : personnel.fullName;
-              final id = personnel.personnel.personnelID;
+                  personnel.displayName?.isNotEmpty == true
+                      ? personnel.displayName!
+                      : personnel.fullName ?? 'Unknown';
+              final id = personnel.personnel?.personnelID ?? '';
 
               return DropdownMenuItem<String>(value: id, child: Text(displayName));
             }).toList();
@@ -428,26 +651,346 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
     );
   }
 
-  List<Widget> _buildFieldRows() {
-    return _fields.map((field) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              field,
-              style: context.topology.textTheme.bodyMedium?.copyWith(
-                color: context.colors.primary,
-                fontWeight: FontWeight.w500,
+  // BEAUTIFIED DYNAMIC FIELDS BUILDER
+  List<Widget> _buildDynamicFields() {
+    List<Widget> widgets = [];
+
+    for (var field in _fields) {
+      // Handle section headers
+      if (field.type.toLowerCase() == 'section') {
+        if (widgets.isNotEmpty) {
+          widgets.add(const SizedBox(height: 24)); // Space before new section
+        }
+
+        widgets.add(
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  context.colors.primary.withOpacity(0.1),
+                  context.colors.primary.withOpacity(0.05),
+                ],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
               ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border(left: BorderSide(color: context.colors.primary, width: 4)),
             ),
-            const SizedBox(height: 8),
-            CommonTextField(controller: _controllers[field], hintText: 'Enter $field'),
-          ],
+            child: Row(
+              children: [
+                Icon(Icons.folder_outlined, color: context.colors.primary, size: 22),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    field.label,
+                    style: context.topology.textTheme.titleMedium?.copyWith(
+                      color: context.colors.primary,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+        widgets.add(const SizedBox(height: 16));
+        continue;
+      }
+
+      // Regular fields with card-like appearance
+      widgets.add(
+        Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: context.colors.onPrimary,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: context.colors.primary.withOpacity(0.15), width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: context.colors.primary.withOpacity(0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Field label with required indicator
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      field.label,
+                      style: context.topology.textTheme.bodyLarge?.copyWith(
+                        color: context.colors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  if (field.required)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: Colors.red.withOpacity(0.3)),
+                      ),
+                      child: Text(
+                        'Required',
+                        style: TextStyle(
+                          color: Colors.red[700],
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              if (field.infoText != null) ...[
+                const SizedBox(height: 6),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_outline, size: 14, color: Colors.grey[600]),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        field.infoText!,
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[600],
+                          fontSize: 12,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 12),
+              _buildFieldWidget(field),
+            ],
+          ),
         ),
       );
-    }).toList();
+    }
+
+    return widgets;
+  }
+
+  Widget _buildFieldWidget(FieldConfig field) {
+    switch (field.type.toLowerCase()) {
+      case 'text':
+      case 'number':
+        return CommonTextField(
+          controller: _controllers[field.name],
+          hintText: 'Enter ${field.label.toLowerCase()}',
+          keyboardType: field.type == 'number' ? TextInputType.number : TextInputType.text,
+        );
+
+      case 'textarea':
+        return CommonTextField(
+          controller: _controllers[field.name],
+          hintText: 'Enter ${field.label.toLowerCase()}',
+          maxLines: 4,
+        );
+
+      case 'dropdown':
+        return _buildCustomDropdown(field);
+
+      case 'checkbox':
+        return _buildCheckbox(field);
+
+      case 'date':
+        return _buildDateField(field);
+
+      case 'file':
+        return _buildFileField(field);
+
+      case 'label':
+        return _buildLabelField(field);
+
+      default:
+        return CommonTextField(
+          controller: _controllers[field.name],
+          hintText: 'Enter ${field.label.toLowerCase()}',
+        );
+    }
+  }
+
+  Widget _buildCustomDropdown(FieldConfig field) {
+    final items =
+        field.options
+            ?.map((option) => DropdownMenuItem<String>(value: option, child: Text(option)))
+            .toList() ??
+        [];
+
+    return CommonDropdown<String>(
+      value: _fieldValues[field.name],
+      items: items,
+      onChanged: (value) {
+        setState(() {
+          _fieldValues[field.name] = value;
+        });
+      },
+      borderColor: context.colors.primary.withOpacity(0.3),
+      backgroundColor: context.colors.onPrimary,
+      label: null,
+    );
+  }
+
+  Widget _buildCheckbox(FieldConfig field) {
+    return Container(
+      decoration: BoxDecoration(
+        color: context.colors.onPrimary,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: context.colors.primary.withOpacity(0.3), width: 1),
+      ),
+      child: CheckboxListTile(
+        title: Text(
+          field.label,
+          style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
+        ),
+        value: _fieldValues[field.name] ?? false,
+        onChanged: (bool? value) {
+          setState(() {
+            _fieldValues[field.name] = value ?? false;
+          });
+        },
+        activeColor: context.colors.primary,
+        controlAffinity: ListTileControlAffinity.leading,
+      ),
+    );
+  }
+
+  Widget _buildDateField(FieldConfig field) {
+    DateTime? selectedDate = _fieldValues[field.name];
+
+    return InkWell(
+      onTap: () => _selectFieldDate(context, field),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: context.colors.onPrimary,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: context.colors.primary.withOpacity(0.3), width: 1),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.calendar_today, size: 20, color: context.colors.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                selectedDate != null ? selectedDate.formatMediumDate : 'Select date',
+                style: context.topology.textTheme.bodyMedium?.copyWith(
+                  color:
+                      selectedDate != null
+                          ? context.colors.primary
+                          : context.colors.primary.withOpacity(0.5),
+                ),
+              ),
+            ),
+            Icon(Icons.arrow_drop_down, color: context.colors.primary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectFieldDate(BuildContext context, FieldConfig field) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _fieldValues[field.name] ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: context.colors.primary,
+              onPrimary: context.colors.onPrimary,
+              onSurface: context.colors.primary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _fieldValues[field.name] = picked;
+      });
+    }
+  }
+
+  Widget _buildFileField(FieldConfig field) {
+    return InkWell(
+      onTap: () => _selectFile(field),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: context.colors.onPrimary,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: context.colors.primary.withOpacity(0.3), width: 1),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.attach_file, size: 20, color: context.colors.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                _fieldValues[field.name] != null
+                    ? 'File selected: ${_fieldValues[field.name]}'
+                    : 'Choose file',
+                style: context.topology.textTheme.bodyMedium?.copyWith(
+                  color:
+                      _fieldValues[field.name] != null
+                          ? context.colors.primary
+                          : context.colors.primary.withOpacity(0.5),
+                ),
+              ),
+            ),
+            Icon(Icons.upload, color: context.colors.primary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _selectFile(FieldConfig field) {
+    // Implement file picker logic here
+    // For now, just a placeholder
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('File picker not implemented yet')));
+  }
+
+  Widget _buildLabelField(FieldConfig field) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.blue.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.blue.withOpacity(0.2), width: 1),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              field.infoText ?? field.label,
+              style: context.topology.textTheme.bodyMedium?.copyWith(color: Colors.blue[700]),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildSubmitButton() {
@@ -472,7 +1015,7 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
   }
 
   void _handleSubmit() {
-    // Validate required fields
+    // Validate required fixed fields
     if (_selectedReportDate == null) {
       _showErrorSnackBar('Please select a report date');
       return;
@@ -498,19 +1041,52 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
       return;
     }
 
+    // Validate required dynamic fields
+    for (var field in _fields) {
+      if (field.required) {
+        if (field.type == 'text' || field.type == 'textarea' || field.type == 'number') {
+          if (_controllers[field.name]?.text.trim().isEmpty ?? true) {
+            _showErrorSnackBar('Please enter ${field.label}');
+            return;
+          }
+        } else if (field.type == 'dropdown') {
+          if (_fieldValues[field.name] == null) {
+            _showErrorSnackBar('Please select ${field.label}');
+            return;
+          }
+        } else if (field.type == 'date') {
+          if (_fieldValues[field.name] == null) {
+            _showErrorSnackBar('Please select ${field.label}');
+            return;
+          }
+        }
+      }
+    }
+
     // Collect all field values
     Map<String, String> fieldValues = {};
-    for (var entry in _controllers.entries) {
-      fieldValues[entry.key] = entry.value.text;
+    for (var field in _fields) {
+      if (field.type == 'text' || field.type == 'textarea' || field.type == 'number') {
+        fieldValues[field.name] = _controllers[field.name]?.text ?? '';
+      } else if (field.type == 'dropdown') {
+        fieldValues[field.name] = _fieldValues[field.name]?.toString() ?? '';
+      } else if (field.type == 'checkbox') {
+        fieldValues[field.name] = (_fieldValues[field.name] ?? false).toString();
+      } else if (field.type == 'date') {
+        final date = _fieldValues[field.name] as DateTime?;
+        fieldValues[field.name] = date?.toIso8601String() ?? '';
+      } else if (field.type == 'file') {
+        fieldValues[field.name] = _fieldValues[field.name]?.toString() ?? '';
+      }
     }
 
     // Get the selected inspector name
     final personnelProvider = context.read<PersonnelProvider>();
     final selectedPersonnel = personnelProvider.getPersonnelById(_selectedInspectedById!);
     final inspectedByName =
-        selectedPersonnel?.displayName.isNotEmpty == true
-            ? selectedPersonnel!.displayName
-            : selectedPersonnel?.fullName ?? '';
+        selectedPersonnel?.displayName?.isNotEmpty == true
+            ? selectedPersonnel!.displayName!
+            : selectedPersonnel?.fullName ?? 'Unknown';
 
     // Show confirmation dialog
     showDialog(
@@ -529,18 +1105,21 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
                   _buildConfirmationRow('Item No:', _itemNoController.text),
                   _buildConfirmationRow('Inspected By:', inspectedByName),
                   _buildConfirmationRow('Regulation:', _regulationController.text),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Field Values:',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: context.colors.primary),
-                  ),
-                  const SizedBox(height: 8),
-                  ...fieldValues.entries.map(
-                    (e) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Text('${e.key}: ${e.value.isEmpty ? "(empty)" : e.value}'),
+
+                  if (fieldValues.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      'Field Values:',
+                      style: TextStyle(fontWeight: FontWeight.bold, color: context.colors.primary),
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    ...fieldValues.entries.map(
+                      (e) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Text('${e.key}: ${e.value.isEmpty ? "(empty)" : e.value}'),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -571,7 +1150,12 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
               style: TextStyle(fontWeight: FontWeight.bold, color: context.colors.primary),
             ),
           ),
-          Expanded(child: Text(value)),
+          Expanded(
+            child: Text(
+              value,
+              style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+            ),
+          ),
         ],
       ),
     );
@@ -598,9 +1182,9 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
       final personnelProvider = context.read<PersonnelProvider>();
       final selectedPersonnel = personnelProvider.getPersonnelById(_selectedInspectedById!);
       final inspectedByName =
-          selectedPersonnel?.displayName.isNotEmpty == true
-              ? selectedPersonnel!.displayName
-              : selectedPersonnel?.fullName ?? '';
+          selectedPersonnel?.displayName?.isNotEmpty == true
+              ? selectedPersonnel!.displayName!
+              : selectedPersonnel?.fullName ?? 'Unknown';
 
       // Call the createReportData method from SystemProvider
       final result = await provider.createReportData(
@@ -675,9 +1259,7 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
   }
 
   void _clearForm() {
-    // Clear all text controllers
-    _itemIdController.clear();
-    _itemNoController.clear();
+    // Clear all text controllers except pre-filled ones
     _regulationController.clear();
 
     for (var controller in _controllers.values) {
@@ -688,6 +1270,7 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
       _selectedReportDate = null;
       _selectedStatus = 'draft';
       _selectedInspectedById = null;
+      _fieldValues.clear();
     });
   }
 

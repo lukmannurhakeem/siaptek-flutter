@@ -438,7 +438,7 @@ class _JobScreenState extends State<JobScreen> {
             ),
           ],
           rows: List.generate(filteredJobs.length, (index) {
-            final data = filteredJobs[index];
+            final data = filteredJobs.elementAt(index);
             final isEven = index % 2 == 0;
 
             return DataRow(
@@ -458,7 +458,7 @@ class _JobScreenState extends State<JobScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: Text(
-                      data.jobId ?? '-',
+                      data.jobNo ?? '-',
                       style: context.topology.textTheme.bodySmall?.copyWith(
                         color: context.colors.primary,
                       ),
@@ -469,7 +469,7 @@ class _JobScreenState extends State<JobScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: Text(
-                      data.clientName ?? '-',
+                      data.customerName ?? '-',
                       style: context.topology.textTheme.bodySmall?.copyWith(
                         color: context.colors.primary,
                       ),
@@ -677,19 +677,6 @@ class _JobScreenState extends State<JobScreen> {
               height: context.screenHeight * 0.70,
             ),
           ),
-          // Positioned(
-          //   bottom: 16,
-          //   right: 16,
-          //   child: FloatingActionButton(
-          //     onPressed: () {
-          //       // Navigate to create job screen
-          //       NavigationService().navigateTo(AppRoutes.jobItemCreateScreen, arguments: null);
-          //     },
-          //     tooltip: 'Add New Job',
-          //     backgroundColor: context.colors.primary,
-          //     child: const Icon(Icons.add),
-          //   ),
-          // ),
         ],
       ),
     );
@@ -713,146 +700,139 @@ class _JobScreenState extends State<JobScreen> {
         return SizedBox(
           width: screenWidth,
           height: screenHeight,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Padding(
-                  padding: context.paddingAll,
-                  child: Column(
+          child: Padding(
+            padding: context.paddingAll,
+            child: Column(
+              children: [
+                // Create New button (like SiteScreen)
+                // Align(
+                //   alignment: Alignment.centerRight,
+                //   child: ElevatedButton.icon(
+                //     onPressed: () {
+                //       NavigationService().navigateTo(AppRoutes.jobAddNewScreen, arguments: null);
+                //     },
+                //     icon: const Icon(Icons.add),
+                //     label: const Text('Create New'),
+                //     style: ElevatedButton.styleFrom(backgroundColor: context.colors.primary),
+                //   ),
+                // ),
+                const SizedBox(height: 16),
+                // Search bar
+                CommonTextField(
+                  controller: _searchController,
+                  hintText: 'Search by job no, customer, or site...',
+                  style: context.topology.textTheme.bodySmall?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Search bar
-                      CommonTextField(
-                        controller: _searchController,
-                        hintText: 'Search by job no, customer, or site...',
-                        style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary,
+                      if (_searchController.text.isNotEmpty)
+                        IconButton(
+                          icon: Icon(Icons.clear, color: context.colors.primary),
+                          onPressed: () {
+                            _searchController.clear();
+                          },
                         ),
-                        suffixIcon: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (_searchController.text.isNotEmpty)
-                              IconButton(
-                                icon: Icon(Icons.clear, color: context.colors.primary),
-                                onPressed: () {
-                                  _searchController.clear();
-                                },
-                              ),
-                            IconButton(
-                              icon: Icon(
-                                Icons.filter_list,
-                                color:
-                                    (selectedColumn != null && selectedValue != null)
-                                        ? context.colors.primary
-                                        : context.colors.primary.withOpacity(0.5),
-                              ),
-                              onPressed: () => _showFilterDialog(context, jobProvider),
-                            ),
-                          ],
+                      IconButton(
+                        icon: Icon(
+                          Icons.filter_list,
+                          color:
+                              (selectedColumn != null && selectedValue != null)
+                                  ? context.colors.primary
+                                  : context.colors.primary.withOpacity(0.5),
                         ),
-                      ),
-                      context.vM,
-                      // Result count and active filter indicator
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '${filteredJobs.length} job${filteredJobs.length != 1 ? 's' : ''} found',
-                              style: context.topology.textTheme.bodySmall?.copyWith(
-                                color: context.colors.primary,
-                              ),
-                            ),
-                            if (selectedColumn != null && selectedValue != null)
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    selectedColumn = null;
-                                    selectedValue = null;
-                                  });
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: context.colors.primary.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        'Filter: ${_getColumnLabel(selectedColumn!)}: ${_getValueLabel(selectedColumn!, selectedValue)}',
-                                        style: context.topology.textTheme.bodySmall?.copyWith(
-                                          color: context.colors.primary,
-                                          fontSize: 11,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Icon(Icons.close, size: 14, color: context.colors.primary),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      // Job list or table
-                      Expanded(
-                        child:
-                            filteredJobs.isEmpty
-                                ? Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.search_off,
-                                        size: 64,
-                                        color: context.colors.primary.withOpacity(0.3),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'No jobs found',
-                                        style: context.topology.textTheme.titleMedium?.copyWith(
-                                          color: context.colors.primary,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Try adjusting your search or filter',
-                                        style: context.topology.textTheme.bodySmall?.copyWith(
-                                          color: context.colors.primary.withOpacity(0.7),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                                : RefreshIndicator(
-                                  onRefresh: () => jobProvider.fetchJobModel(context),
-                                  child:
-                                      context.isTablet
-                                          ? _buildDataTable(context, jobProvider, filteredJobs)
-                                          : _buildMobileList(context, jobProvider, filteredJobs),
-                                ),
+                        onPressed: () => _showFilterDialog(context, jobProvider),
                       ),
                     ],
                   ),
                 ),
-              ),
-              // Floating Action Button
-              Positioned(
-                bottom: 50,
-                right: 30,
-                child: FloatingActionButton(
-                  onPressed: () {
-                    // Navigate to create job screen
-                    NavigationService().navigateTo(AppRoutes.jobAddNewScreen, arguments: null);
-                  },
-                  tooltip: 'Add New Job',
-                  backgroundColor: context.colors.primary,
-                  child: const Icon(Icons.add),
+                context.vM,
+                // Result count and active filter indicator
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${filteredJobs.length} job${filteredJobs.length != 1 ? 's' : ''} found',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
+                      if (selectedColumn != null && selectedValue != null)
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              selectedColumn = null;
+                              selectedValue = null;
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: context.colors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Filter: ${_getColumnLabel(selectedColumn!)}: ${_getValueLabel(selectedColumn!, selectedValue)}',
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(Icons.close, size: 14, color: context.colors.primary),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                // Job list or table
+                Expanded(
+                  child:
+                      filteredJobs.isEmpty
+                          ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.search_off,
+                                  size: 64,
+                                  color: context.colors.primary.withOpacity(0.3),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No jobs found',
+                                  style: context.topology.textTheme.titleMedium?.copyWith(
+                                    color: context.colors.primary,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Try adjusting your search or filter',
+                                  style: context.topology.textTheme.bodySmall?.copyWith(
+                                    color: context.colors.primary.withOpacity(0.7),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                          : RefreshIndicator(
+                            onRefresh: () => jobProvider.fetchJobModel(context),
+                            child:
+                                context.isTablet
+                                    ? _buildDataTable(context, jobProvider, filteredJobs)
+                                    : _buildMobileList(context, jobProvider, filteredJobs),
+                          ),
+                ),
+              ],
+            ),
           ),
         );
       },

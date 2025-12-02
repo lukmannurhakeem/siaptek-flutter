@@ -1,8 +1,11 @@
 import 'package:base_app/core/service/offline_http_service.dart';
+import 'package:base_app/core/service/websocket_service.dart';
 import 'package:base_app/repositories/category/category_impl.dart';
 import 'package:base_app/repositories/category/category_repository.dart';
 import 'package:base_app/repositories/customer/customer_impl.dart';
 import 'package:base_app/repositories/customer/customer_repository.dart';
+import 'package:base_app/repositories/cycle/cycle_impl.dart';
+import 'package:base_app/repositories/cycle/cycle_repository.dart';
 import 'package:base_app/repositories/job/job_impl.dart';
 import 'package:base_app/repositories/job/job_repository.dart';
 import 'package:base_app/repositories/personnel/personnel_impl.dart';
@@ -11,7 +14,7 @@ import 'package:base_app/repositories/planner/planner_impl.dart';
 import 'package:base_app/repositories/planner/planner_repository.dart';
 import 'package:base_app/repositories/site/site_impl.dart';
 import 'package:base_app/repositories/site/site_repository.dart';
-import 'package:base_app/repositories/system/system.impl.dart';
+import 'package:base_app/repositories/system/system_impl.dart';
 import 'package:base_app/repositories/system/system_repository.dart';
 import 'package:base_app/repositories/user/user_impl.dart';
 import 'package:base_app/repositories/user/user_repository.dart';
@@ -28,6 +31,7 @@ class ServiceLocator {
 
   // Services
   OfflineHttpService? _httpService;
+  WebSocketService? _webSocketService;
 
   // Repositories (lazy initialization)
   CustomerRepository? _customerRepository;
@@ -38,10 +42,15 @@ class ServiceLocator {
   CategoryRepository? _categoryRepository;
   PersonnelRepository? _personnelRepository;
   UserRepository? _userRepository;
+  CycleRepository? _cycleRepository;
 
   // Register HTTP Service (called from main.dart)
   void registerHttpService(OfflineHttpService service) {
     _httpService = service;
+  }
+
+  void registerWebSocketService(WebSocketService service) {
+    _webSocketService = service;
   }
 
   // Get HTTP Service
@@ -52,12 +61,23 @@ class ServiceLocator {
     return _httpService!;
   }
 
-  // Get Customer Repository
+  // Alias for httpService - used for token refresh functionality
+  OfflineHttpService get offlineHttpService => httpService;
+
+  WebSocketService get webSocketService {
+    if (_webSocketService == null) {
+      throw Exception('WebSocketService not initialized. Call registerWebSocketService() first.');
+    }
+    return _webSocketService!;
+  }
+
+  // Get User Repository
   UserRepository get userRepository {
     _userRepository ??= UserImpl(httpService);
     return _userRepository!;
   }
 
+  // Get Planner Repository
   PlannerRepository get plannerRepository {
     _plannerRepository ??= PlannerImpl(httpService);
     return _plannerRepository!;
@@ -99,6 +119,12 @@ class ServiceLocator {
     return _personnelRepository!;
   }
 
+  // Get Cycle Repository
+  CycleRepository get cycleRepository {
+    _cycleRepository ??= CycleImpl(httpService);
+    return _cycleRepository!;
+  }
+
   // Reset all instances (useful for testing or logout)
   void reset() {
     _httpService = null;
@@ -109,6 +135,10 @@ class ServiceLocator {
     _categoryRepository = null;
     _personnelRepository = null;
     _plannerRepository = null;
+    _userRepository = null;
+    _cycleRepository = null;
+    _webSocketService?.dispose();
+    _webSocketService = null;
   }
 }
 
@@ -120,7 +150,7 @@ class ServiceLocator {
 //
 // In Repositories:
 // class JobRepository {
-//   final UnifiedHttpService _http;
+//   final OfflineHttpService _http;
 //   JobRepository(this._http);
 //
 //   Future<JobModel> fetchJobs() async {

@@ -1,3 +1,4 @@
+// category_impl.dart
 import 'package:base_app/core/service/offline_http_service.dart';
 import 'package:base_app/model/create_category_model.dart';
 import 'package:base_app/model/get_category_model.dart';
@@ -5,7 +6,7 @@ import 'package:base_app/repositories/category/category_repository.dart';
 import 'package:base_app/route/endpoint.dart';
 
 class CategoryImpl implements CategoryRepository {
-  final OfflineHttpService _api; // Changed from ApiClient
+  final OfflineHttpService _api;
 
   CategoryImpl(this._api);
 
@@ -21,6 +22,7 @@ class CategoryImpl implements CategoryRepository {
     String? categoryCode,
     String? description,
     String? descriptionTemplate,
+    String? parentId, // Added parentId parameter
     int? replacementPeriod,
     String? instructions,
     String? notes,
@@ -29,23 +31,27 @@ class CategoryImpl implements CategoryRepository {
     String? checklistId,
     String? plannedMaintenanceId,
   }) async {
-    final response = await _api.post(
-      Endpoint.categoryCreate,
-      requiresAuth: true,
-      data: {
-        'categoryName': categoryName,
-        'categoryCode': categoryCode,
-        'description': description,
-        'descriptionTemplate': descriptionTemplate,
-        'replacementPeriod': replacementPeriod,
-        'instructions': instructions,
-        'notes': notes,
-        'canHaveChildItems': canHaveChildItems,
-        'regulationId': regulationId,
-        'checklistId': checklistId,
-        'plannedMaintenanceId': plannedMaintenanceId,
-      },
-    );
+    // Build the data map
+    final data = {
+      'categoryName': categoryName,
+      'categoryCode': categoryCode,
+      'description': description,
+      'descriptionTemplate': descriptionTemplate,
+      'replacementPeriod': replacementPeriod,
+      'instructions': instructions,
+      'notes': notes,
+      'canHaveChildItems': canHaveChildItems,
+      'regulationId': regulationId,
+      'checklistId': checklistId,
+      'plannedMaintenanceId': plannedMaintenanceId,
+    };
+
+    // Only add parentId if it's not null and not empty
+    if (parentId != null && parentId.isNotEmpty) {
+      data['parentId'] = parentId;
+    }
+
+    final response = await _api.post(Endpoint.categoryCreate, requiresAuth: true, data: data);
 
     // Check if queued
     if (response.statusCode == 202 && response.data['queued'] == true) {
@@ -60,6 +66,7 @@ class CategoryImpl implements CategoryRepository {
     String? categoryCode,
     String? description,
     String? descriptionTemplate,
+    String? parentId, // Added parentId parameter
     int? replacementPeriod,
     String? instructions,
     String? notes,
@@ -68,23 +75,31 @@ class CategoryImpl implements CategoryRepository {
     String? checklistId,
     String? plannedMaintenanceId,
   }) async {
+    // Build the data map
+    final data = {
+      'categoryId': categoryId, // Use categoryId for update, not parentId
+      'categoryName': categoryName,
+      'categoryCode': categoryCode,
+      'description': description,
+      'descriptionTemplate': descriptionTemplate,
+      'replacementPeriod': replacementPeriod,
+      'instructions': instructions,
+      'notes': notes,
+      'canHaveChildItems': canHaveChildItems,
+      'regulationId': regulationId,
+      'checklistId': checklistId,
+      'plannedMaintenanceId': plannedMaintenanceId,
+    };
+
+    // Only add parentId if it's not null and not empty
+    if (parentId != null && parentId.isNotEmpty) {
+      data['parentId'] = parentId;
+    }
+
     final response = await _api.post(
-      Endpoint.categoryCreate,
+      Endpoint.categoryCreate, // You might want to use a different endpoint for update
       requiresAuth: true,
-      data: {
-        'parentId': categoryId,
-        'categoryName': categoryName,
-        'categoryCode': categoryCode,
-        'description': description,
-        'descriptionTemplate': descriptionTemplate,
-        'replacementPeriod': replacementPeriod,
-        'instructions': instructions,
-        'notes': notes,
-        'canHaveChildItems': canHaveChildItems,
-        'regulationId': regulationId,
-        'checklistId': checklistId,
-        'plannedMaintenanceId': plannedMaintenanceId,
-      },
+      data: data,
     );
 
     // Check if queued

@@ -103,11 +103,16 @@ class _PersonnelScreenState extends State<PersonnelScreen> {
         Positioned(
           bottom: 0,
           left: 0,
-
-          child: Image.asset(
-            'assets/images/bg_3.png',
-            fit: BoxFit.contain,
-            alignment: Alignment.bottomLeft,
+          child: Opacity(
+            opacity: 0.15,
+            child: Image.asset(
+              'assets/images/bg_3.png',
+              fit: BoxFit.contain,
+              alignment: Alignment.bottomLeft,
+              errorBuilder: (context, error, stackTrace) {
+                return const SizedBox.shrink();
+              },
+            ),
           ),
         ),
         Container(
@@ -138,18 +143,6 @@ class _PersonnelScreenState extends State<PersonnelScreen> {
             ],
           ),
         ),
-        Positioned(
-          bottom: 50,
-          right: 30,
-          child: FloatingActionButton(
-            onPressed: () {
-              NavigationService().navigateTo(AppRoutes.createPersonnel, arguments: null);
-            },
-            tooltip: 'Add New Personnel',
-            backgroundColor: context.colors.primary,
-            child: const Icon(Icons.add),
-          ),
-        ),
       ],
     );
   }
@@ -161,70 +154,79 @@ class _PersonnelScreenState extends State<PersonnelScreen> {
     return SizedBox(
       width: screenWidth,
       height: screenHeight,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Padding(
-              padding: context.paddingAll,
-              child: Column(
+      child: Padding(
+        padding: context.paddingAll,
+        child: Column(
+          children: [
+            // Create New button at the top
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  NavigationService().navigateTo(AppRoutes.createPersonnel, arguments: null);
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Create New'),
+                style: ElevatedButton.styleFrom(backgroundColor: context.colors.primary),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Search bar
+            CommonTextField(
+              controller: _searchController,
+              hintText: 'Search by name, job title, or employee number...',
+              style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  CommonTextField(
-                    controller: _searchController,
-                    hintText: 'Search by name, job title, or employee number...',
-                    style: context.topology.textTheme.bodySmall?.copyWith(
-                      color: context.colors.primary,
+                  if (_searchController.text.isNotEmpty)
+                    IconButton(
+                      icon: Icon(Icons.clear, color: context.colors.primary),
+                      onPressed: () {
+                        _searchController.clear();
+                      },
                     ),
-                    suffixIcon: Icon(Icons.search, color: context.colors.primary),
-                  ),
-                  context.vM,
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        '${personnelList.length} personnel found',
-                        style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: () => context.read<PersonnelProvider>().refreshPersonnel(),
-                      child: GridView.builder(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: context.isTablet ? 6 : 2,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                          childAspectRatio: context.isTablet ? 3 / 2 : 1.0,
-                        ),
-                        itemCount: personnelList.length,
-                        itemBuilder: (context, index) {
-                          final personnelData = personnelList[index];
-                          return _personnelCard(context, personnelData);
-                        },
-                      ),
-                    ),
-                  ),
+                  Icon(Icons.search, color: context.colors.primary),
+                  const SizedBox(width: 8),
                 ],
               ),
             ),
-          ),
-          Positioned(
-            bottom: 50,
-            right: 30,
-            child: FloatingActionButton(
-              onPressed: () {
-                NavigationService().navigateTo(AppRoutes.createPersonnel, arguments: null);
-              },
-              tooltip: 'Add New Personnel',
-              backgroundColor: context.colors.primary,
-              child: const Icon(Icons.add),
+            context.vM,
+            // Result count
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  '${personnelList.length} personnel found',
+                  style: context.topology.textTheme.bodySmall?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                ),
+              ),
             ),
-          ),
-        ],
+            // Personnel grid
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => context.read<PersonnelProvider>().refreshPersonnel(),
+                child: GridView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: context.isTablet ? 6 : 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: context.isTablet ? 3 / 2 : 1.0,
+                  ),
+                  itemCount: personnelList.length,
+                  itemBuilder: (context, index) {
+                    final personnelData = personnelList[index];
+                    return _personnelCard(context, personnelData);
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

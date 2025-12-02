@@ -3,6 +3,7 @@ import 'package:base_app/core/service/service_locator.dart';
 import 'package:base_app/model/get_customer_model.dart';
 import 'package:base_app/model/job_model.dart';
 import 'package:base_app/model/job_register.dart';
+import 'package:base_app/model/report_approval_model.dart';
 import 'package:base_app/repositories/customer/customer_repository.dart';
 import 'package:base_app/repositories/job/job_repository.dart';
 import 'package:base_app/widget/common_snackbar.dart';
@@ -70,7 +71,309 @@ class JobProvider extends ChangeNotifier {
   // Add this property to store current item
   Item? _currentItem;
 
-  Item? get currentItem => _currentItem;
+  Item? get currentItem => _currentItem; // In JobProvider class
+  ReportApprovalModel? _reportApprovalModel;
+
+  ReportApprovalModel? get reportApprovalModel => _reportApprovalModel;
+
+  bool _isUpdatingApproval = false;
+
+  bool get isUpdatingApproval => _isUpdatingApproval;
+
+  String? _approvalError;
+
+  String? get approvalError => _approvalError;
+
+  ///////////////////////////////////////
+  ReportApprovalModel? _pendingReportApprovals;
+  ReportApprovalModel? _approvedReportApprovals;
+
+  String _currentApprovalFilter = 'pending'; // 'pending', 'approved', 'all'
+
+  String get currentApprovalFilter => _currentApprovalFilter;
+
+  // Get reports based on current filter
+  List<ReportApprovalData> get reportApprovals {
+    switch (_currentApprovalFilter) {
+      case 'pending':
+        return _pendingReportApprovals?.data ?? [];
+      case 'approved':
+        return _approvedReportApprovals?.data ?? [];
+      case 'all':
+        final pending = _pendingReportApprovals?.data ?? [];
+        final approved = _approvedReportApprovals?.data ?? [];
+        return [...pending, ...approved];
+      default:
+        return _pendingReportApprovals?.data ?? [];
+    }
+  }
+
+  // Get pending reports only
+  List<ReportApprovalData> get pendingReports => _pendingReportApprovals?.data ?? [];
+
+  // Get approved reports only
+  List<ReportApprovalData> get approvedReports => _approvedReportApprovals?.data ?? [];
+
+  /// Set approval filter
+  void setApprovalFilter(String filter) {
+    _currentApprovalFilter = filter;
+    notifyListeners();
+  }
+
+  /// Fetch report approvals for a specific job (both pending and approved)
+  Future<void> fetchReportApprovals(
+    BuildContext context,
+    String jobId, {
+    bool fetchBoth = true, // Fetch both pending and approved by default
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      print('📥 Fetching Report Approvals for jobId: $jobId');
+
+      if (fetchBoth) {
+        // Fetch both pending and approved in parallel
+        final results = await Future.wait([
+          _jobRepository.fetchReportApprovals(jobId, false), // Pending
+          _jobRepository.fetchReportApprovals(jobId, true), // Approved
+        ]);
+
+        _pendingReportApprovals = results[0];
+        _approvedReportApprovals = results[1];
+
+        print('✅ Pending reports: ${_pendingReportApprovals?.data?.length ?? 0}');
+        print('✅ Approved reports: ${_approvedReportApprovals?.data?.length ?? 0}');
+      } else {
+        // Fetch only the current filter
+        if (_currentApprovalFilter == 'pending') {
+          _pendingReportApprovals = await _jobRepository.fetchReportApprovals(jobId, false);
+        } else if (_currentApprovalFilter == 'approved') {
+          _approvedReportApprovals = await _jobRepository.fetchReportApprovals(jobId, true);
+        }
+      }
+
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+      print('❌ Error fetching Report Approvals: $_error');
+      if (context.mounted) {
+        CommonSnackbar.showError(context, e.toString());
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Approve a specific report
+  Future<Map<String, dynamic>?> approveReport(
+    BuildContext context,
+    String reportId,
+    String jobId,
+  ) async {
+    try {
+      _isUpdatingApproval = true;
+      _approvalError = null;
+      notifyListeners();
+
+      print('✅ Provider: Approving report... $reportId');
+
+      // Call your API to approve
+      await _jobRepository.approveReport(reportId);
+
+      // ✅ Refresh BOTH lists after approval
+      // This ensures the report moves from pending to approved
+      await fetchReportApprovals(context, jobId, fetchBoth: true);
+
+      _isUpdatingApproval = false;
+      notifyListeners();
+
+      if (context.mounted) {
+        CommonSnackbar.showSuccess(context, 'Report approved successfully');
+      }
+
+      return {'success': true, 'message': 'Report approved successfully'};
+    } catch (e) {
+      _approvalError = e.toString();
+      _isUpdatingApproval = false;
+      notifyListeners();
+
+      if (context.mounted) {
+        CommonSnackbar.showError(context, 'Failed to approve report: $e');
+      }
+
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  /// Reject a specific report
+  Future<Map<String, dynamic>?> rejectReport(
+    BuildContext context,
+    String reportId,
+    String jobId, {
+    String? reason,
+  }) async {
+    try {
+      _isUpdatingApproval = true;
+      _approvalError = null;
+      notifyListeners();
+
+      print('❌ Provider: Rejecting report... $reportId');
+
+      // Call your API to reject
+      await _jobRepository.rejectReport(reportId, reason: reason);
+
+      // ✅ Refresh BOTH lists after rejection
+      await fetchReportApprovals(context, jobId, fetchBoth: true);
+
+      _isUpdatingApproval = false;
+      notifyListeners();
+
+      if (context.mounted) {
+        CommonSnackbar.showSuccess(context, 'Report rejected');
+      }
+
+      return {'success': true, 'message': 'Report rejected successfully'};
+    } catch (e) {
+      _approvalError = e.toString();
+      _isUpdatingApproval = false;
+      notifyListeners();
+
+      if (context.mounted) {
+        CommonSnackbar.showError(context, 'Failed to reject report: $e');
+      }
+
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  /// Get approval statistics from both lists
+  Map<String, int> getApprovalStats() {
+    final pending = _pendingReportApprovals?.data ?? [];
+    final approved = _approvedReportApprovals?.data ?? [];
+
+    return {
+      'total': pending.length + approved.length,
+      'pending': pending.length,
+      'approved': approved.length,
+      'rejected': 0, // If you have rejected reports, add them here
+    };
+  }
+
+  /// Check if there are pending approvals
+  bool hasPendingApprovals() {
+    return (_pendingReportApprovals?.data?.length ?? 0) > 0;
+  }
+
+  /// Get count of pending approvals
+  int getPendingApprovalsCount() {
+    return _pendingReportApprovals?.data?.length ?? 0;
+  }
+
+  /// Filter report approvals by status (works with current data)
+  List<ReportApprovalData> filterReportsByStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'all':
+        return reportApprovals;
+      case 'pending':
+        return pendingReports;
+      case 'approved':
+        return approvedReports;
+      case 'rejected':
+        // If you track rejected separately, return them here
+        return [];
+      default:
+        return reportApprovals;
+    }
+  }
+
+  /// Search report approvals (searches current filtered list)
+  List<ReportApprovalData> searchReports(String query) {
+    if (query.isEmpty) return reportApprovals;
+
+    return reportApprovals.where((report) {
+      final searchQuery = query.toLowerCase();
+      return (report.reportName?.toLowerCase().contains(searchQuery) ?? false) ||
+          (report.itemNo?.toLowerCase().contains(searchQuery) ?? false) ||
+          (report.inspectedBy?.toLowerCase().contains(searchQuery) ?? false) ||
+          (report.regulation?.toLowerCase().contains(searchQuery) ?? false);
+    }).toList();
+  }
+
+  /// Clear report approvals
+  void clearReportApprovals() {
+    _pendingReportApprovals = null;
+    _approvedReportApprovals = null;
+    _currentApprovalFilter = 'pending';
+    notifyListeners();
+  }
+
+  /// Update reset method to include both approval lists
+  void reset() {
+    _jobModel = null;
+    _jobRegisterModel = null;
+    _pendingReportApprovals = null;
+    _approvedReportApprovals = null;
+    _currentApprovalFilter = 'pending';
+    _getCustomerModel = null;
+    _customers = [];
+    _isLoading = false;
+    _error = null;
+    sortColumnIndex = null;
+    sortAscending = true;
+    _selectedSearchColumn = null;
+    _selectedSearchValue = null;
+    _currentJobId = null;
+    _currentItem = null;
+    notifyListeners();
+  }
+
+  ////////////////////////////////////////////////////////
+
+  /// Update the approval status of a report
+  Future<Map<String, dynamic>?> updateReportApprovalStatus(
+    BuildContext context,
+    String itemId,
+  ) async {
+    try {
+      _isUpdatingApproval = true;
+      _approvalError = null;
+      notifyListeners();
+
+      print('🔄 Provider: Updating approval status... $itemId');
+      final result = await _jobRepository.updateApprovalStatus(itemId);
+
+      // Check if request was queued for offline sync
+      final bool wasQueued = result is Map<String, dynamic> && result['queued'] == true;
+
+      _isUpdatingApproval = false;
+      notifyListeners();
+
+      print('✅ Provider: Approval status updated and list refreshed');
+
+      return {
+        'success': true,
+        'queued': wasQueued,
+        'message': wasQueued ? 'Saved locally. Will sync when online.' : 'Updated successfully',
+      };
+    } catch (e) {
+      _approvalError = e.toString();
+      _isUpdatingApproval = false;
+      notifyListeners();
+
+      print('❌ Provider: Error updating approval - $e');
+
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  /// Clear approval error
+  void clearApprovalError() {
+    _approvalError = null;
+    notifyListeners();
+  }
 
   /// Get item by itemID from existing jobRegisterModel data
   Item? getItemById(String itemId) {
@@ -308,16 +611,11 @@ class JobProvider extends ChangeNotifier {
   List<Item> getFilteredItems(int tabIndex) {
     final items = jobItems;
     switch (tabIndex) {
-      case 0: // All Items
+      case 0: // All Items (Item Register tab)
         return items;
-      case 1: // Inspected/Active (items with accepted inspection status)
-        return items
-            .where(
-              (item) =>
-                  item.inspectionStatus?.toLowerCase() == 'accepted' ||
-                  item.status?.toLowerCase() == 'active',
-            )
-            .toList();
+      case 1: // Inspection Register - Show ALL items
+        // Changed: Show all items in inspection register, not just accepted ones
+        return items; // Return all items for inspection viewing
       case 2: // Not Inspected/Pending
         return items
             .where(
@@ -419,23 +717,6 @@ class JobProvider extends ChangeNotifier {
     sortAscending = true;
     _selectedSearchColumn = null;
     _selectedSearchValue = null;
-    notifyListeners();
-  }
-
-  /// Reset provider state
-  void reset() {
-    _jobModel = null;
-    _jobRegisterModel = null;
-    _getCustomerModel = null;
-    _customers = [];
-    _isLoading = false;
-    _error = null;
-    sortColumnIndex = null;
-    sortAscending = true;
-    _selectedSearchColumn = null;
-    _selectedSearchValue = null;
-    _currentJobId = null;
-    _currentItem = null;
     notifyListeners();
   }
 

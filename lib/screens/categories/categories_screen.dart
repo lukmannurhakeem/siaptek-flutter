@@ -15,128 +15,393 @@ class CategoriesScreen extends StatefulWidget {
 }
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
-  TextEditingController searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Load categories when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CategoryProvider>().fetchCategories();
     });
-    searchController.addListener(_onSearchChanged);
+    _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
-    searchController.removeListener(_onSearchChanged);
-    searchController.dispose();
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
     super.dispose();
   }
 
   void _onSearchChanged() {
-    context.read<CategoryProvider>().searchCategories(searchController.text);
+    context.read<CategoryProvider>().searchCategories(_searchController.text);
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = context.screenHeight - (kToolbarHeight * 1.25);
-    final screenWidth = context.screenWidth;
+    return Consumer<CategoryProvider>(
+      builder: (context, provider, child) {
+        if (provider.totalItemCount == 0 && !provider.isLoading) {
+          return _buildEmptyState(context);
+        }
 
-    return SizedBox(
-      width: screenWidth,
-      height: screenHeight,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Padding(
-              padding: context.paddingAll,
-              child: Column(
-                children: [
-                  CommonTextField(
-                    controller: searchController,
-                    hintText: 'Search categories...',
-                    style: context.topology.textTheme.bodySmall?.copyWith(
-                      color: context.colors.primary,
-                    ),
-                    suffixIcon: Icon(Icons.search, color: context.colors.primary),
-                  ),
-                  context.vM,
-                  Expanded(
-                    child: Consumer<CategoryProvider>(
-                      builder: (context, provider, child) {
-                        if (provider.isLoading) {
-                          return const Center(child: CircularProgressIndicator());
-                        }
+        return context.isTablet
+            ? _buildTabletLayout(context, provider)
+            : _buildMobileLayout(context, provider);
+      },
+    );
+  }
 
-                        if (provider.errorMessage != null) {
-                          return Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  provider.errorMessage!,
-                                  style: context.topology.textTheme.bodyMedium?.copyWith(
-                                    color: Colors.red,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 16),
-                                ElevatedButton(
-                                  onPressed: () => provider.refresh(),
-                                  child: const Text('Retry'),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-
-                        if (provider.totalItemCount == 0) {
-                          return Center(
-                            child: Text(
-                              searchController.text.isEmpty
-                                  ? 'No categories available'
-                                  : 'No categories found matching "${searchController.text}"',
-                              style: context.topology.textTheme.bodyMedium?.copyWith(
-                                color: context.colors.primary.withOpacity(0.7),
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          );
-                        }
-
-                        return RefreshIndicator(
-                          onRefresh: provider.refresh,
-                          child: ListView.builder(
-                            itemCount: provider.totalItemCount,
-                            itemBuilder: (context, index) {
-                              final category = provider.getCategoryByIndex(index);
-                              if (category == null) return const SizedBox.shrink();
-
-                              return _buildCategoryItem(context, provider, category, index);
-                            },
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+  Widget _buildEmptyState(BuildContext context) {
+    return Stack(
+      children: [
+        // Background image (fixed at bottom right)
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: IgnorePointer(
+            child: Opacity(
+              opacity: 0.15,
+              child: Image.asset(
+                'assets/images/bg_4.png',
+                fit: BoxFit.contain,
+                alignment: Alignment.bottomRight,
+                errorBuilder: (context, error, stackTrace) {
+                  return const SizedBox.shrink();
+                },
               ),
             ),
           ),
+        ),
+        // Empty state content
+        SizedBox(
+          width: double.infinity,
+          height: context.screenHeight - kToolbarHeight * 2,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              context.vXxl,
+              Icon(
+                Icons.category_outlined,
+                size: 64,
+                color: context.colors.primary.withOpacity(0.3),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'You do not have categories right now',
+                style: context.topology.textTheme.titleMedium?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Add your first category to get started',
+                textAlign: TextAlign.center,
+                style: context.topology.textTheme.bodySmall?.copyWith(
+                  color: context.colors.primary.withOpacity(0.7),
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () {
+                  NavigationService().navigateTo(AppRoutes.createCategories);
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Create Category'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: context.colors.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabletLayout(BuildContext context, CategoryProvider provider) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return SizedBox(
+      height: screenHeight - kToolbarHeight - MediaQuery.of(context).padding.top,
+      child: Stack(
+        children: [
+          // Background image (fixed at bottom right)
           Positioned(
-            bottom: 50,
-            right: 30,
-            child: FloatingActionButton(
-              onPressed: () {
-                NavigationService().navigateTo(AppRoutes.createCategories);
-              },
-              tooltip: 'Add New',
-              backgroundColor: context.colors.primary,
-              child: const Icon(Icons.add),
+            bottom: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: 0.15,
+                child: Image.asset(
+                  'assets/images/bg_4.png',
+                  fit: BoxFit.contain,
+                  alignment: Alignment.bottomRight,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
+            ),
+          ),
+          // Foreground scrollable content
+          Padding(
+            padding: context.paddingAll,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Fixed "Create" button with tooltip
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      NavigationService().navigateTo(AppRoutes.createCategories);
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('Create Category'),
+                    style: ElevatedButton.styleFrom(backgroundColor: context.colors.primary),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Search bar
+                CommonTextField(
+                  controller: _searchController,
+                  hintText: 'Search categories...',
+                  style: context.topology.textTheme.bodySmall?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_searchController.text.isNotEmpty)
+                        IconButton(
+                          icon: Icon(Icons.clear, color: context.colors.primary),
+                          onPressed: () {
+                            _searchController.clear();
+                          },
+                        ),
+                      Icon(Icons.search, color: context.colors.primary),
+                      const SizedBox(width: 8),
+                    ],
+                  ),
+                ),
+                context.vM,
+                // Result count with helper text
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${provider.totalItemCount} ${provider.totalItemCount != 1 ? 'categories' : 'category'} found',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
+                      Text(
+                        'Click categories to expand/collapse',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary.withOpacity(0.6),
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Scrollable content
+                Expanded(child: _buildCategoryList(context, provider)),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context, CategoryProvider provider) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return SizedBox(
+      height: screenHeight - kToolbarHeight - MediaQuery.of(context).padding.top,
+      child: Stack(
+        children: [
+          // Background image (fixed at bottom right)
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: 0.15,
+                child: Image.asset(
+                  'assets/images/bg_4.png',
+                  fit: BoxFit.contain,
+                  alignment: Alignment.bottomRight,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
+            ),
+          ),
+          // Foreground scrollable content
+          Padding(
+            padding: context.paddingAll,
+            child: Column(
+              children: [
+                // Create Button
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      NavigationService().navigateTo(AppRoutes.createCategories);
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('Create'),
+                    style: ElevatedButton.styleFrom(backgroundColor: context.colors.primary),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Search bar
+                CommonTextField(
+                  controller: _searchController,
+                  hintText: 'Search categories...',
+                  style: context.topology.textTheme.bodySmall?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_searchController.text.isNotEmpty)
+                        IconButton(
+                          icon: Icon(Icons.clear, color: context.colors.primary),
+                          onPressed: () {
+                            _searchController.clear();
+                          },
+                        ),
+                      Icon(Icons.search, color: context.colors.primary),
+                      const SizedBox(width: 8),
+                    ],
+                  ),
+                ),
+                context.vM,
+                // Result count
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${provider.totalItemCount} ${provider.totalItemCount != 1 ? 'categories' : 'category'} found',
+                          style: context.topology.textTheme.bodySmall?.copyWith(
+                            color: context.colors.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Tap to expand/collapse categories',
+                          style: context.topology.textTheme.bodySmall?.copyWith(
+                            color: context.colors.primary.withOpacity(0.6),
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(child: _buildCategoryList(context, provider)),
+              ],
+            ),
+          ),
+          // Floating action button
+          if (provider.totalItemCount > 0)
+            Positioned(
+              bottom: 50,
+              right: 30,
+              child: FloatingActionButton(
+                onPressed: () {
+                  NavigationService().navigateTo(AppRoutes.createCategories);
+                },
+                tooltip: 'Add New Category',
+                backgroundColor: context.colors.primary,
+                child: const Icon(Icons.add),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryList(BuildContext context, CategoryProvider provider) {
+    if (provider.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (provider.errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: context.colors.primary.withOpacity(0.3)),
+            const SizedBox(height: 16),
+            Text(
+              provider.errorMessage!,
+              style: context.topology.textTheme.bodyMedium?.copyWith(color: Colors.red),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(onPressed: () => provider.refresh(), child: const Text('Retry')),
+          ],
+        ),
+      );
+    }
+
+    if (provider.totalItemCount == 0) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.search_off, size: 64, color: context.colors.primary.withOpacity(0.3)),
+            const SizedBox(height: 16),
+            Text(
+              'No categories found',
+              style: context.topology.textTheme.titleMedium?.copyWith(
+                color: context.colors.primary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _searchController.text.isEmpty
+                  ? 'Try adding a new category'
+                  : 'Try adjusting your search',
+              style: context.topology.textTheme.bodySmall?.copyWith(
+                color: context.colors.primary.withOpacity(0.7),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: provider.refresh,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: ListView.builder(
+          padding: const EdgeInsets.all(8),
+          itemCount: provider.totalItemCount,
+          itemBuilder: (context, index) {
+            final category = provider.getCategoryByIndex(index);
+            if (category == null) return const SizedBox.shrink();
+
+            return _buildCategoryItem(context, provider, category, index);
+          },
+        ),
       ),
     );
   }
@@ -166,17 +431,18 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         decoration: BoxDecoration(
           color: _getCategoryBackgroundColor(context, category, index),
           borderRadius: BorderRadius.circular(4),
+          border:
+              category.level == 0
+                  ? Border.all(color: context.colors.primary.withOpacity(0.1), width: 0.5)
+                  : null,
         ),
-        margin: EdgeInsets.only(
-          left: category.level * context.spacing.xl, // Indent based on level
-          bottom: context.spacing.xs,
-        ),
-        padding: EdgeInsets.symmetric(vertical: context.spacing.s, horizontal: context.spacing.m),
+        margin: EdgeInsets.only(left: category.level * 24.0, bottom: 8),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         child: Row(
           children: [
             // Expansion indicator
             SizedBox(
-              width: 20,
+              width: 24,
               child:
                   category.children.isNotEmpty
                       ? Icon(
@@ -184,35 +450,71 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             ? Icons.keyboard_arrow_down
                             : Icons.keyboard_arrow_right,
                         color: context.colors.primary,
+                        size: 20,
                       )
                       : _getIndentationIcon(category.level),
             ),
-            context.hS,
+            const SizedBox(width: 8),
 
             // Show numbering only for root level categories
             if (category.level == 0) ...[
-              Text(
-                '$visualIndex.',
-                style: context.topology.textTheme.bodyMedium?.copyWith(
-                  color: context.colors.primary,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: context.colors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '$visualIndex',
+                  style: context.topology.textTheme.bodyMedium?.copyWith(
+                    color: context.colors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-              context.hS,
+              const SizedBox(width: 12),
             ],
 
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(category.name, style: _getCategoryTextStyle(context, category)),
-                  if (category.categoryCode != null)
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(category.name, style: _getCategoryTextStyle(context, category)),
+                      ),
+                      if (category.level > 0) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: context.colors.primary.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Sub',
+                            style: context.topology.textTheme.bodySmall?.copyWith(
+                              color: context.colors.primary,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  if (category.categoryCode != null) ...[
+                    const SizedBox(height: 4),
                     Text(
                       'Code: ${category.categoryCode}',
                       style: context.topology.textTheme.bodySmall?.copyWith(
                         color: context.colors.primary.withOpacity(0.6),
                       ),
                     ),
-                  if (category.description != null && category.description!.isNotEmpty)
+                  ],
+                  if (category.description != null && category.description!.isNotEmpty) ...[
+                    const SizedBox(height: 4),
                     Text(
                       category.description!,
                       style: context.topology.textTheme.bodySmall?.copyWith(
@@ -221,6 +523,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                  ],
                 ],
               ),
             ),
@@ -228,14 +531,25 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             // Children count badge
             if (category.children.isNotEmpty) ...[
               Container(
-                margin: EdgeInsets.only(right: context.spacing.s),
-                child: Chip(
-                  label: Text(
-                    '${category.children.length}',
-                    style: context.topology.textTheme.bodySmall?.copyWith(color: Colors.white),
-                  ),
-                  backgroundColor: context.colors.primary,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: context.colors.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.subdirectory_arrow_right, color: Colors.white, size: 12),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${category.children.length}',
+                      style: context.topology.textTheme.bodySmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -250,19 +564,23 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 },
               ),
             ),
-            context.hM,
+            const SizedBox(width: 8),
 
+            // Add Sub-category button - creates child category under this parent
             if (category.canHaveChildItems)
-              SizedBox(
-                width: 100,
-                child: CommonButton(
-                  text: 'Create',
-                  onPressed: () {
-                    NavigationService().navigateTo(
-                      AppRoutes.createCategories,
-                      arguments: {'categoryId': category.id ?? ''},
-                    );
-                  },
+              Tooltip(
+                message: 'Create a sub-category under "${category.name}"',
+                child: SizedBox(
+                  width: 110,
+                  child: CommonButton(
+                    text: '+ Child',
+                    onPressed: () {
+                      NavigationService().navigateTo(
+                        AppRoutes.createCategories,
+                        arguments: {'categoryId': category.id ?? ''},
+                      );
+                    },
+                  ),
                 ),
               ),
           ],
@@ -285,7 +603,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     if (category.level == 0) {
       return context.topology.textTheme.bodyMedium?.copyWith(
         color: context.colors.primary,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w600,
       );
     } else {
       return context.topology.textTheme.bodySmall?.copyWith(

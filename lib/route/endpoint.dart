@@ -22,6 +22,17 @@ class Endpoint {
   static const String deleteReportType = '/report/delete';
   static const String createReport = '/report/create';
 
+  static const String createCycle = '/cycles/create';
+  static const String getCycle = '/cycles/details';
+
+  static String getInspectionRegister(String jobId) {
+    return '/reportData/inspectionregister/$jobId';
+  }
+
+  static String getApprovalReport(String jobId, String status) {
+    return '/reportData/approval/$jobId/$status';
+  }
+
   static String getReportField(String reportTypeId) {
     return '/reportData/fields/$reportTypeId';
   }
@@ -86,5 +97,43 @@ class Endpoint {
 
   static String getInspectionPlansByAssignee(String assigneeId) {
     return '/inspectionplans/assignee/$assigneeId';
+  }
+
+  static String updateReportApproval(String jobId) {
+    return '/jobitems/update/$jobId';
+  }
+
+  static String getReportApprovalDataFalse(String jobId) {
+    return '/reportData/approval/$jobId/false';
+  }
+
+  static String getReportApprovalDataTrue(String jobId) {
+    return '/reportData/approval/$jobId/true';
+  }
+
+  ///// Dashboard
+
+  static String getDashboardCustomer(String customerId) {
+    return '/custdashboard/$customerId/dashboard';
+  }
+
+  static String getDashboardSite(String customerId) {
+    return '/custdashboard/$customerId/sites';
+  }
+
+  static String getDashboardStatistic(String customerId) {
+    return '/custdashboard/$customerId/statistics';
+  }
+
+  static String getDashboardReports(String customerId) {
+    return '/custdashboard/$customerId/reports';
+  }
+
+  static String getDashboardItems(String customerId) {
+    return '/custdashboard/$customerId/items';
+  }
+
+  static String getDashboardJobs(String customerId) {
+    return '/custdashboard/$customerId/jobs';
   }
 }

@@ -5,11 +5,14 @@ import 'package:base_app/core/service/local_storage.dart';
 import 'package:base_app/core/service/navigation_service.dart';
 import 'package:base_app/core/service/offline_http_service.dart';
 import 'package:base_app/core/service/service_locator.dart';
+import 'package:base_app/core/service/websocket_service.dart';
 import 'package:base_app/core/theme/app_theme.dart';
 import 'package:base_app/providers/authenticate_provider.dart';
 import 'package:base_app/providers/category_provider.dart';
 import 'package:base_app/providers/customer_provider.dart';
+import 'package:base_app/providers/cycle_provider.dart';
 import 'package:base_app/providers/job_provider.dart';
+import 'package:base_app/providers/notification_provider.dart';
 import 'package:base_app/providers/personnel_provider.dart';
 import 'package:base_app/providers/planner_provider.dart';
 import 'package:base_app/providers/site_provider.dart';
@@ -36,17 +39,18 @@ void mainCommon(FlavorType flavor) async {
   Flavor.appFlavor = flavor;
 
   if (Flavor.shouldShowLogs) {
-    print('Running ${Flavor.title} with base URL: ${Flavor.baseUrl}');
+    debugPrint('Running ${Flavor.title} with base URL: ${Flavor.baseUrl}');
   }
 
-  // Initialize offline-enabled HTTP service
-  await _initializeHttpService();
+  await _initializeServices();
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthenticateProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => PlannerProvider()),
+        ChangeNotifierProvider(create: (_) => CycleProvider()),
         ChangeNotifierProvider(create: (_) => SiteProvider()),
         ChangeNotifierProvider(create: (_) => CustomerProvider()),
         ChangeNotifierProvider(create: (_) => SystemProvider()),
@@ -59,7 +63,8 @@ void mainCommon(FlavorType flavor) async {
   );
 }
 
-Future<void> _initializeHttpService() async {
+Future<void> _initializeServices() async {
+  // Create Dio instance
   final dio = Dio(
     BaseOptions(
       baseUrl: Flavor.baseUrl,
@@ -69,11 +74,25 @@ Future<void> _initializeHttpService() async {
     ),
   );
 
-  final httpService = OfflineHttpService(dio);
-  ServiceLocator().registerHttpService(httpService);
+  // Create OfflineHttpService (it will access UserRepository via ServiceLocator)
+  final offlineHttpService = OfflineHttpService(dio);
+
+  // Register HTTP service
+  ServiceLocator().registerHttpService(offlineHttpService);
+
+  // WebSocket Service - extract base URL without path
+  final uri = Uri.parse(Flavor.baseUrl);
+  final wsProtocol = uri.scheme == 'https' ? 'wss' : 'ws';
+  final wsPort = uri.hasPort ? ':${uri.port}' : '';
+  final wsUrl = '$wsProtocol://${uri.host}$wsPort';
+
+  final webSocketService = WebSocketService(baseWsUrl: wsUrl);
+  ServiceLocator().registerWebSocketService(webSocketService);
 
   if (Flavor.shouldShowLogs) {
-    print('✅ HTTP Service initialized with offline support');
+    debugPrint('✅ HTTP Service initialized: ${Flavor.baseUrl}');
+    debugPrint('✅ Offline HTTP Service initialized with token refresh');
+    debugPrint('✅ WebSocket Service initialized: $wsUrl');
   }
 }
 

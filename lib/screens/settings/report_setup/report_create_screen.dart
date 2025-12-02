@@ -36,11 +36,6 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
   final TextEditingController _possibleStatusController = TextEditingController();
   final TextEditingController _permissionController = TextEditingController();
   final TextEditingController _categoryIDController = TextEditingController();
-  final TextEditingController _fieldsIDController = TextEditingController();
-  final TextEditingController _documentTemplateController = TextEditingController();
-  final TextEditingController _labelTemplateController = TextEditingController();
-  final TextEditingController _actionReportIDController = TextEditingController();
-  final TextEditingController _competencyIDController = TextEditingController();
 
   // Boolean values for checkboxes
   bool _isExternalReport = false;
@@ -95,12 +90,6 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         _permissionController.text = detailedData['reportType']?['permission'] ?? '';
         _categoryIDController.text =
             detailedData['reportType']?['categoryID'] ?? _editReportData?.categoryId ?? '';
-        _fieldsIDController.text = detailedData['reportType']?['fieldsID'] ?? '';
-        _documentTemplateController.text = detailedData['reportType']?['documentTemplate'] ?? '';
-        _labelTemplateController.text = detailedData['reportType']?['labelTemplate'] ?? '';
-        _actionReportIDController.text = detailedData['reportType']?['actionReportID'] ?? '';
-        _competencyIDController.text =
-            detailedData['reportType']?['competencyID'] ?? _editReportData?.competencyId ?? '';
 
         _isExternalReport = detailedData['reportType']?['isExternalReport'] ?? false;
         _defaultAsDraft = detailedData['reportType']?['defaultAsDraft'] ?? true;
@@ -159,7 +148,6 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         _descriptionController.text = _editReportData?.description ?? '';
         _documentCodeController.text = _editReportData?.documentCode ?? '';
         _categoryIDController.text = _editReportData?.categoryId ?? '';
-        _competencyIDController.text = _editReportData?.competencyId ?? '';
         _archived = _editReportData?.archived ?? false;
       }
 
@@ -176,11 +164,6 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
     _possibleStatusController.dispose();
     _permissionController.dispose();
     _categoryIDController.dispose();
-    _fieldsIDController.dispose();
-    _documentTemplateController.dispose();
-    _labelTemplateController.dispose();
-    _actionReportIDController.dispose();
-    _competencyIDController.dispose();
     super.dispose();
   }
 
@@ -327,76 +310,84 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Basic Details',
-            style: context.topology.textTheme.titleMedium?.copyWith(color: context.colors.primary),
+            'Basic Information',
+            style: context.topology.textTheme.titleMedium?.copyWith(
+              color: context.colors.primary,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           context.divider,
+          context.vM,
+          _buildTextField('Report Name *', _reportNameController),
           context.vS,
-          _buildTextField('Report Name', _reportNameController),
-          context.vS,
-          _buildTextField('Description', _descriptionController),
+          _buildTextField('Description', _descriptionController, maxLines: 3),
           context.vS,
           _buildTextField('Document Code', _documentCodeController),
           context.vS,
+          _buildTextField('Batch Report Type', _batchReportTypeController),
+          if (_isEditMode) ...[
+            context.vS,
+            _buildTextField('Category ID', _categoryIDController, enabled: false),
+          ],
+          context.vL,
+          Text(
+            'Report Settings',
+            style: context.topology.textTheme.titleMedium?.copyWith(
+              color: context.colors.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          context.divider,
+          context.vM,
           _buildCheckboxField('External Report', _isExternalReport, (value) {
             setState(() => _isExternalReport = value ?? false);
           }),
-          context.vS,
           _buildCheckboxField('Default as Draft', _defaultAsDraft, (value) {
             setState(() => _defaultAsDraft = value ?? true);
           }),
-          context.vS,
           _buildCheckboxField('Archived', _archived, (value) {
             setState(() => _archived = value ?? false);
           }),
-          context.vM,
-          Text(
-            'Settings',
-            style: context.topology.textTheme.titleMedium?.copyWith(color: context.colors.primary),
-          ),
-          context.divider,
-          context.vS,
           _buildCheckboxField('Update Item Status', _updateItemStatus, (value) {
             setState(() => _updateItemStatus = value ?? true);
           }),
-          context.vS,
           _buildCheckboxField('Update Item Dates', _updateItemDates, (value) {
             setState(() => _updateItemDates = value ?? true);
           }),
-          context.vS,
-          _buildTextField('Batch Report Type', _batchReportTypeController),
-          context.vM,
+          context.vL,
           Text(
             'Status Configuration',
-            style: context.topology.textTheme.titleMedium?.copyWith(color: context.colors.primary),
+            style: context.topology.textTheme.titleMedium?.copyWith(
+              color: context.colors.primary,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           context.divider,
-          context.vS,
-          _buildCheckboxField('Status Is Required', _isStatusRequired, (value) {
+          context.vM,
+          _buildCheckboxField('Status Required', _isStatusRequired, (value) {
             setState(() => _isStatusRequired = value ?? true);
           }),
           context.vS,
-          _buildTextField('Possible Statuses (comma separated)', _possibleStatusController),
-          context.vM,
+          _buildTextField(
+            'Possible Statuses (comma separated)',
+            _possibleStatusController,
+            hint: 'e.g., draft,pending,approved,rejected',
+          ),
+          context.vL,
           Text(
-            'Permissions & Associations',
-            style: context.topology.textTheme.titleMedium?.copyWith(color: context.colors.primary),
+            'Permissions',
+            style: context.topology.textTheme.titleMedium?.copyWith(
+              color: context.colors.primary,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           context.divider,
-          context.vS,
-          _buildTextField('Permissions (comma separated)', _permissionController),
-          context.vS,
-          _buildTextField('Category ID', _categoryIDController),
-          context.vS,
-          _buildTextField('Fields ID', _fieldsIDController),
-          context.vS,
-          _buildTextField('Document Template', _documentTemplateController),
-          context.vS,
-          _buildTextField('Label Template', _labelTemplateController),
-          context.vS,
-          _buildTextField('Action Report ID', _actionReportIDController),
-          context.vS,
-          _buildTextField('Competency ID', _competencyIDController),
+          context.vM,
+          _buildTextField(
+            'Permissions (comma separated)',
+            _permissionController,
+            hint: 'e.g., admin,manager,user',
+          ),
         ],
       ),
     );
@@ -413,83 +404,179 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
               'Report Fields',
               style: context.topology.textTheme.titleMedium?.copyWith(
                 color: context.colors.primary,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            IconButton(
+            ElevatedButton.icon(
               onPressed: _addReportField,
-              icon: Icon(Icons.add_circle, color: context.colors.primary),
+              icon: Icon(Icons.add, size: 18),
+              label: Text('Add Field'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: context.colors.primary,
+                foregroundColor: Colors.white,
+              ),
             ),
           ],
         ),
         context.divider,
-        context.vS,
-        Expanded(
-          child: ListView.builder(
-            itemCount: _reportFields?.length ?? 0,
-            itemBuilder: (context, index) {
-              return Card(
-                margin: EdgeInsets.only(bottom: 8),
-                child: Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Field ${index + 1}',
-                              style: context.topology.textTheme.titleSmall,
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () => _removeReportField(index),
-                            icon: Icon(Icons.delete, color: Colors.red),
-                          ),
-                        ],
-                      ),
-                      context.vS,
-                      _buildFieldTextField('Label Text', index, 'labelText'),
-                      context.vS,
-                      _buildFieldTextField('Field Name', index, 'name'),
-                      context.vS,
-                      _buildFieldDropdown('Field Type', index, 'fieldType', [
-                        'text',
-                        'number',
-                        'decimal',
-                        'date',
-                        'checkbox',
-                        'dropdown',
-                        'textarea',
-                      ]),
-                      context.vS,
-                      _buildFieldTextField('Default Value', index, 'defaultValue'),
-                      context.vS,
-                      _buildFieldTextField('Section', index, 'section'),
-                      context.vS,
-                      _buildFieldDropdown('Only Available', index, 'onlyAvailable', [
-                        'all',
-                        'admin',
-                        'manager',
-                        'user',
-                      ]),
-                      context.vS,
-                      _buildFieldTextField('Permission Field', index, 'permissionField'),
-                      context.vS,
-                      _buildFieldTextField('Info Text', index, 'infoText'),
-                      context.vS,
-                      _buildFieldCheckbox('Is Required', index, 'isRequired'),
-                      context.vS,
-                      _buildFieldCheckbox('Do Not Copy', index, 'doNotCopy'),
-                      context.vS,
-                      _buildFieldCheckbox('Is Archive', index, 'isArchive'),
-                    ],
+        context.vM,
+        if (_reportFields?.isEmpty ?? true)
+          Center(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.description_outlined, size: 64, color: Colors.grey),
+                  context.vM,
+                  Text(
+                    'No fields added yet',
+                    style: context.topology.textTheme.bodyLarge?.copyWith(color: Colors.grey),
                   ),
-                ),
-              );
-            },
+                  context.vS,
+                  Text(
+                    'Click "Add Field" to create a new field',
+                    style: context.topology.textTheme.bodySmall?.copyWith(color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          Expanded(
+            child: ListView.builder(
+              itemCount: _reportFields?.length ?? 0,
+              itemBuilder: (context, index) {
+                final fieldType = _reportFields?[index]['fieldType']?.toString() ?? 'text';
+
+                return Card(
+                  margin: EdgeInsets.only(bottom: 12),
+                  elevation: 2,
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: context.colors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Field ${index + 1}',
+                                style: context.topology.textTheme.titleSmall?.copyWith(
+                                  color: context.colors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Spacer(),
+                            IconButton(
+                              onPressed: () => _removeReportField(index),
+                              icon: Icon(Icons.delete_outline, color: Colors.red),
+                              tooltip: 'Remove Field',
+                            ),
+                          ],
+                        ),
+                        context.vM,
+                        _buildFieldTextField('Label Text *', index, 'labelText'),
+                        context.vS,
+                        _buildFieldTextField('Field Name *', index, 'name'),
+                        context.vS,
+                        _buildFieldDropdown('Field Type', index, 'fieldType', [
+                          'text',
+                          'number',
+                          'decimal',
+                          'date',
+                          'checkbox',
+                          'dropdown',
+                          'textarea',
+                          'file',
+                          'label',
+                          'section',
+                        ]),
+                        context.vS,
+                        // Conditional fields based on field type
+                        if (fieldType == 'dropdown') ...[
+                          _buildFieldTextField('Default Value', index, 'defaultValue'),
+                          context.vS,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _reportFields?[index]['dropdownType'] = 'typed';
+                                    });
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        (_reportFields?[index]['dropdownType'] ?? 'typed') ==
+                                                'typed'
+                                            ? context.colors.primary
+                                            : Colors.grey,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: Text('Typed'),
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _reportFields?[index]['dropdownType'] = 'lookup';
+                                    });
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        (_reportFields?[index]['dropdownType'] ?? 'typed') ==
+                                                'lookup'
+                                            ? context.colors.primary
+                                            : Colors.grey,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: Text('Lookup'),
+                                ),
+                              ),
+                            ],
+                          ),
+                          context.vS,
+                          _buildFieldTextField('Options', index, 'options'),
+                          context.vS,
+                        ] else if (fieldType == 'file') ...[
+                          _buildFieldCheckbox('Append PDF', index, 'appendPDF'),
+                          context.vS,
+                          _buildFieldTextField('File Extensions', index, 'fileExtensions'),
+                          context.vS,
+                        ] else if (fieldType == 'label' || fieldType == 'section') ...[
+                          // Label and section types have minimal fields
+                        ] else ...[
+                          _buildFieldTextField('Default Value', index, 'defaultValue'),
+                          context.vS,
+                        ],
+                        _buildFieldTextFieldWithSuggestions('Section', index, 'section'),
+                        context.vS,
+                        _buildFieldTextField('Only available if', index, 'onlyAvailable'),
+                        context.vS,
+                        _buildFieldCheckbox('Required', index, 'isRequired'),
+                        context.vS,
+                        _buildFieldTextField('Info Text', index, 'infoText'),
+                        context.vS,
+                        if (fieldType == 'label' || fieldType == 'section')
+                          _buildFieldCheckbox('Hide/Archive?', index, 'isArchive')
+                        else
+                          _buildFieldCheckbox('Do Not Copy', index, 'doNotCopy'),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
       ],
     );
   }
@@ -505,72 +592,112 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
               'Status Rules',
               style: context.topology.textTheme.titleMedium?.copyWith(
                 color: context.colors.primary,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            IconButton(
+            ElevatedButton.icon(
               onPressed: _addStatusRule,
-              icon: Icon(Icons.add_circle, color: context.colors.primary),
+              icon: Icon(Icons.add, size: 18),
+              label: Text('Add Rule'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: context.colors.primary,
+                foregroundColor: Colors.white,
+              ),
             ),
           ],
         ),
         context.divider,
-        context.vS,
-        Expanded(
-          child: ListView.builder(
-            itemCount: _statusRuleReports?.length ?? 0,
-            itemBuilder: (context, index) {
-              return Card(
-                margin: EdgeInsets.only(bottom: 8),
-                child: Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Status Rule ${index + 1}',
-                              style: context.topology.textTheme.titleSmall,
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () => _removeStatusRule(index),
-                            icon: Icon(Icons.delete, color: Colors.red),
-                          ),
-                        ],
-                      ),
-                      context.vS,
-                      _buildStatusRuleDropdown('Status', index, 'status', [
-                        'draft',
-                        'pending',
-                        'approved',
-                        'rejected',
-                        'in_progress',
-                        'completed',
-                      ]),
-                      context.vS,
-                      _buildStatusRuleTextField('Field', index, 'field'),
-                      context.vS,
-                      _buildStatusRuleDropdown('Operator', index, 'operator', [
-                        '==',
-                        '!=',
-                        '>',
-                        '<',
-                        '>=',
-                        '<=',
-                        'contains',
-                        'not_contains',
-                      ]),
-                      context.vS,
-                      _buildStatusRuleTextField('Value', index, 'value'),
-                    ],
+        context.vM,
+        if (_statusRuleReports?.isEmpty ?? true)
+          Center(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.rule_outlined, size: 64, color: Colors.grey),
+                  context.vM,
+                  Text(
+                    'No status rules added yet',
+                    style: context.topology.textTheme.bodyLarge?.copyWith(color: Colors.grey),
                   ),
-                ),
-              );
-            },
+                  context.vS,
+                  Text(
+                    'Click "Add Rule" to create a new status rule',
+                    style: context.topology.textTheme.bodySmall?.copyWith(color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          Expanded(
+            child: ListView.builder(
+              itemCount: _statusRuleReports?.length ?? 0,
+              itemBuilder: (context, index) {
+                return Card(
+                  margin: EdgeInsets.only(bottom: 12),
+                  elevation: 2,
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: context.colors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Rule ${index + 1}',
+                                style: context.topology.textTheme.titleSmall?.copyWith(
+                                  color: context.colors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Spacer(),
+                            IconButton(
+                              onPressed: () => _removeStatusRule(index),
+                              icon: Icon(Icons.delete_outline, color: Colors.red),
+                              tooltip: 'Remove Rule',
+                            ),
+                          ],
+                        ),
+                        context.vM,
+                        _buildStatusRuleDropdown('Status', index, 'status', [
+                          'draft',
+                          'pending',
+                          'approved',
+                          'rejected',
+                          'in_progress',
+                          'completed',
+                        ]),
+                        context.vS,
+                        _buildStatusRuleTextField('Field', index, 'field'),
+                        context.vS,
+                        _buildStatusRuleDropdown('Operator', index, 'operator', [
+                          '==',
+                          '!=',
+                          '>',
+                          '<',
+                          '>=',
+                          '<=',
+                          'contains',
+                          'not_contains',
+                        ]),
+                        context.vS,
+                        _buildStatusRuleTextField('Value', index, 'value'),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
       ],
     );
   }
@@ -586,63 +713,107 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
               'Report Type Dates',
               style: context.topology.textTheme.titleMedium?.copyWith(
                 color: context.colors.primary,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            IconButton(
+            ElevatedButton.icon(
               onPressed: _addReportTypeDate,
-              icon: Icon(Icons.add_circle, color: context.colors.primary),
+              icon: Icon(Icons.add, size: 18),
+              label: Text('Add Date'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: context.colors.primary,
+                foregroundColor: Colors.white,
+              ),
             ),
           ],
         ),
         context.divider,
-        context.vS,
-        Expanded(
-          child: ListView.builder(
-            itemCount: _reportTypeDates?.length ?? 0,
-            itemBuilder: (context, index) {
-              return Card(
-                margin: EdgeInsets.only(bottom: 8),
-                child: Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Date Configuration ${index + 1}',
-                              style: context.topology.textTheme.titleSmall,
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () => _removeReportTypeDate(index),
-                            icon: Icon(Icons.delete, color: Colors.red),
-                          ),
-                        ],
-                      ),
-                      context.vS,
-                      _buildDateTextField('Date Name', index, 'name'),
-                      context.vS,
-                      _buildDateDropdown('Apply Cycle', index, 'applyCycle', [
-                        'daily',
-                        'weekly',
-                        'monthly',
-                        'quarterly',
-                        'yearly',
-                        'custom',
-                      ]),
-                      context.vS,
-                      _buildDateCheckbox('Is Required', index, 'isRequired'),
-                      context.vS,
-                      _buildDateCheckbox('Disable Free Type', index, 'disableFreeType'),
-                    ],
+        context.vM,
+        if (_reportTypeDates?.isEmpty ?? true)
+          Center(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.calendar_today_outlined, size: 64, color: Colors.grey),
+                  context.vM,
+                  Text(
+                    'No date configurations added yet',
+                    style: context.topology.textTheme.bodyLarge?.copyWith(color: Colors.grey),
                   ),
-                ),
-              );
-            },
+                  context.vS,
+                  Text(
+                    'Click "Add Date" to create a new date configuration',
+                    style: context.topology.textTheme.bodySmall?.copyWith(color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          Expanded(
+            child: ListView.builder(
+              itemCount: _reportTypeDates?.length ?? 0,
+              itemBuilder: (context, index) {
+                return Card(
+                  margin: EdgeInsets.only(bottom: 12),
+                  elevation: 2,
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: context.colors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Date ${index + 1}',
+                                style: context.topology.textTheme.titleSmall?.copyWith(
+                                  color: context.colors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Spacer(),
+                            IconButton(
+                              onPressed: () => _removeReportTypeDate(index),
+                              icon: Icon(Icons.delete_outline, color: Colors.red),
+                              tooltip: 'Remove Date',
+                            ),
+                          ],
+                        ),
+                        context.vM,
+                        _buildDateTextField('Date Name *', index, 'name'),
+                        context.vS,
+                        _buildDateDropdown('Apply Cycle', index, 'applyCycle', [
+                          'daily',
+                          'weekly',
+                          'monthly',
+                          'quarterly',
+                          'yearly',
+                          'custom',
+                        ]),
+                        context.vS,
+                        Wrap(
+                          spacing: 16,
+                          children: [
+                            _buildDateCheckbox('Required', index, 'isRequired'),
+                            _buildDateCheckbox('Disable Free Type', index, 'disableFreeType'),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
       ],
     );
   }
@@ -658,73 +829,113 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
               'Action Reports',
               style: context.topology.textTheme.titleMedium?.copyWith(
                 color: context.colors.primary,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            IconButton(
+            ElevatedButton.icon(
               onPressed: _addActionReport,
-              icon: Icon(Icons.add_circle, color: context.colors.primary),
+              icon: Icon(Icons.add, size: 18),
+              label: Text('Add Action'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: context.colors.primary,
+                foregroundColor: Colors.white,
+              ),
             ),
           ],
         ),
         context.divider,
-        context.vS,
-        Expanded(
-          child: ListView.builder(
-            itemCount: _actionReports?.length ?? 0,
-            itemBuilder: (context, index) {
-              return Card(
-                margin: EdgeInsets.only(bottom: 8),
-                child: Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Action Report ${index + 1}',
-                              style: context.topology.textTheme.titleSmall,
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () => _removeActionReport(index),
-                            icon: Icon(Icons.delete, color: Colors.red),
-                          ),
-                        ],
-                      ),
-                      context.vS,
-                      _buildActionTextField('Description', index, 'description'),
-                      context.vS,
-                      _buildActionTextField('Apply Action', index, 'applyAction'),
-                      context.vS,
-                      _buildActionTextField('Match Field', index, 'match'),
-                      context.vS,
-                      _buildActionDropdown('Action Type', index, 'actionType', [
-                        'status_update',
-                        'notification',
-                        'email',
-                        'data_transfer',
-                        'calculation',
-                        'workflow_trigger',
-                      ]),
-                      context.vS,
-                      _buildActionTextField('Source Table', index, 'sourceTable'),
-                      context.vS,
-                      _buildActionTextField('Source Field', index, 'sourceField'),
-                      context.vS,
-                      _buildActionTextField('Destination Table', index, 'destinationTable'),
-                      context.vS,
-                      _buildActionTextField('Destination Field', index, 'destinationField'),
-                      context.vS,
-                      _buildActionCheckbox('Is Archive', index, 'isArchive'),
-                    ],
+        context.vM,
+        if (_actionReports?.isEmpty ?? true)
+          Center(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.bolt_outlined, size: 64, color: Colors.grey),
+                  context.vM,
+                  Text(
+                    'No action reports added yet',
+                    style: context.topology.textTheme.bodyLarge?.copyWith(color: Colors.grey),
                   ),
-                ),
-              );
-            },
+                  context.vS,
+                  Text(
+                    'Click "Add Action" to create a new action report',
+                    style: context.topology.textTheme.bodySmall?.copyWith(color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          Expanded(
+            child: ListView.builder(
+              itemCount: _actionReports?.length ?? 0,
+              itemBuilder: (context, index) {
+                return Card(
+                  margin: EdgeInsets.only(bottom: 12),
+                  elevation: 2,
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: context.colors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Action ${index + 1}',
+                                style: context.topology.textTheme.titleSmall?.copyWith(
+                                  color: context.colors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Spacer(),
+                            IconButton(
+                              onPressed: () => _removeActionReport(index),
+                              icon: Icon(Icons.delete_outline, color: Colors.red),
+                              tooltip: 'Remove Action',
+                            ),
+                          ],
+                        ),
+                        context.vM,
+                        _buildActionTextField('Description', index, 'description'),
+                        context.vS,
+                        _buildActionTextField('Apply Action', index, 'applyAction'),
+                        context.vS,
+                        _buildActionTextField('Match Field', index, 'match'),
+                        context.vS,
+                        _buildActionDropdown('Action Type', index, 'actionType', [
+                          'status_update',
+                          'notification',
+                          'email',
+                          'data_transfer',
+                          'calculation',
+                          'workflow_trigger',
+                        ]),
+                        context.vS,
+                        _buildActionTextField('Source Table', index, 'sourceTable'),
+                        context.vS,
+                        _buildActionTextField('Source Field', index, 'sourceField'),
+                        context.vS,
+                        _buildActionTextField('Destination Table', index, 'destinationTable'),
+                        context.vS,
+                        _buildActionTextField('Destination Field', index, 'destinationField'),
+                        context.vS,
+                        _buildActionCheckbox('Archive', index, 'isArchive'),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
       ],
     );
   }
@@ -740,131 +951,240 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
               'Competency Reports',
               style: context.topology.textTheme.titleMedium?.copyWith(
                 color: context.colors.primary,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            IconButton(
+            ElevatedButton.icon(
               onPressed: _addCompetencyReport,
-              icon: Icon(Icons.add_circle, color: context.colors.primary),
+              icon: Icon(Icons.add, size: 18),
+              label: Text('Add Competency'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: context.colors.primary,
+                foregroundColor: Colors.white,
+              ),
             ),
           ],
         ),
         context.divider,
-        context.vS,
-        Expanded(
-          child: ListView.builder(
-            itemCount: _competencyReports?.length ?? 0,
-            itemBuilder: (context, index) {
-              return Card(
-                margin: EdgeInsets.only(bottom: 8),
-                child: Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Competency Report ${index + 1}',
-                              style: context.topology.textTheme.titleSmall,
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () => _removeCompetencyReport(index),
-                            icon: Icon(Icons.delete, color: Colors.red),
-                          ),
-                        ],
-                      ),
-                      context.vS,
-                      _buildCompetencyTextField('Name', index, 'name'),
-                      context.vS,
-                      _buildCompetencyDropdown('Internal/External', index, 'internalExternal', [
-                        'internal',
-                        'external',
-                      ]),
-                      context.vS,
-                      _buildCompetencyCheckbox('Can Create', index, 'canCreate'),
-                    ],
+        context.vM,
+        if (_competencyReports?.isEmpty ?? true)
+          Center(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.psychology_outlined, size: 64, color: Colors.grey),
+                  context.vM,
+                  Text(
+                    'No competency reports added yet',
+                    style: context.topology.textTheme.bodyLarge?.copyWith(color: Colors.grey),
                   ),
-                ),
-              );
-            },
+                  context.vS,
+                  Text(
+                    'Click "Add Competency" to create a new competency report',
+                    style: context.topology.textTheme.bodySmall?.copyWith(color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          Expanded(
+            child: ListView.builder(
+              itemCount: _competencyReports?.length ?? 0,
+              itemBuilder: (context, index) {
+                return Card(
+                  margin: EdgeInsets.only(bottom: 12),
+                  elevation: 2,
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: context.colors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Competency ${index + 1}',
+                                style: context.topology.textTheme.titleSmall?.copyWith(
+                                  color: context.colors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Spacer(),
+                            IconButton(
+                              onPressed: () => _removeCompetencyReport(index),
+                              icon: Icon(Icons.delete_outline, color: Colors.red),
+                              tooltip: 'Remove Competency',
+                            ),
+                          ],
+                        ),
+                        context.vM,
+                        _buildCompetencyTextField('Name *', index, 'name'),
+                        context.vS,
+                        _buildCompetencyDropdown('Type', index, 'internalExternal', [
+                          'internal',
+                          'external',
+                        ]),
+                        context.vS,
+                        _buildCompetencyCheckbox('Can Create', index, 'canCreate'),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
       ],
     );
   }
 
   // Helper methods for Fields step
+  List<String> _getAvailableSections() {
+    final sections = <String>{};
+    for (var field in _reportFields ?? []) {
+      if (field['fieldType'] == 'section' && field['labelText'] != null) {
+        final sectionName = field['labelText'].toString().trim();
+        if (sectionName.isNotEmpty) {
+          sections.add(sectionName);
+        }
+      }
+    }
+    return sections.toList();
+  }
+
+  Widget _buildFieldTextFieldWithSuggestions(String label, int index, String key) {
+    final currentValue = _reportFields?[index][key]?.toString() ?? '';
+    final availableSections = _getAvailableSections();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: context.topology.textTheme.bodySmall?.copyWith(
+            color: context.colors.primary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        SizedBox(height: 8),
+        if (availableSections.isNotEmpty) ...[
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children:
+                availableSections.map((section) {
+                  return InkWell(
+                    onTap: () {
+                      setState(() {
+                        _reportFields?[index][key] = section;
+                      });
+                    },
+                    child: Chip(
+                      label: Text(
+                        section,
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: currentValue == section ? Colors.white : context.colors.primary,
+                        ),
+                      ),
+                      backgroundColor:
+                          currentValue == section
+                              ? context.colors.primary
+                              : context.colors.primary.withOpacity(0.1),
+                    ),
+                  );
+                }).toList(),
+          ),
+          SizedBox(height: 8),
+        ],
+        CommonTextField(
+          controller: TextEditingController(text: currentValue)
+            ..selection = TextSelection.fromPosition(TextPosition(offset: currentValue.length)),
+          style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+          onChanged: (value) {
+            setState(() {
+              _reportFields?[index][key] = value;
+            });
+          },
+          hintText:
+              availableSections.isEmpty ? 'Enter section name' : 'Select or enter section name',
+        ),
+      ],
+    );
+  }
+
   Widget _buildFieldTextField(String label, int index, String key) {
     final currentValue = _reportFields?[index][key]?.toString() ?? '';
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+        Text(
+          label,
+          style: context.topology.textTheme.bodySmall?.copyWith(
+            color: context.colors.primary,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        Expanded(
-          flex: 3,
-          child: CommonTextField(
-            controller: TextEditingController(text: currentValue)
-              ..selection = TextSelection.fromPosition(TextPosition(offset: currentValue.length)),
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-            onChanged: (value) {
-              setState(() {
-                _reportFields?[index][key] = value;
-              });
-            },
-          ),
+        SizedBox(height: 8),
+        CommonTextField(
+          controller: TextEditingController(text: currentValue)
+            ..selection = TextSelection.fromPosition(TextPosition(offset: currentValue.length)),
+          style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+          onChanged: (value) {
+            setState(() {
+              _reportFields?[index][key] = value;
+            });
+          },
         ),
       ],
     );
   }
 
   Widget _buildFieldDropdown(String label, int index, String key, List<String> options) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+        Text(
+          label,
+          style: context.topology.textTheme.bodySmall?.copyWith(
+            color: context.colors.primary,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        Expanded(
-          flex: 3,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              border: Border.all(color: context.colors.primary.withOpacity(0.3)),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _reportFields?[index][key]?.toString(),
-                style: context.topology.textTheme.bodySmall?.copyWith(
-                  color: context.colors.primary,
-                ),
-                isExpanded: true,
-                items:
-                    options.map((String option) {
-                      return DropdownMenuItem<String>(
-                        value: option,
-                        child: Text(option, style: context.topology.textTheme.bodyMedium),
-                      );
-                    }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    setState(() {
-                      _reportFields?[index][key] = newValue;
-                    });
-                  }
-                },
-              ),
+        SizedBox(height: 8),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            border: Border.all(color: context.colors.primary.withOpacity(0.3)),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _reportFields?[index][key]?.toString(),
+              style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+              isExpanded: true,
+              items:
+                  options.map((String option) {
+                    return DropdownMenuItem<String>(
+                      value: option,
+                      child: Text(option, style: context.topology.textTheme.bodyMedium),
+                    );
+                  }).toList(),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    _reportFields?[index][key] = newValue;
+                  });
+                }
+              },
             ),
           ),
         ),
@@ -874,25 +1194,20 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
 
   Widget _buildFieldCheckbox(String label, int index, String key) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-          ),
+        Checkbox(
+          value: _reportFields?[index][key] ?? false,
+          onChanged: (bool? value) {
+            setState(() {
+              _reportFields?[index][key] = value ?? false;
+            });
+          },
+          activeColor: context.colors.primary,
         ),
-        Expanded(
-          flex: 3,
-          child: Checkbox(
-            value: _reportFields?[index][key] ?? false,
-            onChanged: (bool? value) {
-              setState(() {
-                _reportFields?[index][key] = value ?? false;
-              });
-            },
-            activeColor: context.colors.primary,
-          ),
+        Text(
+          label,
+          style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
         ),
       ],
     );
@@ -902,72 +1217,68 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
   Widget _buildStatusRuleTextField(String label, int index, String key) {
     final currentValue = _statusRuleReports?[index][key]?.toString() ?? '';
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+        Text(
+          label,
+          style: context.topology.textTheme.bodySmall?.copyWith(
+            color: context.colors.primary,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        Expanded(
-          flex: 3,
-          child: CommonTextField(
-            controller: TextEditingController(text: currentValue)
-              ..selection = TextSelection.fromPosition(TextPosition(offset: currentValue.length)),
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-            onChanged: (value) {
-              setState(() {
-                _statusRuleReports?[index][key] = value;
-              });
-            },
-          ),
+        SizedBox(height: 8),
+        CommonTextField(
+          controller: TextEditingController(text: currentValue)
+            ..selection = TextSelection.fromPosition(TextPosition(offset: currentValue.length)),
+          style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+          onChanged: (value) {
+            setState(() {
+              _statusRuleReports?[index][key] = value;
+            });
+          },
         ),
       ],
     );
   }
 
   Widget _buildStatusRuleDropdown(String label, int index, String key, List<String> options) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+        Text(
+          label,
+          style: context.topology.textTheme.bodySmall?.copyWith(
+            color: context.colors.primary,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        Expanded(
-          flex: 3,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              border: Border.all(color: context.colors.primary.withOpacity(0.3)),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _statusRuleReports?[index][key]?.toString(),
-                style: context.topology.textTheme.bodySmall?.copyWith(
-                  color: context.colors.primary,
-                ),
-                isExpanded: true,
-                items:
-                    options.map((String option) {
-                      return DropdownMenuItem<String>(
-                        value: option,
-                        child: Text(option, style: context.topology.textTheme.bodyMedium),
-                      );
-                    }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    setState(() {
-                      _statusRuleReports?[index][key] = newValue;
-                    });
-                  }
-                },
-              ),
+        SizedBox(height: 8),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            border: Border.all(color: context.colors.primary.withOpacity(0.3)),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _statusRuleReports?[index][key]?.toString(),
+              style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+              isExpanded: true,
+              items:
+                  options.map((String option) {
+                    return DropdownMenuItem<String>(
+                      value: option,
+                      child: Text(option, style: context.topology.textTheme.bodyMedium),
+                    );
+                  }).toList(),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    _statusRuleReports?[index][key] = newValue;
+                  });
+                }
+              },
             ),
           ),
         ),
@@ -979,72 +1290,68 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
   Widget _buildDateTextField(String label, int index, String key) {
     final currentValue = _reportTypeDates?[index][key]?.toString() ?? '';
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+        Text(
+          label,
+          style: context.topology.textTheme.bodySmall?.copyWith(
+            color: context.colors.primary,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        Expanded(
-          flex: 3,
-          child: CommonTextField(
-            controller: TextEditingController(text: currentValue)
-              ..selection = TextSelection.fromPosition(TextPosition(offset: currentValue.length)),
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-            onChanged: (value) {
-              setState(() {
-                _reportTypeDates?[index][key] = value;
-              });
-            },
-          ),
+        SizedBox(height: 8),
+        CommonTextField(
+          controller: TextEditingController(text: currentValue)
+            ..selection = TextSelection.fromPosition(TextPosition(offset: currentValue.length)),
+          style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+          onChanged: (value) {
+            setState(() {
+              _reportTypeDates?[index][key] = value;
+            });
+          },
         ),
       ],
     );
   }
 
   Widget _buildDateDropdown(String label, int index, String key, List<String> options) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+        Text(
+          label,
+          style: context.topology.textTheme.bodySmall?.copyWith(
+            color: context.colors.primary,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        Expanded(
-          flex: 3,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              border: Border.all(color: context.colors.primary.withOpacity(0.3)),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _reportTypeDates?[index][key]?.toString(),
-                isExpanded: true,
-                style: context.topology.textTheme.bodySmall?.copyWith(
-                  color: context.colors.primary,
-                ),
-                items:
-                    options.map((String option) {
-                      return DropdownMenuItem<String>(
-                        value: option,
-                        child: Text(option, style: context.topology.textTheme.bodyMedium),
-                      );
-                    }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    setState(() {
-                      _reportTypeDates?[index][key] = newValue;
-                    });
-                  }
-                },
-              ),
+        SizedBox(height: 8),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            border: Border.all(color: context.colors.primary.withOpacity(0.3)),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _reportTypeDates?[index][key]?.toString(),
+              isExpanded: true,
+              style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+              items:
+                  options.map((String option) {
+                    return DropdownMenuItem<String>(
+                      value: option,
+                      child: Text(option, style: context.topology.textTheme.bodyMedium),
+                    );
+                  }).toList(),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    _reportTypeDates?[index][key] = newValue;
+                  });
+                }
+              },
             ),
           ),
         ),
@@ -1054,25 +1361,20 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
 
   Widget _buildDateCheckbox(String label, int index, String key) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-          ),
+        Checkbox(
+          value: _reportTypeDates?[index][key] ?? false,
+          onChanged: (bool? value) {
+            setState(() {
+              _reportTypeDates?[index][key] = value ?? false;
+            });
+          },
+          activeColor: context.colors.primary,
         ),
-        Expanded(
-          flex: 3,
-          child: Checkbox(
-            value: _reportTypeDates?[index][key] ?? false,
-            onChanged: (bool? value) {
-              setState(() {
-                _reportTypeDates?[index][key] = value ?? false;
-              });
-            },
-            activeColor: context.colors.primary,
-          ),
+        Text(
+          label,
+          style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
         ),
       ],
     );
@@ -1082,72 +1384,68 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
   Widget _buildActionTextField(String label, int index, String key) {
     final currentValue = _actionReports?[index][key]?.toString() ?? '';
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+        Text(
+          label,
+          style: context.topology.textTheme.bodySmall?.copyWith(
+            color: context.colors.primary,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        Expanded(
-          flex: 3,
-          child: CommonTextField(
-            controller: TextEditingController(text: currentValue)
-              ..selection = TextSelection.fromPosition(TextPosition(offset: currentValue.length)),
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-            onChanged: (value) {
-              setState(() {
-                _actionReports?[index][key] = value;
-              });
-            },
-          ),
+        SizedBox(height: 8),
+        CommonTextField(
+          controller: TextEditingController(text: currentValue)
+            ..selection = TextSelection.fromPosition(TextPosition(offset: currentValue.length)),
+          style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+          onChanged: (value) {
+            setState(() {
+              _actionReports?[index][key] = value;
+            });
+          },
         ),
       ],
     );
   }
 
   Widget _buildActionDropdown(String label, int index, String key, List<String> options) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+        Text(
+          label,
+          style: context.topology.textTheme.bodySmall?.copyWith(
+            color: context.colors.primary,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        Expanded(
-          flex: 3,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              border: Border.all(color: context.colors.primary.withOpacity(0.3)),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _actionReports?[index][key]?.toString(),
-                isExpanded: true,
-                style: context.topology.textTheme.bodySmall?.copyWith(
-                  color: context.colors.primary,
-                ),
-                items:
-                    options.map((String option) {
-                      return DropdownMenuItem<String>(
-                        value: option,
-                        child: Text(option, style: context.topology.textTheme.bodyMedium),
-                      );
-                    }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    setState(() {
-                      _actionReports?[index][key] = newValue;
-                    });
-                  }
-                },
-              ),
+        SizedBox(height: 8),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            border: Border.all(color: context.colors.primary.withOpacity(0.3)),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _actionReports?[index][key]?.toString(),
+              isExpanded: true,
+              style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+              items:
+                  options.map((String option) {
+                    return DropdownMenuItem<String>(
+                      value: option,
+                      child: Text(option, style: context.topology.textTheme.bodyMedium),
+                    );
+                  }).toList(),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    _actionReports?[index][key] = newValue;
+                  });
+                }
+              },
             ),
           ),
         ),
@@ -1157,25 +1455,20 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
 
   Widget _buildActionCheckbox(String label, int index, String key) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-          ),
+        Checkbox(
+          value: _actionReports?[index][key] ?? false,
+          onChanged: (bool? value) {
+            setState(() {
+              _actionReports?[index][key] = value ?? false;
+            });
+          },
+          activeColor: context.colors.primary,
         ),
-        Expanded(
-          flex: 3,
-          child: Checkbox(
-            value: _actionReports?[index][key] ?? false,
-            onChanged: (bool? value) {
-              setState(() {
-                _actionReports?[index][key] = value ?? false;
-              });
-            },
-            activeColor: context.colors.primary,
-          ),
+        Text(
+          label,
+          style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
         ),
       ],
     );
@@ -1185,77 +1478,73 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
   Widget _buildCompetencyTextField(String label, int index, String key) {
     final currentValue = _competencyReports?[index][key]?.toString() ?? '';
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+        Text(
+          label,
+          style: context.topology.textTheme.bodySmall?.copyWith(
+            color: context.colors.primary,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        Expanded(
-          flex: 3,
-          child: CommonTextField(
-            controller: TextEditingController(text: currentValue)
-              ..selection = TextSelection.fromPosition(TextPosition(offset: currentValue.length)),
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-            onChanged: (value) {
-              setState(() {
-                _competencyReports?[index][key] = value;
-              });
-            },
-          ),
+        SizedBox(height: 8),
+        CommonTextField(
+          controller: TextEditingController(text: currentValue)
+            ..selection = TextSelection.fromPosition(TextPosition(offset: currentValue.length)),
+          style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+          onChanged: (value) {
+            setState(() {
+              _competencyReports?[index][key] = value;
+            });
+          },
         ),
       ],
     );
   }
 
   Widget _buildCompetencyDropdown(String label, int index, String key, List<String> options) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+        Text(
+          label,
+          style: context.topology.textTheme.bodySmall?.copyWith(
+            color: context.colors.primary,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        Expanded(
-          flex: 3,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              border: Border.all(color: context.colors.primary.withOpacity(0.3)),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _competencyReports?[index][key]?.toString(),
-                style: context.topology.textTheme.bodySmall?.copyWith(
-                  color: context.colors.primary,
-                ),
-                isExpanded: true,
-                items:
-                    options.map((String option) {
-                      return DropdownMenuItem<String>(
-                        value: option,
-                        child: Text(
-                          option,
-                          style: context.topology.textTheme.bodySmall?.copyWith(
-                            color: context.colors.primary,
-                          ),
+        SizedBox(height: 8),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            border: Border.all(color: context.colors.primary.withOpacity(0.3)),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _competencyReports?[index][key]?.toString(),
+              style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+              isExpanded: true,
+              items:
+                  options.map((String option) {
+                    return DropdownMenuItem<String>(
+                      value: option,
+                      child: Text(
+                        option,
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
                         ),
-                      );
-                    }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    setState(() {
-                      _competencyReports?[index][key] = newValue;
-                    });
-                  }
-                },
-              ),
+                      ),
+                    );
+                  }).toList(),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    _competencyReports?[index][key] = newValue;
+                  });
+                }
+              },
             ),
           ),
         ),
@@ -1265,66 +1554,69 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
 
   Widget _buildCompetencyCheckbox(String label, int index, String key) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-          ),
+        Checkbox(
+          value: _competencyReports?[index][key] ?? false,
+          onChanged: (bool? value) {
+            setState(() {
+              _competencyReports?[index][key] = value ?? false;
+            });
+          },
+          activeColor: context.colors.primary,
         ),
-        Expanded(
-          flex: 3,
-          child: Checkbox(
-            value: _competencyReports?[index][key] ?? false,
-            onChanged: (bool? value) {
-              setState(() {
-                _competencyReports?[index][key] = value ?? false;
-              });
-            },
-            activeColor: context.colors.primary,
-          ),
+        Text(
+          label,
+          style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
         ),
       ],
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller) {
-    return Row(
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    int maxLines = 1,
+    String? hint,
+    bool enabled = true,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
+        Text(
+          label,
+          style: context.topology.textTheme.bodyMedium?.copyWith(
+            color: context.colors.primary,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        Expanded(
-          flex: 3,
-          child: CommonTextField(
-            controller: controller,
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-          ),
+        SizedBox(height: 8),
+        CommonTextField(
+          controller: controller,
+          style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+          maxLines: maxLines,
+          enabled: enabled,
+          hintText: hint,
         ),
       ],
     );
   }
 
   Widget _buildCheckboxField(String label, bool value, Function(bool?) onChanged) {
-    return Row(
-      children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Checkbox(value: value, onChanged: onChanged, activeColor: context.colors.primary),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
+            ),
           ),
-        ),
-        Expanded(
-          flex: 3,
-          child: Checkbox(value: value, onChanged: onChanged, activeColor: context.colors.primary),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -1355,7 +1647,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
 
   void _addStatusRule() {
     setState(() {
-      _statusRuleReports?.add({"status": "", "field": "", "operator": "", "value": ""});
+      _statusRuleReports?.add({"status": "draft", "field": "", "operator": "==", "value": ""});
     });
   }
 
@@ -1369,7 +1661,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
     setState(() {
       _reportTypeDates?.add({
         "name": "",
-        "applyCycle": "",
+        "applyCycle": "daily",
         "isRequired": true,
         "disableFreeType": false,
       });
@@ -1389,7 +1681,7 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
         "isArchive": false,
         "applyAction": "",
         "match": "",
-        "actionType": "",
+        "actionType": "status_update",
         "sourceTable": "",
         "sourceField": "",
         "destinationTable": "",
@@ -1416,84 +1708,202 @@ class _ReportCreateScreenState extends State<ReportCreateScreen> {
     });
   }
 
+  // Update the _submitReport method in your ReportCreateScreen
+
+  // Update the _submitReport method in your ReportCreateScreen
+
   Future<void> _submitReport() async {
+    // Validate required fields
+    if (_reportNameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Please enter a report name')));
+      setState(() => _currentStep = 0);
+      return;
+    }
+
     try {
       final provider = Provider.of<SystemProvider>(context, listen: false);
 
       // Clean up reportFields before submission
       final cleanedReportFields =
-          _reportFields?.map((field) {
+          (_reportFields ?? []).map((field) {
             final cleanField = Map<String, dynamic>.from(field);
 
-            // Ensure defaultValue is a simple string
+            // Remove created_at and updated_at fields
+            cleanField.remove('created_at');
+            cleanField.remove('updated_at');
+            cleanField.remove('createdAt');
+            cleanField.remove('updatedAt');
+
+            // Ensure all required fields exist with proper types
+            cleanField['labelText'] = cleanField['labelText']?.toString() ?? '';
+            cleanField['name'] = cleanField['name']?.toString() ?? '';
+            cleanField['fieldType'] = cleanField['fieldType']?.toString() ?? 'text';
+            cleanField['section'] = cleanField['section']?.toString() ?? '';
+            cleanField['onlyAvailable'] = cleanField['onlyAvailable']?.toString() ?? 'all';
+            cleanField['permissionField'] = cleanField['permissionField']?.toString() ?? '';
+            cleanField['infoText'] = cleanField['infoText']?.toString() ?? '';
+
+            // Handle defaultValue - ensure it's a string
             if (cleanField['defaultValue'] != null) {
               if (cleanField['defaultValue'] is List || cleanField['defaultValue'] is Map) {
                 cleanField['defaultValue'] = '';
               } else {
                 cleanField['defaultValue'] = cleanField['defaultValue'].toString();
               }
+            } else {
+              cleanField['defaultValue'] = '';
             }
+
+            // Ensure boolean fields are proper booleans
+            cleanField['isRequired'] = cleanField['isRequired'] == true;
+            cleanField['doNotCopy'] = cleanField['doNotCopy'] == true;
+            cleanField['isArchive'] = cleanField['isArchive'] == true;
 
             return cleanField;
           }).toList();
 
+      // Clean up statusRuleReports
+      final cleanedStatusRules =
+          (_statusRuleReports ?? []).map((rule) {
+            final cleanRule = Map<String, dynamic>.from(rule);
+
+            // Remove created_at and updated_at fields
+            cleanRule.remove('created_at');
+            cleanRule.remove('updated_at');
+            cleanRule.remove('createdAt');
+            cleanRule.remove('updatedAt');
+
+            return {
+              'status': cleanRule['status']?.toString() ?? '',
+              'field': cleanRule['field']?.toString() ?? '',
+              'operator': cleanRule['operator']?.toString() ?? '==',
+              'value': cleanRule['value']?.toString() ?? '',
+            };
+          }).toList();
+
+      // Clean up reportTypeDates
+      final cleanedReportDates =
+          (_reportTypeDates ?? []).map((date) {
+            final cleanDate = Map<String, dynamic>.from(date);
+
+            // Remove created_at and updated_at fields
+            cleanDate.remove('created_at');
+            cleanDate.remove('updated_at');
+            cleanDate.remove('createdAt');
+            cleanDate.remove('updatedAt');
+
+            return {
+              'name': cleanDate['name']?.toString() ?? '',
+              'applyCycle': cleanDate['applyCycle']?.toString() ?? 'daily',
+              'isRequired': cleanDate['isRequired'] == true,
+              'disableFreeType': cleanDate['disableFreeType'] == true,
+            };
+          }).toList();
+
+      // Clean up actionReports
+      final cleanedActionReports =
+          (_actionReports ?? []).map((action) {
+            final cleanAction = Map<String, dynamic>.from(action);
+
+            // Remove created_at and updated_at fields
+            cleanAction.remove('created_at');
+            cleanAction.remove('updated_at');
+            cleanAction.remove('createdAt');
+            cleanAction.remove('updatedAt');
+
+            return {
+              'description': cleanAction['description']?.toString() ?? '',
+              'isArchive': cleanAction['isArchive'] == true,
+              'applyAction': cleanAction['applyAction']?.toString() ?? '',
+              'match': cleanAction['match']?.toString() ?? '',
+              'actionType': cleanAction['actionType']?.toString() ?? 'status_update',
+              'sourceTable': cleanAction['sourceTable']?.toString() ?? '',
+              'sourceField': cleanAction['sourceField']?.toString() ?? '',
+              'destinationTable': cleanAction['destinationTable']?.toString() ?? '',
+              'destinationField': cleanAction['destinationField']?.toString() ?? '',
+            };
+          }).toList();
+
+      // Clean up competencyReports
+      final cleanedCompetencyReports =
+          (_competencyReports ?? []).map((competency) {
+            final cleanCompetency = Map<String, dynamic>.from(competency);
+
+            // Remove created_at and updated_at fields
+            cleanCompetency.remove('created_at');
+            cleanCompetency.remove('updated_at');
+            cleanCompetency.remove('createdAt');
+            cleanCompetency.remove('updatedAt');
+
+            return {
+              'internalExternal': cleanCompetency['internalExternal']?.toString() ?? 'internal',
+              'name': cleanCompetency['name']?.toString() ?? '',
+              'canCreate': cleanCompetency['canCreate'] == true,
+            };
+          }).toList();
+
+      // Build the reportType object according to the new format
       final reportType = {
-        "reportName": _reportNameController.text,
-        "description": _descriptionController.text,
-        "documentCode": _documentCodeController.text,
+        "reportName": _reportNameController.text.trim(),
+        "description": _descriptionController.text.trim(),
+        "documentCode": _documentCodeController.text.trim(),
         "isExternalReport": _isExternalReport,
         "defaultAsDraft": _defaultAsDraft,
         "archived": _archived,
         "updateItemStatus": _updateItemStatus,
         "updateItemDates": _updateItemDates,
-        "batchReportType": _batchReportTypeController.text,
+        "batchReportType": _batchReportTypeController.text.trim(),
         "isStatusRequired": _isStatusRequired,
-        "possibleStatus": _possibleStatusController.text,
-        "permission": _permissionController.text,
-        "fieldsID": _fieldsIDController.text,
-        "documentTemplate": _documentTemplateController.text,
-        "labelTemplate": _labelTemplateController.text,
-        "actionReportID": _actionReportIDController.text,
-        "competencyID": _competencyIDController.text,
+        "possibleStatus": _possibleStatusController.text.trim(),
+        "permission": _permissionController.text.trim(),
+        "categoryID":
+            _isEditMode && _categoryIDController.text.isNotEmpty
+                ? _categoryIDController.text.trim()
+                : null,
       };
 
       if (_isEditMode) {
         await provider.updateReport(
           reportId: _editReportData?.categoryId ?? '',
           reportType: reportType,
-          competencyReports: _competencyReports ?? [],
-          reportTypeDates: _reportTypeDates ?? [],
-          statusRuleReports: _statusRuleReports ?? [],
-          reportFields: cleanedReportFields ?? [],
-          actionReports: _actionReports ?? [],
+          competencyReports: cleanedCompetencyReports,
+          reportTypeDates: cleanedReportDates,
+          statusRuleReports: cleanedStatusRules,
+          reportFields: cleanedReportFields,
+          actionReports: cleanedActionReports,
         );
       } else {
         await provider.createReport(
           reportType: reportType,
-          competencyReports: _competencyReports ?? [],
-          reportTypeDates: _reportTypeDates ?? [],
-          statusRuleReports: _statusRuleReports ?? [],
-          reportFields: cleanedReportFields ?? [],
-          actionReports: _actionReports ?? [],
+          competencyReports: cleanedCompetencyReports,
+          reportTypeDates: cleanedReportDates,
+          statusRuleReports: cleanedStatusRules,
+          reportFields: cleanedReportFields,
+          actionReports: cleanedActionReports,
         );
       }
 
       if (provider.hasError) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${provider.errorMessage}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${provider.errorMessage}'), backgroundColor: Colors.red),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               _isEditMode ? 'Report updated successfully!' : 'Report created successfully!',
             ),
+            backgroundColor: Colors.green,
           ),
         );
         NavigationService().goBack();
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
     }
   }
 }

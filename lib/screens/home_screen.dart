@@ -10,9 +10,9 @@ import 'package:base_app/screens/personnel/personnel_screen.dart';
 import 'package:base_app/screens/personnel/personnel_team_screen.dart';
 import 'package:base_app/screens/planner/planner_screen.dart';
 import 'package:base_app/screens/planner/team_planner_screen.dart';
-import 'package:base_app/screens/profile/profile_screen.dart';
 import 'package:base_app/screens/settings/access/acccess_view_screen.dart';
 import 'package:base_app/screens/settings/company/division_screen.dart';
+import 'package:base_app/screens/settings/report_setup/cycle_screen.dart';
 import 'package:base_app/screens/settings/report_setup/report_types_screen.dart';
 import 'package:base_app/screens/site/site_screen.dart';
 import 'package:base_app/widget/welcome_dialog.dart';
@@ -83,12 +83,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       index: 6,
       screen: Center(child: CategoriesScreen()),
     ),
-    MenuItem(
-      title: 'Profile',
-      icon: Icons.person,
-      index: 7,
-      screen: Center(child: ProfileScreen()),
-    ),
+    // MenuItem(
+    //   title: 'Profile',
+    //   icon: Icons.person,
+    //   index: 7,
+    //   screen: Center(child: ProfileScreen()),
+    // ),
     MenuItem(
       title: 'Settings',
       icon: Icons.settings,
@@ -99,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           icon: Icons.report,
           index: 17,
           children: [
+            MenuItem(title: 'Cycle', icon: Icons.view_array, index: 25, screen: CycleScreen()),
             MenuItem(
               title: 'Report Type',
               icon: Icons.view_array,
@@ -156,7 +157,38 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   List<MenuItem> _getFilteredMenuItems(String userGroup) {
     final isAdmin = userGroup.toLowerCase() == 'admin';
-    print('Henlo : ${userGroup.toLowerCase()}');
+
+    // If user is not admin, return only Dashboard, Planner, and Jobs
+    if (!isAdmin) {
+      return [
+        MenuItem(title: 'Dashboard', icon: Icons.home, index: 0, screen: DashboardScreen()),
+        MenuItem(
+          title: 'Planner',
+          icon: Icons.calendar_month,
+          index: 1,
+          children: [
+            MenuItem(
+              title: 'View Planner',
+              icon: Icons.view_array,
+              index: 30,
+              screen: PlannerScreen(),
+            ),
+            MenuItem(title: 'Add Planner', icon: Icons.add, index: 31, screen: TeamPlannerScreen()),
+          ],
+        ),
+        MenuItem(
+          title: 'Jobs',
+          icon: Icons.work,
+          index: 2,
+          children: [
+            MenuItem(title: 'View All', icon: Icons.view_array, index: 12, screen: JobScreen()),
+            MenuItem(title: 'Add New', icon: Icons.add, index: 13, screen: JobAddNewScreen()),
+          ],
+        ),
+      ];
+    }
+
+    // Admin users see all menu items
     return _allMenuItems;
   }
 

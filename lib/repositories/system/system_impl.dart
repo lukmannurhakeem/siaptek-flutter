@@ -17,6 +17,10 @@ class SystemImpl implements SystemRepository {
     try {
       final response = await _api.get(Endpoint.companyDivision, requiresAuth: true);
 
+      if (response.data == null) {
+        return [];
+      }
+
       if (response.data is List) {
         return (response.data as List<dynamic>)
             .map((json) => GetCompanyDivision.fromJson(json))
@@ -33,6 +37,11 @@ class SystemImpl implements SystemRepository {
   Future<GetReportTypeModel> fetchReportTypeModel() async {
     try {
       final response = await _api.get(Endpoint.reportType, requiresAuth: true);
+
+      if (response.data == null) {
+        return GetReportTypeModel(data: []);
+      }
+
       return GetReportTypeModel.fromJson(response.data);
     } catch (e) {
       throw Exception('Failed to fetch report types: $e');
@@ -281,16 +290,53 @@ class SystemImpl implements SystemRepository {
 
       final data = response.data;
 
+      // Handle null response
+      if (data == null) {
+        return [];
+      }
+
+      // Handle different response formats
       if (data is List) {
+        // Empty list is valid
+        if (data.isEmpty) {
+          return [];
+        }
         return data.map((e) => ItemReportModel.fromJson(e)).toList();
       } else if (data is String) {
+        // Handle string response (JSON string)
+        if (data.isEmpty) {
+          return [];
+        }
         return itemReportModelFromJson(data);
-      } else if (data is Map<String, dynamic> && data['data'] is List) {
-        return (data['data'] as List).map((e) => ItemReportModel.fromJson(e)).toList();
-      } else {
-        throw Exception('Unexpected response format: ${response.data}');
+      } else if (data is Map<String, dynamic>) {
+        // Handle object response with data array
+        if (data['data'] == null) {
+          return [];
+        }
+        if (data['data'] is List) {
+          final list = data['data'] as List;
+          if (list.isEmpty) {
+            return [];
+          }
+          return list.map((e) => ItemReportModel.fromJson(e)).toList();
+        }
       }
+
+      // If we get here, the format is unexpected but not an error
+      print('Unexpected response format, returning empty list: $data');
+      return [];
     } catch (e) {
+      // Check if it's a "not found" or "no data" error
+      final errorMessage = e.toString().toLowerCase();
+      if (errorMessage.contains('404') ||
+          errorMessage.contains('not found') ||
+          errorMessage.contains('no data') ||
+          errorMessage.contains('no reports')) {
+        // Return empty list instead of throwing
+        return [];
+      }
+
+      // For real errors, throw
       throw Exception('Failed to fetch report types: $e');
     }
   }
@@ -298,23 +344,32 @@ class SystemImpl implements SystemRepository {
   @override
   Future<Uint8List?> fetchPdfReportById(String reportTypeId) async {
     try {
-      final response = await _api.get(
-        Endpoint.fetchPdfReportById(reportTypeId),
+      final response = await _api.getBytes(
+        Endpoint.fetchPdfReportById(reportTypeId), // or just endpoint if it returns a String
         requiresAuth: true,
       );
 
-      final data = response.data;
-      if (data != null && data is List<int>) {
-        return Uint8List.fromList(data);
+      if (response.statusCode == 200 && response.data != null) {
+        final pdfBytes = Uint8List.fromList(response.data!);
+
+        // Verify it's a valid PDF
+        if (pdfBytes.length > 4 &&
+            pdfBytes[0] == 0x25 && // %
+            pdfBytes[1] == 0x50 && // P
+            pdfBytes[2] == 0x44 && // D
+            pdfBytes[3] == 0x46) {
+          // F
+          return pdfBytes;
+        } else {
+          throw Exception('Response is not a valid PDF file');
+        }
       }
 
-      throw Exception('Invalid PDF response format');
+      return null;
     } catch (e) {
       throw Exception('Failed to fetch PDF: $e');
     }
   }
-
-  // Add this method to your SystemImpl class
 
   @override
   Future<Map<String, dynamic>?> createCycle({
@@ -341,11 +396,7 @@ class SystemImpl implements SystemRepository {
 
       print('Creating cycle with body: $requestBody'); // Debug log
 
-      final response = await _api.post(
-        Endpoint.createCycle, // You'll need to add this endpoint
-        requiresAuth: true,
-        data: requestBody,
-      );
+      final response = await _api.post(Endpoint.createCycle, requiresAuth: true, data: requestBody);
 
       if (response.statusCode == 202 && response.data['queued'] == true) {
         return {'message': 'Cycle saved locally. Will sync when online.', 'queued': true};

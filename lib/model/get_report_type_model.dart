@@ -11,13 +11,23 @@ class GetReportTypeModel {
 
   String toRawJson() => json.encode(toJson());
 
-  factory GetReportTypeModel.fromJson(Map<String, dynamic> json) => GetReportTypeModel(
-    data: json["data"] == null ? [] : List<Datum>.from(json["data"]!.map((x) => Datum.fromJson(x))),
-    message: json["message"],
-  );
+  factory GetReportTypeModel.fromJson(Map<String, dynamic> json) {
+    try {
+      return GetReportTypeModel(
+        data:
+            json["data"] == null
+                ? null
+                : List<Datum>.from(json["data"]!.map((x) => Datum.fromJson(x))),
+        message: json["message"],
+      );
+    } catch (e) {
+      print('❌ Error parsing GetReportTypeModel: $e');
+      rethrow;
+    }
+  }
 
   Map<String, dynamic> toJson() => {
-    "data": data == null ? [] : List<dynamic>.from(data!.map((x) => x.toJson())),
+    "data": data == null ? null : List<dynamic>.from(data!.map((x) => x.toJson())),
     "message": message,
   };
 }
@@ -43,52 +53,74 @@ class Datum {
 
   String toRawJson() => json.encode(toJson());
 
-  factory Datum.fromJson(Map<String, dynamic> json) => Datum(
-    reportType: json["reportType"] == null ? null : ReportType.fromJson(json["reportType"]),
-    competencyReports:
-        json["competencyReports"] == null
-            ? []
-            : List<CompetencyReport>.from(
-              json["competencyReports"]!.map((x) => CompetencyReport.fromJson(x)),
-            ),
-    reportTypeDates:
-        json["reportTypeDates"] == null
-            ? []
-            : List<ReportTypeDate>.from(
-              json["reportTypeDates"]!.map((x) => ReportTypeDate.fromJson(x)),
-            ),
-    statusRuleReports:
-        json["statusRuleReports"] == null
-            ? []
-            : List<StatusRuleReport>.from(
-              json["statusRuleReports"]!.map((x) => StatusRuleReport.fromJson(x)),
-            ),
-    reportFields:
-        json["reportFields"] == null
-            ? []
-            : List<ReportField>.from(json["reportFields"]!.map((x) => ReportField.fromJson(x))),
-    actionReports:
-        json["actionReports"] == null
-            ? []
-            : List<ActionReport>.from(json["actionReports"]!.map((x) => ActionReport.fromJson(x))),
-  );
+  factory Datum.fromJson(Map<String, dynamic> json) {
+    try {
+      return Datum(
+        reportType: json["reportType"] == null ? null : ReportType.fromJson(json["reportType"]),
+        competencyReports:
+            json["competencyReports"] == null
+                ? null // ✅ Changed from [] to null
+                : (json["competencyReports"] is List)
+                ? List<CompetencyReport>.from(
+                  json["competencyReports"]!.map((x) => CompetencyReport.fromJson(x)),
+                )
+                : null,
+        reportTypeDates:
+            json["reportTypeDates"] == null
+                ? null // ✅ Changed from [] to null
+                : (json["reportTypeDates"] is List)
+                ? List<ReportTypeDate>.from(
+                  json["reportTypeDates"]!.map((x) => ReportTypeDate.fromJson(x)),
+                )
+                : null,
+        statusRuleReports:
+            json["statusRuleReports"] == null
+                ? null // ✅ Changed from [] to null
+                : (json["statusRuleReports"] is List)
+                ? List<StatusRuleReport>.from(
+                  json["statusRuleReports"]!.map((x) => StatusRuleReport.fromJson(x)),
+                )
+                : null,
+        reportFields:
+            json["reportFields"] == null
+                ? null // ✅ Changed from [] to null
+                : (json["reportFields"] is List)
+                ? List<ReportField>.from(json["reportFields"]!.map((x) => ReportField.fromJson(x)))
+                : null,
+        actionReports:
+            json["actionReports"] == null
+                ? null // ✅ Changed from [] to null
+                : (json["actionReports"] is List)
+                ? List<ActionReport>.from(
+                  json["actionReports"]!.map((x) => ActionReport.fromJson(x)),
+                )
+                : null,
+      );
+    } catch (e) {
+      print('❌ Error parsing Datum: $e');
+      print('JSON data: $json');
+      rethrow;
+    }
+  }
 
   Map<String, dynamic> toJson() => {
     "reportType": reportType?.toJson(),
     "competencyReports":
         competencyReports == null
-            ? []
+            ? null
             : List<dynamic>.from(competencyReports!.map((x) => x.toJson())),
     "reportTypeDates":
-        reportTypeDates == null ? [] : List<dynamic>.from(reportTypeDates!.map((x) => x.toJson())),
+        reportTypeDates == null
+            ? null
+            : List<dynamic>.from(reportTypeDates!.map((x) => x.toJson())),
     "statusRuleReports":
         statusRuleReports == null
-            ? []
+            ? null
             : List<dynamic>.from(statusRuleReports!.map((x) => x.toJson())),
     "reportFields":
-        reportFields == null ? [] : List<dynamic>.from(reportFields!.map((x) => x.toJson())),
+        reportFields == null ? null : List<dynamic>.from(reportFields!.map((x) => x.toJson())),
     "actionReports":
-        actionReports == null ? [] : List<dynamic>.from(actionReports!.map((x) => x.toJson())),
+        actionReports == null ? null : List<dynamic>.from(actionReports!.map((x) => x.toJson())),
   };
 }
 

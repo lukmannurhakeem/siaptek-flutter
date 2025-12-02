@@ -28,6 +28,7 @@ class Datum {
   String? jobId;
   String? jobNo;
   String? customerid;
+  String? customerName;
   String? siteId;
   String? siteName;
   DateTime? createdDate;
@@ -50,6 +51,7 @@ class Datum {
     this.jobId,
     this.jobNo,
     this.customerid,
+    this.customerName,
     this.siteId,
     this.siteName,
     this.createdDate,
@@ -77,6 +79,7 @@ class Datum {
     jobId: json["jobID"],
     jobNo: json["jobNo"],
     customerid: json["customerid"],
+    customerName: json["customerName"],
     siteId: json["siteID"],
     siteName: json["siteName"],
     createdDate: json["createdDate"] == null ? null : DateTime.parse(json["createdDate"]),
@@ -102,6 +105,7 @@ class Datum {
     "jobID": jobId,
     "jobNo": jobNo,
     "customerid": customerid,
+    "customerName": customerName,
     "siteID": siteId,
     "siteName": siteName,
     "createdDate": createdDate?.toIso8601String(),

@@ -15,21 +15,36 @@ class UserImpl implements UserRepository {
 
   @override
   Future<UserLoginModel> userLogin(String name, String password) async {
-    // Login should always be online (no queueing for authentication)
-    final response = await _api.post(
-      Endpoint.login,
-      data: {"email": name, "password": password},
-      requiresAuth: false, // No auth needed for login
-    );
+    try {
+      final response = await _api.post(
+        Endpoint.login,
+        data: {"email": name, "password": password},
+        requiresAuth: false,
+      );
 
-    // Save tokens to local storage
-    final accessToken = response.data['access_token'];
-    final refreshToken = response.data['refresh_token'];
+      // Validate response has required data
+      if (response.data == null) {
+        throw Exception('Empty response from server');
+      }
 
-    await LocalStorageService.setString(LocalStorageConstant.accessToken, accessToken);
-    await LocalStorageService.setString(LocalStorageConstant.refreshToken, refreshToken);
+      final accessToken = response.data['access_token'];
+      final refreshToken = response.data['refresh_token'];
 
-    return UserLoginModel.fromJson(response.data);
+      if (accessToken == null || accessToken.isEmpty) {
+        throw Exception('No access token in response');
+      }
+
+      // Save tokens to local storage
+      await LocalStorageService.setString(LocalStorageConstant.accessToken, accessToken);
+
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        await LocalStorageService.setString(LocalStorageConstant.refreshToken, refreshToken);
+      }
+
+      return UserLoginModel.fromJson(response.data);
+    } catch (e) {
+      rethrow; // CRITICAL: Must rethrow to let provider handle it
+    }
   }
 
   @override

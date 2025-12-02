@@ -104,11 +104,16 @@ class _PersonnelTeamScreenState extends State<PersonnelTeamScreen> {
         Positioned(
           bottom: 0,
           left: -10,
-
-          child: Image.asset(
-            'assets/images/bg_3.png',
-            fit: BoxFit.contain,
-            alignment: Alignment.bottomLeft,
+          child: Opacity(
+            opacity: 0.15,
+            child: Image.asset(
+              'assets/images/bg_3.png',
+              fit: BoxFit.contain,
+              alignment: Alignment.bottomLeft,
+              errorBuilder: (context, error, stackTrace) {
+                return const SizedBox.shrink();
+              },
+            ),
           ),
         ),
         Container(
@@ -139,18 +144,6 @@ class _PersonnelTeamScreenState extends State<PersonnelTeamScreen> {
             ],
           ),
         ),
-        Positioned(
-          bottom: 50,
-          right: 30,
-          child: FloatingActionButton(
-            onPressed: () {
-              NavigationService().navigateTo(AppRoutes.createTeamPersonnel, arguments: null);
-            },
-            tooltip: 'Add New Team',
-            backgroundColor: context.colors.primary,
-            child: const Icon(Icons.add),
-          ),
-        ),
       ],
     );
   }
@@ -164,6 +157,20 @@ class _PersonnelTeamScreenState extends State<PersonnelTeamScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Create New button at the top
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    NavigationService().navigateTo(AppRoutes.createTeamPersonnel, arguments: null);
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text('Create New'),
+                  style: ElevatedButton.styleFrom(backgroundColor: context.colors.primary),
+                ),
+              ),
+              const SizedBox(height: 16),
+
               // Search Field
               CommonTextField(
                 controller: _searchController,
@@ -171,31 +178,36 @@ class _PersonnelTeamScreenState extends State<PersonnelTeamScreen> {
                 style: context.topology.textTheme.bodySmall?.copyWith(
                   color: context.colors.primary,
                 ),
-                suffixIcon: Icon(Icons.search, color: context.colors.primary),
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_searchController.text.isNotEmpty)
+                      IconButton(
+                        icon: Icon(Icons.clear, color: context.colors.primary),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      ),
+                    Icon(Icons.search, color: context.colors.primary),
+                    const SizedBox(width: 8),
+                  ],
+                ),
               ),
               context.vM,
 
-              // Team count and Create button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '${teamList.length} teams found',
+              // Team count
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '${teamList.length} team${teamList.length != 1 ? 's' : ''} found',
                     style: context.topology.textTheme.bodySmall?.copyWith(
                       color: context.colors.primary,
                     ),
                   ),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      NavigationService().navigateTo(AppRoutes.createTeamPersonnel);
-                    },
-                    icon: const Icon(Icons.add),
-                    label: const Text('Create'),
-                    style: ElevatedButton.styleFrom(backgroundColor: context.colors.primary),
-                  ),
-                ],
+                ),
               ),
-              const SizedBox(height: 12),
 
               // Data Table
               Expanded(
@@ -230,69 +242,78 @@ class _PersonnelTeamScreenState extends State<PersonnelTeamScreen> {
     return SizedBox(
       width: screenWidth,
       height: screenHeight,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Padding(
-              padding: context.paddingAll,
-              child: Column(
+      child: Padding(
+        padding: context.paddingAll,
+        child: Column(
+          children: [
+            // Create New button at the top
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  NavigationService().navigateTo(AppRoutes.createTeamPersonnel, arguments: null);
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Create New'),
+                style: ElevatedButton.styleFrom(backgroundColor: context.colors.primary),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Search Field
+            CommonTextField(
+              controller: _searchController,
+              hintText: 'Search by team name, type, or description...',
+              style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Search Field
-                  CommonTextField(
-                    controller: _searchController,
-                    hintText: 'Search by team name, type, or description...',
-                    style: context.topology.textTheme.bodySmall?.copyWith(
-                      color: context.colors.primary,
+                  if (_searchController.text.isNotEmpty)
+                    IconButton(
+                      icon: Icon(Icons.clear, color: context.colors.primary),
+                      onPressed: () {
+                        _searchController.clear();
+                      },
                     ),
-                    suffixIcon: Icon(Icons.search, color: context.colors.primary),
-                  ),
-                  context.vM,
-
-                  // Team count
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      '${teamList.length} teams found',
-                      style: context.topology.textTheme.bodySmall?.copyWith(
-                        color: context.colors.primary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Data Table in horizontal scroll
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        sortColumnIndex: sortColumnIndex,
-                        showCheckboxColumn: false,
-                        columns: _buildColumns(context),
-                        rows: List.generate(teamList.length, (index) {
-                          final data = teamList[index];
-                          final isEven = index % 2 == 0;
-                          return _buildRow(context, data, isEven);
-                        }),
-                      ),
-                    ),
-                  ),
+                  Icon(Icons.search, color: context.colors.primary),
+                  const SizedBox(width: 8),
                 ],
               ),
             ),
-          ),
-          Positioned(
-            bottom: 50,
-            right: 30,
-            child: FloatingActionButton(
-              onPressed: () {
-                NavigationService().navigateTo(AppRoutes.createTeamPersonnel, arguments: null);
-              },
-              tooltip: 'Add New Team',
-              backgroundColor: context.colors.primary,
-              child: const Icon(Icons.add),
+            context.vM,
+
+            // Team count
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  '${teamList.length} team${teamList.length != 1 ? 's' : ''} found',
+                  style: context.topology.textTheme.bodySmall?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                ),
+              ),
             ),
-          ),
-        ],
+
+            // Data Table in horizontal scroll
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  sortColumnIndex: sortColumnIndex,
+                  showCheckboxColumn: false,
+                  columns: _buildColumns(context),
+                  rows: List.generate(teamList.length, (index) {
+                    final data = teamList[index];
+                    final isEven = index % 2 == 0;
+                    return _buildRow(context, data, isEven);
+                  }),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

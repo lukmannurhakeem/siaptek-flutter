@@ -52,7 +52,19 @@ abstract class SystemRepository {
 
   Future<Map<String, dynamic>?> getReportFields(String reportTypeId);
 
-  Future<Uint8List?> fetchPdfReportById(String reportTypeId); // Updated
+  Future<Uint8List?> fetchPdfReportById(String reportTypeId);
 
   Future<Map<String, dynamic>?> createReportData(Map<String, dynamic> requestBody);
+
+  // New method for creating cycle
+  Future<Map<String, dynamic>?> createCycle({
+    required String reportTypeId,
+    String? categoryId,
+    String? customerId,
+    String? siteId,
+    required String unit,
+    required int duration,
+    int? minLength,
+    int? maxLength,
+  });
 }

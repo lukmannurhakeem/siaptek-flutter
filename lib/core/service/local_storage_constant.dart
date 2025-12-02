@@ -8,4 +8,5 @@ class LocalStorageConstant {
   static const String userLastName = 'user_last_name';
   static const String userEmail = 'user_email';
   static const String userGroup = 'user_group';
+  static const String userId = 'userId';
 }

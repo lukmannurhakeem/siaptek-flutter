@@ -4,7 +4,7 @@ import 'package:base_app/repositories/customer/customer_repository.dart';
 import 'package:base_app/route/endpoint.dart';
 
 class CustomerImpl implements CustomerRepository {
-  final OfflineHttpService _api; // Changed from ApiClient
+  final OfflineHttpService _api;
 
   CustomerImpl(this._api);
 
@@ -40,5 +40,41 @@ class CustomerImpl implements CustomerRepository {
     if (response.statusCode == 202 && response.data['queued'] == true) {
       throw Exception('Customer saved locally. Will sync when online.');
     }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getDashboardCustomer(String customerId) async {
+    final response = await _api.get(Endpoint.getDashboardCustomer(customerId), requiresAuth: true);
+    return response.data as Map<String, dynamic>;
+  }
+
+  @override
+  Future<Map<String, dynamic>> getDashboardSite(String customerId) async {
+    final response = await _api.get(Endpoint.getDashboardSite(customerId), requiresAuth: true);
+    return response.data as Map<String, dynamic>;
+  }
+
+  @override
+  Future<Map<String, dynamic>> getDashboardStatistic(String customerId) async {
+    final response = await _api.get(Endpoint.getDashboardStatistic(customerId), requiresAuth: true);
+    return response.data as Map<String, dynamic>;
+  }
+
+  @override
+  Future<Map<String, dynamic>> getDashboardReports(String customerId) async {
+    final response = await _api.get(Endpoint.getDashboardReports(customerId), requiresAuth: true);
+    return response.data as Map<String, dynamic>;
+  }
+
+  @override
+  Future<Map<String, dynamic>> getDashboardItems(String customerId) async {
+    final response = await _api.get(Endpoint.getDashboardItems(customerId), requiresAuth: true);
+    return response.data as Map<String, dynamic>;
+  }
+
+  @override
+  Future<Map<String, dynamic>> getDashboardJobs(String customerId) async {
+    final response = await _api.get(Endpoint.getDashboardJobs(customerId), requiresAuth: true);
+    return response.data as Map<String, dynamic>;
   }
 }

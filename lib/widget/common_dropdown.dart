@@ -56,7 +56,9 @@ class CommonDropdown<T> extends StatelessWidget {
               items: items,
               onChanged: onChanged,
               isExpanded: isExpanded,
-              style: textStyle ?? context.topology.textTheme.bodyMedium,
+              style:
+                  textStyle ??
+                  context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
               icon: Icon(Icons.arrow_drop_down, color: colors.onSurface),
             ),
           ),
