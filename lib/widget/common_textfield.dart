@@ -1,4 +1,4 @@
-import 'package:base_app/core/extension/theme_extension.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -137,7 +137,10 @@ class _CommonTextFieldState extends State<CommonTextField> {
       return IconButton(
         icon: Icon(
           _obscureText ? widget.passwordHiddenIcon : widget.passwordVisibleIcon,
-          color: _isFocused ? widget.focusedBorderColor ?? Theme.of(context).primaryColor : Colors.grey[600],
+          color:
+              _isFocused
+                  ? widget.focusedBorderColor ?? Theme.of(context).primaryColor
+                  : Colors.grey[600],
         ),
         onPressed: _togglePasswordVisibility,
       );
@@ -188,53 +191,47 @@ class _CommonTextFieldState extends State<CommonTextField> {
         suffixIcon: _buildSuffixIcon(),
         prefixText: widget.prefixText,
         suffixText: widget.suffixText,
-        contentPadding: widget.contentPadding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding:
+            widget.contentPadding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         filled: widget.filled,
         fillColor: widget.fillColor ?? (widget.filled ? Colors.grey[50] : null),
 
         // Label styling
-        labelStyle: widget.labelStyle ??
+        labelStyle:
+            widget.labelStyle ??
             context.topology.textTheme.titleMedium?.copyWith(
-              color: _isFocused ? widget.focusedBorderColor ?? context.colors.primary : Colors.grey[700],
+              color:
+                  _isFocused
+                      ? widget.focusedBorderColor ?? context.colors.primary
+                      : Colors.grey[700],
             ),
 
         // Hint styling
-        hintStyle: widget.hintStyle ??
-            context.topology.textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[500],
-            ),
+        hintStyle:
+            widget.hintStyle ??
+            context.topology.textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
 
         // Error styling
-        errorStyle: widget.errorStyle ??
-            TextStyle(
-              color: widget.errorBorderColor ?? context.colors.primary,
-            ),
+        errorStyle:
+            widget.errorStyle ??
+            TextStyle(color: widget.errorBorderColor ?? context.colors.primary),
 
         // Helper styling
-        helperStyle: widget.helperStyle ??
-            TextStyle(
-              color: Colors.grey[600],
-            ),
+        helperStyle: widget.helperStyle ?? TextStyle(color: Colors.grey[600]),
 
         // Border styling
         border: _buildBorder(),
-        enabledBorder: _buildBorder(
-          color: widget.borderColor ?? Colors.grey[400],
-        ),
+        enabledBorder: _buildBorder(color: widget.borderColor ?? Colors.grey[400]),
         focusedBorder: _buildBorder(
           color: widget.focusedBorderColor ?? context.colors.primary,
           width: 2.0,
         ),
-        errorBorder: _buildBorder(
-          color: widget.errorBorderColor ?? context.colors.error,
-        ),
+        errorBorder: _buildBorder(color: widget.errorBorderColor ?? context.colors.error),
         focusedErrorBorder: _buildBorder(
           color: widget.errorBorderColor ?? context.colors.error,
           width: 2.0,
         ),
-        disabledBorder: _buildBorder(
-          color: Colors.grey[300],
-        ),
+        disabledBorder: _buildBorder(color: Colors.grey[300]),
       ),
     );
   }

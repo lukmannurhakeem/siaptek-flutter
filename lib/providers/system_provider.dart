@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 
-import 'package:base_app/core/service/service_locator.dart';
-import 'package:base_app/model/get_company_division.dart';
-import 'package:base_app/model/get_report_type_model.dart';
-import 'package:base_app/model/item_report_model.dart';
-import 'package:base_app/repositories/system/system_repository.dart';
+import 'package:INSPECT/core/service/service_locator.dart';
+import 'package:INSPECT/model/get_company_division.dart';
+import 'package:INSPECT/model/get_report_type_model.dart';
+import 'package:INSPECT/model/item_report_model.dart';
+import 'package:INSPECT/repositories/system/system_repository.dart';
 import 'package:flutter/material.dart';
 
 class SystemProvider extends ChangeNotifier {

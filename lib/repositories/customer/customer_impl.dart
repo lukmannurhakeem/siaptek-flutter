@@ -1,7 +1,7 @@
-import 'package:base_app/core/service/offline_http_service.dart';
-import 'package:base_app/model/get_customer_model.dart';
-import 'package:base_app/repositories/customer/customer_repository.dart';
-import 'package:base_app/route/endpoint.dart';
+import 'package:INSPECT/core/service/offline_http_service.dart';
+import 'package:INSPECT/model/get_customer_model.dart';
+import 'package:INSPECT/repositories/customer/customer_repository.dart';
+import 'package:INSPECT/route/endpoint.dart';
 
 class CustomerImpl implements CustomerRepository {
   final OfflineHttpService _api;

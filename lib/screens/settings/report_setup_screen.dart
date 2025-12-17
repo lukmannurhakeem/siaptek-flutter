@@ -1,5 +1,5 @@
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/widget/common_collapsible_widget.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/widget/common_collapsible_widget.dart';
 import 'package:flutter/material.dart';
 
 class ReportSetupScreen extends StatefulWidget {

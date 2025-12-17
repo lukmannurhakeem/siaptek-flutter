@@ -1,11 +1,11 @@
 {
-    "name": "base_app",
-    "short_name": "base_app",
+    "name": "INSPECT - NDT Inspection System",
+    "short_name": "INSPECT",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#ffffff",
+    "theme_color": "#ffffff",
+    "description": "NDT Inspection System",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

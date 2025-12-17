@@ -1,9 +1,9 @@
-import 'package:base_app/core/service/navigation_service.dart';
-import 'package:base_app/core/service/service_locator.dart';
-import 'package:base_app/model/get_site_model.dart';
-import 'package:base_app/model/site_customer_by_id_model.dart';
-import 'package:base_app/repositories/site/site_repository.dart';
-import 'package:base_app/widget/common_snackbar.dart';
+import 'package:INSPECT/core/service/navigation_service.dart';
+import 'package:INSPECT/core/service/service_locator.dart';
+import 'package:INSPECT/model/get_site_model.dart';
+import 'package:INSPECT/model/site_customer_by_id_model.dart';
+import 'package:INSPECT/repositories/site/site_repository.dart';
+import 'package:INSPECT/widget/common_snackbar.dart';
 import 'package:flutter/material.dart';
 
 class SiteProvider extends ChangeNotifier {

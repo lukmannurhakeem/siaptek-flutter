@@ -1,12 +1,12 @@
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/core/service/navigation_service.dart';
-import 'package:base_app/providers/customer_provider.dart';
-import 'package:base_app/providers/site_provider.dart';
-import 'package:base_app/providers/system_provider.dart';
-import 'package:base_app/widget/common_button.dart';
-import 'package:base_app/widget/common_dropdown.dart';
-import 'package:base_app/widget/common_file_upload_input.dart';
-import 'package:base_app/widget/common_textfield.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/core/service/navigation_service.dart';
+import 'package:INSPECT/providers/customer_provider.dart';
+import 'package:INSPECT/providers/site_provider.dart';
+import 'package:INSPECT/providers/system_provider.dart';
+import 'package:INSPECT/widget/common_button.dart';
+import 'package:INSPECT/widget/common_dropdown.dart';
+import 'package:INSPECT/widget/common_file_upload_input.dart';
+import 'package:INSPECT/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

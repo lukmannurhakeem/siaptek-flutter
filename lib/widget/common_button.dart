@@ -174,8 +174,8 @@ CommonButton(
 
 import 'dart:ui';
 
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/core/theme/app_color.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/core/theme/app_color.dart';
 import 'package:flutter/gestures.dart'; // Added for TapGestureRecognizer
 import 'package:flutter/material.dart';
 

@@ -1,13 +1,13 @@
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/core/service/navigation_service.dart';
-import 'package:base_app/model/get_company_division.dart';
-import 'package:base_app/providers/system_provider.dart';
-import 'package:base_app/route/route.dart';
-import 'package:base_app/widget/common_button.dart';
-import 'package:base_app/widget/common_dialog.dart';
-import 'package:base_app/widget/common_dropdown.dart';
-import 'package:base_app/widget/common_snackbar.dart';
-import 'package:base_app/widget/common_textfield.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/core/service/navigation_service.dart';
+import 'package:INSPECT/model/get_company_division.dart';
+import 'package:INSPECT/providers/system_provider.dart';
+import 'package:INSPECT/route/route.dart';
+import 'package:INSPECT/widget/common_button.dart';
+import 'package:INSPECT/widget/common_dialog.dart';
+import 'package:INSPECT/widget/common_dropdown.dart';
+import 'package:INSPECT/widget/common_snackbar.dart';
+import 'package:INSPECT/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -369,79 +369,88 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
     );
   }
 
-  Widget _buildErrorState(BuildContext context, SystemProvider provider) {
-    return Container(
-      color: Colors.grey.shade50,
-      child: Center(
-        child: Container(
-          margin: const EdgeInsets.all(32),
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
+  Widget _buildEmptyState(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: MediaQuery.of(context).size.height,
+      child: Stack(
+        children: [
+          // Background image at bottom right
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Image.asset(
+              'assets/images/bg_2.png',
+              fit: BoxFit.contain,
+              alignment: Alignment.bottomRight,
+              height: context.screenHeight * 0.70,
+            ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(color: Colors.red.shade50, shape: BoxShape.circle),
-                child: Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Failed to load divisions',
-                style: context.topology.textTheme.titleLarge?.copyWith(
-                  color: context.colors.primary,
-                  fontWeight: FontWeight.bold,
+          // Foreground content
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                context.vXxl,
+                Text(
+                  'No divisions yet',
+                  style: context.topology.textTheme.titleLarge?.copyWith(
+                    color: context.colors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  provider.errorMessage ?? 'An error occurred',
+                const SizedBox(height: 12),
+                Text(
+                  'Create your first division to get started',
                   textAlign: TextAlign.center,
                   style: context.topology.textTheme.bodyMedium?.copyWith(
                     color: Colors.grey.shade600,
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: () => provider.fetchDivision(),
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Retry'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: context.colors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    NavigationService().navigateTo(AppRoutes.companyCreateDivision);
+                  },
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Create Division'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: context.colors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    return Container(
-      color: Colors.grey.shade50,
+  Widget _buildErrorState(BuildContext context, SystemProvider provider) {
+    return SizedBox(
+      width: double.infinity,
+      height: MediaQuery.of(context).size.height,
       child: Stack(
         children: [
+          // Background image at bottom right
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Image.asset(
+              'assets/images/bg_2.png',
+              fit: BoxFit.contain,
+              alignment: Alignment.bottomRight,
+              height: context.screenHeight * 0.70,
+            ),
+          ),
+          // Foreground content
           Center(
             child: Container(
               margin: const EdgeInsets.all(32),
-              padding: const EdgeInsets.all(48),
+              padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
@@ -457,33 +466,34 @@ class _CompanyDivisionScreenState extends State<CompanyDivisionScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(color: Colors.grey.shade50, shape: BoxShape.circle),
-                    child: Icon(Icons.business_outlined, size: 64, color: Colors.grey.shade300),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(color: Colors.red.shade50, shape: BoxShape.circle),
+                    child: Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'No divisions yet',
+                    'Failed to load divisions',
                     style: context.topology.textTheme.titleLarge?.copyWith(
                       color: context.colors.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Text(
-                    'Create your first division to get started',
-                    textAlign: TextAlign.center,
-                    style: context.topology.textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey.shade600,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      provider.errorMessage ?? 'An error occurred',
+                      textAlign: TextAlign.center,
+                      style: context.topology.textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
-                    onPressed: () {
-                      NavigationService().navigateTo(AppRoutes.companyCreateDivision);
-                    },
-                    icon: const Icon(Icons.add_rounded),
-                    label: const Text('Create Division'),
+                    onPressed: () => provider.fetchDivision(),
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Retry'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: context.colors.primary,
                       foregroundColor: Colors.white,

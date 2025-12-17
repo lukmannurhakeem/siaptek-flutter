@@ -1,12 +1,12 @@
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/providers/job_provider.dart';
-import 'package:base_app/providers/personnel_provider.dart';
-import 'package:base_app/providers/planner_provider.dart';
-import 'package:base_app/providers/system_provider.dart';
-import 'package:base_app/widget/common_button.dart';
-import 'package:base_app/widget/common_date_picker_input.dart';
-import 'package:base_app/widget/common_dropdown.dart';
-import 'package:base_app/widget/common_textfield.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/providers/job_provider.dart';
+import 'package:INSPECT/providers/personnel_provider.dart';
+import 'package:INSPECT/providers/planner_provider.dart';
+import 'package:INSPECT/providers/system_provider.dart';
+import 'package:INSPECT/widget/common_button.dart';
+import 'package:INSPECT/widget/common_date_picker_input.dart';
+import 'package:INSPECT/widget/common_dropdown.dart';
+import 'package:INSPECT/widget/common_textfield.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -885,6 +885,9 @@ class _TeamPlannerScreenState extends State<TeamPlannerScreen> {
           children: [
             Expanded(
               child: CommonTextField(
+                style: context.topology.textTheme.bodySmall?.copyWith(
+                  color: context.colors.primary,
+                ),
                 controller: _taskController,
                 hintText: 'Enter task...',
                 onTap: () => _addTask(),
@@ -910,7 +913,12 @@ class _TeamPlannerScreenState extends State<TeamPlannerScreen> {
               child: ListTile(
                 dense: true,
                 leading: Icon(Icons.task_alt, size: 20, color: context.colors.primary),
-                title: Text(entry.value),
+                title: Text(
+                  entry.value,
+                  style: context.topology.textTheme.bodyMedium?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                ),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red, size: 20),
                   onPressed: () => _removeTask(entry.key),
@@ -933,6 +941,9 @@ class _TeamPlannerScreenState extends State<TeamPlannerScreen> {
           children: [
             Expanded(
               child: CommonTextField(
+                style: context.topology.textTheme.bodySmall?.copyWith(
+                  color: context.colors.primary,
+                ),
                 controller: _tagController,
                 hintText: 'Enter tag...',
                 onTap: () => _addTag(),
@@ -958,6 +969,7 @@ class _TeamPlannerScreenState extends State<TeamPlannerScreen> {
                 _tags
                     .map(
                       (tag) => Chip(
+                        shadowColor: context.colors.primary,
                         label: Text(tag),
                         deleteIcon: const Icon(Icons.close, size: 18),
                         onDeleted: () => _removeTag(tag),

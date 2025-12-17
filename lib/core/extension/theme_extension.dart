@@ -1,7 +1,7 @@
-import 'package:base_app/core/theme/app_color.dart';
-import 'package:base_app/core/theme/app_spacing.dart';
-import 'package:base_app/core/theme/app_topology.dart';
-import 'package:base_app/widget/common_loading.dart';
+import 'package:INSPECT/core/theme/app_color.dart';
+import 'package:INSPECT/core/theme/app_spacing.dart';
+import 'package:INSPECT/core/theme/app_topology.dart';
+import 'package:INSPECT/widget/common_loading.dart';
 import 'package:flutter/material.dart';
 
 extension ThemeExtension on BuildContext {

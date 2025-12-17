@@ -1,10 +1,10 @@
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/core/service/navigation_service.dart';
-import 'package:base_app/model/personnel_team_model.dart';
-import 'package:base_app/providers/personnel_provider.dart';
-import 'package:base_app/widget/add_member_dialog_widget.dart';
-import 'package:base_app/widget/common_button.dart';
-import 'package:base_app/widget/common_textfield.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/core/service/navigation_service.dart';
+import 'package:INSPECT/model/personnel_team_model.dart';
+import 'package:INSPECT/providers/personnel_provider.dart';
+import 'package:INSPECT/widget/add_member_dialog_widget.dart';
+import 'package:INSPECT/widget/common_button.dart';
+import 'package:INSPECT/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';

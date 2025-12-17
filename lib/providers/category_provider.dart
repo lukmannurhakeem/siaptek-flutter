@@ -1,9 +1,10 @@
 // category_provider.dart
-import 'package:base_app/core/service/service_locator.dart';
-import 'package:base_app/model/create_category_model.dart';
-import 'package:base_app/model/field_model.dart';
-import 'package:base_app/model/get_category_model.dart';
-import 'package:base_app/repositories/category/category_repository.dart';
+
+import 'package:INSPECT/core/service/service_locator.dart';
+import 'package:INSPECT/model/create_category_model.dart';
+import 'package:INSPECT/model/field_model.dart';
+import 'package:INSPECT/model/get_category_model.dart';
+import 'package:INSPECT/repositories/category/category_repository.dart';
 import 'package:flutter/material.dart';
 
 // Move this class to a separate file (e.g., models/category_item.dart) to avoid duplicates

@@ -1,23 +1,23 @@
-import 'package:base_app/core/service/offline_http_service.dart';
-import 'package:base_app/core/service/websocket_service.dart';
-import 'package:base_app/repositories/category/category_impl.dart';
-import 'package:base_app/repositories/category/category_repository.dart';
-import 'package:base_app/repositories/customer/customer_impl.dart';
-import 'package:base_app/repositories/customer/customer_repository.dart';
-import 'package:base_app/repositories/cycle/cycle_impl.dart';
-import 'package:base_app/repositories/cycle/cycle_repository.dart';
-import 'package:base_app/repositories/job/job_impl.dart';
-import 'package:base_app/repositories/job/job_repository.dart';
-import 'package:base_app/repositories/personnel/personnel_impl.dart';
-import 'package:base_app/repositories/personnel/personnel_repository.dart';
-import 'package:base_app/repositories/planner/planner_impl.dart';
-import 'package:base_app/repositories/planner/planner_repository.dart';
-import 'package:base_app/repositories/site/site_impl.dart';
-import 'package:base_app/repositories/site/site_repository.dart';
-import 'package:base_app/repositories/system/system_impl.dart';
-import 'package:base_app/repositories/system/system_repository.dart';
-import 'package:base_app/repositories/user/user_impl.dart';
-import 'package:base_app/repositories/user/user_repository.dart';
+import 'package:INSPECT/core/service/offline_http_service.dart';
+import 'package:INSPECT/core/service/websocket_service.dart';
+import 'package:INSPECT/repositories/category/category_impl.dart';
+import 'package:INSPECT/repositories/category/category_repository.dart';
+import 'package:INSPECT/repositories/customer/customer_impl.dart';
+import 'package:INSPECT/repositories/customer/customer_repository.dart';
+import 'package:INSPECT/repositories/cycle/cycle_impl.dart';
+import 'package:INSPECT/repositories/cycle/cycle_repository.dart';
+import 'package:INSPECT/repositories/job/job_impl.dart';
+import 'package:INSPECT/repositories/job/job_repository.dart';
+import 'package:INSPECT/repositories/personnel/personnel_impl.dart';
+import 'package:INSPECT/repositories/personnel/personnel_repository.dart';
+import 'package:INSPECT/repositories/planner/planner_impl.dart';
+import 'package:INSPECT/repositories/planner/planner_repository.dart';
+import 'package:INSPECT/repositories/site/site_impl.dart';
+import 'package:INSPECT/repositories/site/site_repository.dart';
+import 'package:INSPECT/repositories/system/system_impl.dart';
+import 'package:INSPECT/repositories/system/system_repository.dart';
+import 'package:INSPECT/repositories/user/user_impl.dart';
+import 'package:INSPECT/repositories/user/user_repository.dart';
 
 /// Simple service locator without external dependencies
 /// Manages singleton instances of services and repositories

@@ -1,11 +1,12 @@
 // add_field_dialog.dart - Updated with all field types
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/model/field_model.dart';
-import 'package:base_app/providers/category_provider.dart';
-import 'package:base_app/widget/common__checklist.dart';
-import 'package:base_app/widget/common_button.dart';
-import 'package:base_app/widget/common_dropdown.dart';
-import 'package:base_app/widget/common_textfield.dart';
+
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/model/field_model.dart';
+import 'package:INSPECT/providers/category_provider.dart';
+import 'package:INSPECT/widget/common__checklist.dart';
+import 'package:INSPECT/widget/common_button.dart';
+import 'package:INSPECT/widget/common_dropdown.dart';
+import 'package:INSPECT/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

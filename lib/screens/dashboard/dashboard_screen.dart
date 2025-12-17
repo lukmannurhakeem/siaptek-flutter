@@ -1,11 +1,11 @@
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/core/service/local_storage.dart';
-import 'package:base_app/core/service/local_storage_constant.dart';
-import 'package:base_app/providers/authenticate_provider.dart';
-import 'package:base_app/providers/customer_provider.dart';
-import 'package:base_app/providers/notification_provider.dart';
-import 'package:base_app/providers/site_provider.dart';
-import 'package:base_app/screens/notification/notification_panel.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/core/service/local_storage.dart';
+import 'package:INSPECT/core/service/local_storage_constant.dart';
+import 'package:INSPECT/providers/authenticate_provider.dart';
+import 'package:INSPECT/providers/customer_provider.dart';
+import 'package:INSPECT/providers/notification_provider.dart';
+import 'package:INSPECT/providers/site_provider.dart';
+import 'package:INSPECT/screens/notification/notification_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -487,45 +487,48 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 64),
-        padding: const EdgeInsets.all(48),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(color: Colors.grey.shade50, shape: BoxShape.circle),
-              child: Icon(Icons.dashboard_outlined, size: 64, color: Colors.grey.shade300),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'No customer selected',
-              style: context.topology.textTheme.titleLarge?.copyWith(
-                color: context.colors.primary,
-                fontWeight: FontWeight.w600,
+    return SizedBox(
+      width: double.infinity,
+      height: MediaQuery.of(context).size.height - kToolbarHeight,
+      child: Stack(
+        children: [
+          Positioned(
+            bottom: 0,
+            left: 0,
+            child: Opacity(
+              opacity: 0.15,
+              child: Image.asset(
+                'assets/images/bg_3.png',
+                fit: BoxFit.contain,
+                alignment: Alignment.bottomLeft,
+                errorBuilder: (context, error, stackTrace) {
+                  return const SizedBox.shrink();
+                },
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Please select a customer to view dashboard data',
-              style: context.topology.textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
-              textAlign: TextAlign.center,
+          ),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  'No customer found',
+                  style: context.topology.textTheme.titleMedium?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Select a customer to view dashboard data',
+                  textAlign: TextAlign.center,
+                  style: context.topology.textTheme.bodySmall?.copyWith(
+                    color: context.colors.primary,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

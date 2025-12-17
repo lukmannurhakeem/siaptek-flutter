@@ -1,4 +1,4 @@
-import 'package:base_app/model/get_customer_model.dart';
+import 'package:INSPECT/model/get_customer_model.dart';
 
 abstract class CustomerRepository {
   Future<GetCustomerModel> fetchCustomer();

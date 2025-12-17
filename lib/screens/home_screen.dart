@@ -1,21 +1,21 @@
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/model/menu_item.dart';
-import 'package:base_app/providers/authenticate_provider.dart';
-import 'package:base_app/screens/categories/categories_screen.dart';
-import 'package:base_app/screens/customer/customer_screen.dart';
-import 'package:base_app/screens/dashboard/dashboard_screen.dart';
-import 'package:base_app/screens/job/job_add_new_screen.dart';
-import 'package:base_app/screens/job/job_screen.dart';
-import 'package:base_app/screens/personnel/personnel_screen.dart';
-import 'package:base_app/screens/personnel/personnel_team_screen.dart';
-import 'package:base_app/screens/planner/planner_screen.dart';
-import 'package:base_app/screens/planner/team_planner_screen.dart';
-import 'package:base_app/screens/settings/access/acccess_view_screen.dart';
-import 'package:base_app/screens/settings/company/division_screen.dart';
-import 'package:base_app/screens/settings/report_setup/cycle_screen.dart';
-import 'package:base_app/screens/settings/report_setup/report_types_screen.dart';
-import 'package:base_app/screens/site/site_screen.dart';
-import 'package:base_app/widget/welcome_dialog.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/model/menu_item.dart';
+import 'package:INSPECT/providers/authenticate_provider.dart';
+import 'package:INSPECT/screens/categories/categories_screen.dart';
+import 'package:INSPECT/screens/customer/customer_screen.dart';
+import 'package:INSPECT/screens/dashboard/dashboard_screen.dart';
+import 'package:INSPECT/screens/job/job_add_new_screen.dart';
+import 'package:INSPECT/screens/job/job_screen.dart';
+import 'package:INSPECT/screens/personnel/personnel_screen.dart';
+import 'package:INSPECT/screens/personnel/personnel_team_screen.dart';
+import 'package:INSPECT/screens/planner/planner_screen.dart';
+import 'package:INSPECT/screens/planner/team_planner_screen.dart';
+import 'package:INSPECT/screens/settings/access/acccess_view_screen.dart';
+import 'package:INSPECT/screens/settings/company/division_screen.dart';
+import 'package:INSPECT/screens/settings/report_setup/cycle_screen.dart';
+import 'package:INSPECT/screens/settings/report_setup/report_types_screen.dart';
+import 'package:INSPECT/screens/site/site_screen.dart';
+import 'package:INSPECT/widget/welcome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -286,59 +286,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         ),
                       ),
                       Divider(height: 1),
-
-                      // User Info Header (only visible when expanded)
-                      if (authProvider.user != null && _isSidebarExpanded)
-                        Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${authProvider.user?.user?.firstName ?? ''} ${authProvider.user?.user?.lastName ?? ''}'
-                                    .trim(),
-                                style: context.topology.textTheme.titleSmall?.copyWith(
-                                  color: context.colors.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                authProvider.user?.user?.email ?? '',
-                                style: context.topology.textTheme.bodySmall?.copyWith(
-                                  color: context.colors.primary.withOpacity(0.7),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              SizedBox(height: 8),
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color:
-                                      isAdmin
-                                          ? context.colors.primary.withOpacity(0.15)
-                                          : Colors.grey.withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(
-                                    color: isAdmin ? context.colors.primary : Colors.grey,
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Text(
-                                  isAdmin ? 'Admin' : 'User',
-                                  style: context.topology.textTheme.bodySmall?.copyWith(
-                                    color: context.colors.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      if (_isSidebarExpanded) Divider(height: 1),
 
                       // Menu Items
                       Expanded(

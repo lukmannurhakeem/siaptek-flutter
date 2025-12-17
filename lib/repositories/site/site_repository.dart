@@ -1,5 +1,5 @@
-import 'package:base_app/model/get_site_model.dart';
-import 'package:base_app/model/site_customer_by_id_model.dart';
+import 'package:INSPECT/model/get_site_model.dart';
+import 'package:INSPECT/model/site_customer_by_id_model.dart';
 
 abstract class SiteRepository {
   Future<GetSiteModel> fetchSite();

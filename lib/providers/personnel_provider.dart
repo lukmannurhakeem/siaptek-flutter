@@ -1,8 +1,8 @@
-import 'package:base_app/core/service/service_locator.dart';
-import 'package:base_app/model/personnel_model.dart';
-import 'package:base_app/model/personnel_team_member_model.dart';
-import 'package:base_app/model/personnel_team_model.dart';
-import 'package:base_app/repositories/personnel/personnel_repository.dart';
+import 'package:INSPECT/core/service/service_locator.dart';
+import 'package:INSPECT/model/personnel_model.dart';
+import 'package:INSPECT/model/personnel_team_member_model.dart';
+import 'package:INSPECT/model/personnel_team_model.dart';
+import 'package:INSPECT/repositories/personnel/personnel_repository.dart';
 import 'package:flutter/material.dart';
 
 class PersonnelProvider extends ChangeNotifier {

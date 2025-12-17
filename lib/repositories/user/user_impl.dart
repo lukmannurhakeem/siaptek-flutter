@@ -1,12 +1,12 @@
-import 'package:base_app/core/service/local_storage.dart';
-import 'package:base_app/core/service/local_storage_constant.dart';
-import 'package:base_app/core/service/offline_http_service.dart';
-import 'package:base_app/model/user_login_model.dart';
-import 'package:base_app/model/user_refresh_token.dart';
-import 'package:base_app/model/user_verify_token.dart';
-import 'package:base_app/model/view_user_model.dart';
-import 'package:base_app/repositories/user/user_repository.dart';
-import 'package:base_app/route/endpoint.dart';
+import 'package:INSPECT/core/service/local_storage.dart';
+import 'package:INSPECT/core/service/local_storage_constant.dart';
+import 'package:INSPECT/core/service/offline_http_service.dart';
+import 'package:INSPECT/model/user_login_model.dart';
+import 'package:INSPECT/model/user_refresh_token.dart';
+import 'package:INSPECT/model/user_verify_token.dart';
+import 'package:INSPECT/model/view_user_model.dart';
+import 'package:INSPECT/repositories/user/user_repository.dart';
+import 'package:INSPECT/route/endpoint.dart';
 
 class UserImpl implements UserRepository {
   final OfflineHttpService _api;

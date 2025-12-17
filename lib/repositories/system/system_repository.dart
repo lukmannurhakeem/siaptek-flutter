@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:base_app/model/get_company_division.dart';
-import 'package:base_app/model/get_report_type_model.dart';
-import 'package:base_app/model/item_report_model.dart';
+import 'package:INSPECT/model/get_company_division.dart';
+import 'package:INSPECT/model/get_report_type_model.dart';
+import 'package:INSPECT/model/item_report_model.dart';
 
 abstract class SystemRepository {
   Future<List<GetCompanyDivision>> fetchCompanyDivision();

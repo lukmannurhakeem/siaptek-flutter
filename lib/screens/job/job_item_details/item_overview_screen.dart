@@ -1,7 +1,7 @@
-import 'package:base_app/core/extension/date_time_extension.dart';
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/model/job_register.dart';
-import 'package:base_app/widget/common_textfield.dart';
+import 'package:INSPECT/core/extension/date_time_extension.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/model/job_register.dart';
+import 'package:INSPECT/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 
 class ItemOverviewScreen extends StatefulWidget {

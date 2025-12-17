@@ -1,5 +1,6 @@
-import 'package:base_app/model/notification_model.dart';
-import 'package:base_app/providers/notification_provider.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/model/notification_model.dart';
+import 'package:INSPECT/providers/notification_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -110,6 +111,7 @@ class NotificationTile extends StatelessWidget {
                               child: Text(
                                 notification.title,
                                 style: TextStyle(
+                                  color: context.colors.primary,
                                   fontWeight:
                                       notification.isRead ? FontWeight.normal : FontWeight.bold,
                                   fontSize: 15,

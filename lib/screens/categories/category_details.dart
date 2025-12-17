@@ -1,11 +1,11 @@
-import 'package:base_app/core/extension/date_time_extension.dart';
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/core/service/navigation_service.dart';
-import 'package:base_app/providers/category_provider.dart'; // Import your CategoryItem
-import 'package:base_app/route/route.dart';
-import 'package:base_app/widget/common_button.dart';
-import 'package:base_app/widget/common_dialog.dart';
-import 'package:base_app/widget/common_textfield.dart';
+import 'package:INSPECT/core/extension/date_time_extension.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/core/service/navigation_service.dart';
+import 'package:INSPECT/providers/category_provider.dart';
+import 'package:INSPECT/route/route.dart';
+import 'package:INSPECT/widget/common_button.dart';
+import 'package:INSPECT/widget/common_dialog.dart';
+import 'package:INSPECT/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 
 class JobRegisterModel {

@@ -1,9 +1,10 @@
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/core/service/navigation_service.dart';
-import 'package:base_app/providers/authenticate_provider.dart';
-import 'package:base_app/widget/common_button.dart';
-import 'package:base_app/widget/common_snackbar.dart';
-import 'package:base_app/widget/common_textfield.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/core/service/navigation_service.dart';
+import 'package:INSPECT/providers/authenticate_provider.dart';
+import 'package:INSPECT/providers/system_provider.dart';
+import 'package:INSPECT/widget/common_button.dart';
+import 'package:INSPECT/widget/common_snackbar.dart';
+import 'package:INSPECT/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -34,17 +35,21 @@ class _AccessScreenState extends State<AccessScreen> {
   bool _passwordReset = false;
   bool _isAccountLocked = false;
 
-  // Predefined options (you may want to fetch these from API)
+  // Predefined options
   final List<String> _userGroups = ['inspector', 'admin', 'manager', 'technician', 'viewer'];
-
-  final List<Map<String, String>> _divisions = [
-    {'id': '1baf91e0-22bb-4c3f-b04b-0b6a0eef6be3', 'name': 'Main Division'},
-    // Add more divisions as needed
-  ];
 
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch divisions when screen initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SystemProvider>().fetchDivision();
+    });
+  }
 
   @override
   void dispose() {
@@ -69,135 +74,246 @@ class _AccessScreenState extends State<AccessScreen> {
         centerTitle: true,
         iconTheme: IconThemeData(color: context.colors.primary),
       ),
-      body: SingleChildScrollView(
-        padding: context.paddingAll,
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: Consumer<SystemProvider>(
+        builder: (context, systemProvider, child) {
+          return SingleChildScrollView(
+            padding: context.paddingAll,
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Personal Information Section
+                  _buildSectionHeader('Personal Information'),
+                  context.vM,
+
+                  _buildFormField('First Name', _firstNameController, isRequired: true),
+                  context.vS,
+
+                  _buildFormField('Last Name', _lastNameController, isRequired: true),
+                  context.vS,
+
+                  _buildFormField('Username', _usernameController, isRequired: true),
+                  context.vS,
+
+                  _buildFormField(
+                    'Email',
+                    _emailController,
+                    isRequired: true,
+                    keyboardType: TextInputType.emailAddress,
+                    validator: _validateEmail,
+                  ),
+                  context.vL,
+
+                  // Account Security Section
+                  _buildSectionHeader('Account Security'),
+                  context.vM,
+
+                  _buildPasswordField(
+                    'Password',
+                    _passwordController,
+                    _obscurePassword,
+                    () => setState(() => _obscurePassword = !_obscurePassword),
+                    isRequired: true,
+                  ),
+                  context.vS,
+
+                  _buildPasswordField(
+                    'Confirm Password',
+                    _confirmPasswordController,
+                    _obscureConfirmPassword,
+                    () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                    isRequired: true,
+                    validator: _validateConfirmPassword,
+                  ),
+                  context.vL,
+
+                  // Division & Access Section
+                  _buildSectionHeader('Division & Access'),
+                  context.vM,
+
+                  _buildDivisionDropdown(systemProvider),
+                  context.vS,
+
+                  _buildDropdownField(
+                    'User Group',
+                    _selectedUserGroup,
+                    _userGroups
+                        .map(
+                          (group) => DropdownMenuItem<String>(
+                            value: group,
+                            child: Text(group.toUpperCase()),
+                          ),
+                        )
+                        .toList(),
+                    (value) => setState(() => _selectedUserGroup = value),
+                    isRequired: true,
+                  ),
+                  context.vS,
+
+                  _buildFormField('Access Code', _codeController, hint: 'Enter verification code'),
+                  context.vL,
+
+                  // Account Settings Section
+                  _buildSectionHeader('Account Settings'),
+                  context.vM,
+
+                  CheckboxListTile(
+                    title: Text('Require Password Reset on First Login'),
+                    subtitle: Text('User must change password when first logging in'),
+                    value: _passwordReset,
+                    onChanged: (value) => setState(() => _passwordReset = value ?? false),
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+
+                  CheckboxListTile(
+                    title: Text('Lock Account'),
+                    subtitle: Text('Account will be locked and cannot login'),
+                    value: _isAccountLocked,
+                    onChanged: (value) => setState(() => _isAccountLocked = value ?? false),
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+
+                  context.vXl,
+
+                  // Submit Button
+                  CommonButton(
+                    onPressed: _isLoading ? null : _handleSubmit,
+                    text: _isLoading ? 'Creating Account...' : 'Create Account',
+                  ),
+
+                  context.vM,
+
+                  // Back to Login
+                  TextButton(
+                    onPressed: () => NavigationService().goBack(),
+                    child: Text(
+                      'Already have an account? Back to Login',
+                      style: TextStyle(color: context.colors.primary),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDivisionDropdown(SystemProvider systemProvider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Division *',
+          style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
+        ),
+        context.vXs,
+        systemProvider.isLoading && systemProvider.divisions.isEmpty
+            ? Container(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(context.colors.primary),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Text(
+                    'Loading divisions...',
+                    style: context.topology.textTheme.bodySmall?.copyWith(
+                      color: context.colors.primary.withOpacity(0.6),
+                    ),
+                  ),
+                ],
+              ),
+            )
+            : DropdownButtonFormField<String>(
+              value: _selectedDivisionId,
+              items: [
+                if (systemProvider.divisions.isEmpty)
+                  DropdownMenuItem<String>(
+                    value: null,
+                    enabled: false,
+                    child: Text(
+                      'No divisions available',
+                      style: context.topology.textTheme.bodySmall?.copyWith(
+                        color: context.colors.primary.withOpacity(0.6),
+                      ),
+                    ),
+                  )
+                else
+                  ...systemProvider.divisions.map((division) {
+                    return DropdownMenuItem<String>(
+                      value: division.divisionid,
+                      child: Text(
+                        division.divisionname ?? 'Unknown Division',
+                        style: context.topology.textTheme.bodySmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+              ],
+              onChanged:
+                  systemProvider.divisions.isEmpty
+                      ? null
+                      : (value) => setState(() => _selectedDivisionId = value),
+              style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                suffixIcon:
+                    systemProvider.divisions.isEmpty
+                        ? IconButton(
+                          icon: Icon(Icons.refresh_rounded, size: 20),
+                          onPressed: () => systemProvider.fetchDivision(),
+                          tooltip: 'Refresh divisions',
+                        )
+                        : null,
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Division is required';
+                }
+                return null;
+              },
+              isExpanded: true,
+            ),
+        if (systemProvider.hasError && systemProvider.divisions.isEmpty) ...[
+          SizedBox(height: 8),
+          Row(
             children: [
-              // Personal Information Section
-              _buildSectionHeader('Personal Information'),
-              context.vM,
-
-              _buildFormField('First Name', _firstNameController, isRequired: true),
-              context.vS,
-
-              _buildFormField('Last Name', _lastNameController, isRequired: true),
-              context.vS,
-
-              _buildFormField('Username', _usernameController, isRequired: true),
-              context.vS,
-
-              _buildFormField(
-                'Email',
-                _emailController,
-                isRequired: true,
-                keyboardType: TextInputType.emailAddress,
-                validator: _validateEmail,
-              ),
-              context.vL,
-
-              // Account Security Section
-              _buildSectionHeader('Account Security'),
-              context.vM,
-
-              _buildPasswordField(
-                'Password',
-                _passwordController,
-                _obscurePassword,
-                () => setState(() => _obscurePassword = !_obscurePassword),
-                isRequired: true,
-              ),
-              context.vS,
-
-              _buildPasswordField(
-                'Confirm Password',
-                _confirmPasswordController,
-                _obscureConfirmPassword,
-                () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
-                isRequired: true,
-                validator: _validateConfirmPassword,
-              ),
-              context.vL,
-
-              // Division & Access Section
-              _buildSectionHeader('Division & Access'),
-              context.vM,
-
-              _buildDropdownField(
-                'Division',
-                _selectedDivisionId,
-                _divisions
-                    .map(
-                      (div) =>
-                          DropdownMenuItem<String>(value: div['id'], child: Text(div['name']!)),
-                    )
-                    .toList(),
-                (value) => setState(() => _selectedDivisionId = value),
-                isRequired: true,
-              ),
-              context.vS,
-
-              _buildDropdownField(
-                'User Group',
-                _selectedUserGroup,
-                _userGroups
-                    .map(
-                      (group) =>
-                          DropdownMenuItem<String>(value: group, child: Text(group.toUpperCase())),
-                    )
-                    .toList(),
-                (value) => setState(() => _selectedUserGroup = value),
-                isRequired: true,
-              ),
-              context.vS,
-
-              _buildFormField('Access Code', _codeController, hint: 'Enter verification code'),
-              context.vL,
-
-              // Account Settings Section
-              _buildSectionHeader('Account Settings'),
-              context.vM,
-
-              CheckboxListTile(
-                title: Text('Require Password Reset on First Login'),
-                subtitle: Text('User must change password when first logging in'),
-                value: _passwordReset,
-                onChanged: (value) => setState(() => _passwordReset = value ?? false),
-                controlAffinity: ListTileControlAffinity.leading,
-              ),
-
-              CheckboxListTile(
-                title: Text('Lock Account'),
-                subtitle: Text('Account will be locked and cannot login'),
-                value: _isAccountLocked,
-                onChanged: (value) => setState(() => _isAccountLocked = value ?? false),
-                controlAffinity: ListTileControlAffinity.leading,
-              ),
-
-              context.vXl,
-
-              // Submit Button
-              CommonButton(
-                onPressed: _isLoading ? null : _handleSubmit,
-                text: _isLoading ? 'Creating Account...' : 'Create Account',
-              ),
-
-              context.vM,
-
-              // Back to Login
-              TextButton(
-                onPressed: () => NavigationService().goBack(),
+              Icon(Icons.error_outline, size: 16, color: Colors.red),
+              SizedBox(width: 8),
+              Expanded(
                 child: Text(
-                  'Already have an account? Back to Login',
-                  style: TextStyle(color: context.colors.primary),
+                  systemProvider.errorMessage ?? 'Failed to load divisions',
+                  style: TextStyle(color: Colors.red, fontSize: 12),
                 ),
+              ),
+              TextButton(
+                onPressed: () => systemProvider.fetchDivision(),
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  minimumSize: Size(0, 0),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text('Retry', style: TextStyle(fontSize: 12)),
               ),
             ],
           ),
-        ),
-      ),
+        ],
+      ],
     );
   }
 
@@ -308,6 +424,7 @@ class _AccessScreenState extends State<AccessScreen> {
           value: value,
           items: items,
           onChanged: onChanged,
+          style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
           decoration: InputDecoration(
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),

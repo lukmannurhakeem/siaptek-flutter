@@ -1,6 +1,6 @@
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/core/service/navigation_service.dart';
-import 'package:base_app/model/site_model.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/core/service/navigation_service.dart';
+import 'package:INSPECT/model/site_model.dart';
 import 'package:flutter/material.dart';
 
 class SiteDetailsScreen extends StatefulWidget {

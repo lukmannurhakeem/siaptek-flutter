@@ -1,6 +1,6 @@
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/core/service/local_storage.dart';
-import 'package:base_app/core/service/local_storage_constant.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/core/service/local_storage.dart';
+import 'package:INSPECT/core/service/local_storage_constant.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatefulWidget {

@@ -1,4 +1,4 @@
-import 'package:base_app/core/extension/theme_extension.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
 import 'package:flutter/material.dart';
 
 class CommonChecklistTile extends StatelessWidget {

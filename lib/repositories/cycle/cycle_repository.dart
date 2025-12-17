@@ -1,4 +1,4 @@
-import 'package:base_app/model/cycle_model.dart';
+import 'package:INSPECT/model/cycle_model.dart';
 
 abstract class CycleRepository {
   Future<CycleModel> fetchCycles({int? page, int? pageSize});

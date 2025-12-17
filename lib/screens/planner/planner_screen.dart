@@ -1,6 +1,6 @@
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/model/inspection_plan_model.dart';
-import 'package:base_app/providers/planner_provider.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/model/inspection_plan_model.dart';
+import 'package:INSPECT/providers/planner_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -366,7 +366,6 @@ class _PlannerScreenState extends State<PlannerScreen> {
                   'No plans for ${DateFormat('MMM dd, yyyy').format(_selectedDay ?? _focusedDay)}',
                   style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                 ),
-                Text('${provider.plans.length}'),
               ],
             ),
           );

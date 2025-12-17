@@ -1,4 +1,4 @@
-import 'package:base_app/core/extension/theme_extension.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
 import 'package:flutter/material.dart';
 
 /// A reusable custom snackbar utility class
@@ -14,10 +14,7 @@ class CommonSnackbar {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: CustomSnackbarContent(
-          message: message,
-          type: type,
-        ),
+        content: CustomSnackbarContent(message: message, type: type),
         backgroundColor: Colors.transparent,
         elevation: 0,
         duration: duration,
@@ -57,11 +54,8 @@ class CustomSnackbarContent extends StatelessWidget {
   final String message;
   final SnackbarType type;
 
-  const CustomSnackbarContent({
-    Key? key,
-    required this.message,
-    required this.type,
-  }) : super(key: key);
+  const CustomSnackbarContent({Key? key, required this.message, required this.type})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -82,25 +76,13 @@ class CustomSnackbarContent extends StatelessWidget {
         children: [
           _getIcon(context),
           const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              message,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-              ),
-            ),
-          ),
+          Expanded(child: Text(message, style: const TextStyle(color: Colors.white, fontSize: 14))),
           const SizedBox(width: 8),
           InkWell(
             onTap: () {
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
             },
-            child: const Icon(
-              Icons.close,
-              color: Colors.white70,
-              size: 16,
-            ),
+            child: const Icon(Icons.close, color: Colors.white70, size: 16),
           ),
         ],
       ),
@@ -135,9 +117,4 @@ class CustomSnackbarContent extends StatelessWidget {
 }
 
 /// Enum to define the type of snackbar
-enum SnackbarType {
-  success,
-  error,
-  info,
-  warning,
-}
+enum SnackbarType { success, error, info, warning }

@@ -1,7 +1,7 @@
-import 'package:base_app/core/service/offline_http_service.dart';
-import 'package:base_app/model/inspection_plan_model.dart';
-import 'package:base_app/repositories/planner/planner_repository.dart';
-import 'package:base_app/route/endpoint.dart';
+import 'package:INSPECT/core/service/offline_http_service.dart';
+import 'package:INSPECT/model/inspection_plan_model.dart';
+import 'package:INSPECT/repositories/planner/planner_repository.dart';
+import 'package:INSPECT/route/endpoint.dart';
 import 'package:flutter/foundation.dart';
 
 class PlannerImpl implements PlannerRepository {

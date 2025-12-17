@@ -1,11 +1,11 @@
 import 'dart:typed_data';
 
-import 'package:base_app/core/service/offline_http_service.dart';
-import 'package:base_app/model/get_company_division.dart';
-import 'package:base_app/model/get_report_type_model.dart';
-import 'package:base_app/model/item_report_model.dart';
-import 'package:base_app/repositories/system/system_repository.dart';
-import 'package:base_app/route/endpoint.dart';
+import 'package:INSPECT/core/service/offline_http_service.dart';
+import 'package:INSPECT/model/get_company_division.dart';
+import 'package:INSPECT/model/get_report_type_model.dart';
+import 'package:INSPECT/model/item_report_model.dart';
+import 'package:INSPECT/repositories/system/system_repository.dart';
+import 'package:INSPECT/route/endpoint.dart';
 
 class SystemImpl implements SystemRepository {
   final OfflineHttpService _api;

@@ -1,9 +1,9 @@
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/core/service/navigation_service.dart';
-import 'package:base_app/providers/category_provider.dart';
-import 'package:base_app/route/route.dart';
-import 'package:base_app/widget/common_button.dart';
-import 'package:base_app/widget/common_textfield.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/core/service/navigation_service.dart';
+import 'package:INSPECT/providers/category_provider.dart';
+import 'package:INSPECT/route/route.dart';
+import 'package:INSPECT/widget/common_button.dart';
+import 'package:INSPECT/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -81,19 +81,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               context.vXxl,
-              Icon(
-                Icons.category_outlined,
-                size: 64,
-                color: context.colors.primary.withOpacity(0.3),
-              ),
-              const SizedBox(height: 16),
               Text(
                 'You do not have categories right now',
                 style: context.topology.textTheme.titleMedium?.copyWith(
                   color: context.colors.primary,
                 ),
               ),
-              const SizedBox(height: 8),
+      
               Text(
                 'Add your first category to get started',
                 textAlign: TextAlign.center,
@@ -101,7 +95,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   color: context.colors.primary.withOpacity(0.7),
                 ),
               ),
-              const SizedBox(height: 24),
+              context.vL,
               ElevatedButton.icon(
                 onPressed: () {
                   NavigationService().navigateTo(AppRoutes.createCategories);

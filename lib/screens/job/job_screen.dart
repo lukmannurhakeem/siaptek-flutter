@@ -1,12 +1,12 @@
-import 'package:base_app/core/extension/date_time_extension.dart';
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/core/service/navigation_service.dart';
-import 'package:base_app/providers/job_provider.dart';
-import 'package:base_app/route/route.dart';
-import 'package:base_app/widget/common_button.dart';
-import 'package:base_app/widget/common_dialog.dart';
-import 'package:base_app/widget/common_dropdown.dart';
-import 'package:base_app/widget/common_textfield.dart';
+import 'package:INSPECT/core/extension/date_time_extension.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/core/service/navigation_service.dart';
+import 'package:INSPECT/providers/job_provider.dart';
+import 'package:INSPECT/route/route.dart';
+import 'package:INSPECT/widget/common_button.dart';
+import 'package:INSPECT/widget/common_dialog.dart';
+import 'package:INSPECT/widget/common_dropdown.dart';
+import 'package:INSPECT/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -639,46 +639,45 @@ class _JobScreenState extends State<JobScreen> {
     final hasSearchOrFilter =
         _searchController.text.isNotEmpty || (selectedColumn != null && selectedValue != null);
 
-    return SizedBox(
-      width: double.infinity,
-      child: Stack(
-        children: [
-          Padding(
-            padding: context.paddingAll,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 100),
-                Text(
-                  hasSearchOrFilter ? 'No jobs found' : 'You have no job created',
-                  textAlign: TextAlign.center,
-                  style: context.topology.textTheme.titleMedium?.copyWith(
-                    color: context.colors.primary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  hasSearchOrFilter ? 'Try adjusting your search or filter' : 'Add your first job',
-                  textAlign: TextAlign.center,
-                  style: context.topology.textTheme.bodySmall?.copyWith(
-                    color: context.colors.primary,
-                  ),
-                ),
-              ],
-            ),
+    return Stack(
+      children: [
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: Image.asset(
+            'assets/images/bg_2.png',
+            fit: BoxFit.contain,
+            alignment: Alignment.bottomRight,
+            height: context.screenHeight * 0.70,
           ),
-          Positioned(
-            bottom: -200,
-            right: 0,
-            child: Image.asset(
-              'assets/images/bg_2.png',
-              fit: BoxFit.contain,
-              alignment: Alignment.bottomRight,
-              height: context.screenHeight * 0.70,
-            ),
+        ),
+        Container(
+          width: double.infinity,
+          height: context.screenHeight - kToolbarHeight * 2,
+          padding: context.paddingAll,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              context.vXxl,
+              Text(
+                hasSearchOrFilter ? 'No jobs found' : 'You have no job created',
+                textAlign: TextAlign.center,
+                style: context.topology.textTheme.titleMedium?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                hasSearchOrFilter ? 'Try adjusting your search or filter' : 'Add your first job',
+                textAlign: TextAlign.center,
+                style: context.topology.textTheme.bodySmall?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

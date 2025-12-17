@@ -1,13 +1,13 @@
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/core/service/navigation_service.dart';
-import 'package:base_app/providers/system_provider.dart';
-import 'package:base_app/route/route.dart';
-import 'package:base_app/screens/job/job_item_details/item_files_screen.dart';
-import 'package:base_app/widget/common_button.dart';
-import 'package:base_app/widget/common_dialog.dart';
-import 'package:base_app/widget/common_dropdown.dart';
-import 'package:base_app/widget/common_snackbar.dart';
-import 'package:base_app/widget/common_textfield.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/core/service/navigation_service.dart';
+import 'package:INSPECT/providers/system_provider.dart';
+import 'package:INSPECT/route/route.dart';
+import 'package:INSPECT/screens/job/job_item_details/item_files_screen.dart';
+import 'package:INSPECT/widget/common_button.dart';
+import 'package:INSPECT/widget/common_dialog.dart';
+import 'package:INSPECT/widget/common_dropdown.dart';
+import 'package:INSPECT/widget/common_snackbar.dart';
+import 'package:INSPECT/widget/common_textfield.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -481,19 +481,19 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> with TickerProvider
                   color: context.colors.primary,
                 ),
               ),
+              context.vL,
+              ElevatedButton.icon(
+                onPressed: () {
+                  NavigationService().navigateTo(AppRoutes.reportCreate);
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Create Report Type'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: context.colors.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+              ),
             ],
-          ),
-        ),
-        Positioned(
-          bottom: 50,
-          right: 30,
-          child: FloatingActionButton(
-            onPressed: () {
-              NavigationService().navigateTo(AppRoutes.reportCreate);
-            },
-            tooltip: 'Add New',
-            backgroundColor: context.colors.primary,
-            child: const Icon(Icons.add),
           ),
         ),
       ],
@@ -544,14 +544,10 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> with TickerProvider
                         },
                         icon: const Icon(Icons.add),
                         label: const Text('Create New'),
-                        style: ElevatedButton.styleFrom(backgroundColor: context.colors.primary),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton.icon(
-                        onPressed: _pickAndUploadFiles,
-                        icon: const Icon(Icons.upload_file),
-                        label: const Text('Import'),
-                        style: ElevatedButton.styleFrom(backgroundColor: context.colors.primary),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: context.colors.primary,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        ),
                       ),
                     ],
                   ),

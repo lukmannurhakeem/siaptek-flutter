@@ -1,9 +1,10 @@
 // category_impl.dart
-import 'package:base_app/core/service/offline_http_service.dart';
-import 'package:base_app/model/create_category_model.dart';
-import 'package:base_app/model/get_category_model.dart';
-import 'package:base_app/repositories/category/category_repository.dart';
-import 'package:base_app/route/endpoint.dart';
+
+import 'package:INSPECT/core/service/offline_http_service.dart';
+import 'package:INSPECT/model/create_category_model.dart';
+import 'package:INSPECT/model/get_category_model.dart';
+import 'package:INSPECT/repositories/category/category_repository.dart';
+import 'package:INSPECT/route/endpoint.dart';
 
 class CategoryImpl implements CategoryRepository {
   final OfflineHttpService _api;

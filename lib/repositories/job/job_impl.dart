@@ -1,10 +1,10 @@
-import 'package:base_app/core/service/offline_http_service.dart';
-import 'package:base_app/model/approval_report_model.dart';
-import 'package:base_app/model/job_model.dart';
-import 'package:base_app/model/job_register.dart';
-import 'package:base_app/model/report_approval_model.dart';
-import 'package:base_app/repositories/job/job_repository.dart';
-import 'package:base_app/route/endpoint.dart';
+import 'package:INSPECT/core/service/offline_http_service.dart';
+import 'package:INSPECT/model/approval_report_model.dart';
+import 'package:INSPECT/model/job_model.dart';
+import 'package:INSPECT/model/job_register.dart';
+import 'package:INSPECT/model/report_approval_model.dart';
+import 'package:INSPECT/repositories/job/job_repository.dart';
+import 'package:INSPECT/route/endpoint.dart';
 
 class JobImpl implements JobRepository {
   final OfflineHttpService _api;
@@ -130,9 +130,8 @@ class JobImpl implements JobRepository {
     }
   }
 
-  //////
   @override
-  Future<ReportApprovalModel> fetchReportApprovals(String jobId, bool isApproved) async {
+  Future<ReportApprovalModel?> fetchReportApprovals(String jobId, bool isApproved) async {
     try {
       final endpoint =
           isApproved
@@ -144,27 +143,41 @@ class JobImpl implements JobRepository {
       final response = await _api.get(endpoint, requiresAuth: true);
 
       if (response.statusCode == 200) {
-        final model = ReportApprovalModel.fromJson(response.data);
-        print(
-          '✅ Fetched ${model.data?.length ?? 0} ${isApproved ? "approved" : "pending"} reports',
-        );
+        final data = response.data;
+
+        // Handle case where response might be null or empty
+        if (data == null) {
+          print('⚠️ Received null response data');
+          return null;
+        }
+
+        final model = ReportApprovalModel.fromJson(data);
+
+        // Check if the model has data
+        final reportCount = model.data?.length ?? 0;
+        print('✅ Fetched $reportCount ${isApproved ? "approved" : "pending"} reports');
+
+        // Return the model even if data is empty (model with empty list is different from null)
         return model;
       } else {
+        print('⚠️ Unexpected status code: ${response.statusCode}');
         throw Exception('Failed to load report approvals: ${response.statusMessage}');
       }
     } catch (e) {
       print('❌ Error fetching report approvals: $e');
-      throw Exception('Error fetching report approvals: $e');
+      // Return null instead of throwing to allow graceful handling
+      return null;
     }
   }
 
-  /// Approve a report
+  @override
   Future<Map<String, dynamic>> approveReport(String reportId) async {
     try {
       // Update with your actual approve endpoint
       final response = await _api.put(
         '/reportData/approve/$reportId', // Or '/reportData/$reportId/approve'
         data: {'approvalStatus': 'approved', 'approvedAt': DateTime.now().toIso8601String()},
+        requiresAuth: true,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -178,7 +191,7 @@ class JobImpl implements JobRepository {
     }
   }
 
-  /// Reject a report
+  @override
   Future<Map<String, dynamic>> rejectReport(String reportId, {String? reason}) async {
     try {
       // Update with your actual reject endpoint
@@ -189,6 +202,7 @@ class JobImpl implements JobRepository {
           'rejectedAt': DateTime.now().toIso8601String(),
           if (reason != null) 'rejectionReason': reason,
         },
+        requiresAuth: true,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

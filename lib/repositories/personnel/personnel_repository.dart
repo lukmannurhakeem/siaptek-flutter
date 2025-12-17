@@ -1,6 +1,6 @@
-import 'package:base_app/model/personnel_model.dart';
-import 'package:base_app/model/personnel_team_member_model.dart';
-import 'package:base_app/model/personnel_team_model.dart';
+import 'package:INSPECT/model/personnel_model.dart';
+import 'package:INSPECT/model/personnel_team_member_model.dart';
+import 'package:INSPECT/model/personnel_team_model.dart';
 
 abstract class PersonnelRepository {
   Future<PersonnelModel> fetchPersonnel();

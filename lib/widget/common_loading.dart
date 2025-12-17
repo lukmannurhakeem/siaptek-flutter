@@ -1,10 +1,8 @@
-import 'package:base_app/core/extension/theme_extension.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
 import 'package:flutter/material.dart';
 
 class CommonLoading extends StatefulWidget {
-  const CommonLoading({
-    Key? key,
-  }) : super(key: key);
+  const CommonLoading({Key? key}) : super(key: key);
 
   @override
   State<CommonLoading> createState() => _CommonLoadingState();
@@ -16,10 +14,8 @@ class _CommonLoadingState extends State<CommonLoading> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    )..repeat();
+    _controller = AnimationController(duration: const Duration(milliseconds: 1200), vsync: this)
+      ..repeat();
   }
 
   @override
@@ -69,10 +65,11 @@ class TwoColorCircularPainter extends CustomPainter {
     final radius = (size.width - strokeWidth) / 2;
 
     // Background circle (optional)
-    final backgroundPaint = Paint()
-      ..color = Colors.grey.withOpacity(0.2)
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke;
+    final backgroundPaint =
+        Paint()
+          ..color = Colors.grey.withOpacity(0.2)
+          ..strokeWidth = strokeWidth
+          ..style = PaintingStyle.stroke;
 
     canvas.drawCircle(center, radius, backgroundPaint);
 
@@ -80,11 +77,12 @@ class TwoColorCircularPainter extends CustomPainter {
     final startAngle = -90 * (3.14159 / 180) + (progress * 2 * 3.14159);
 
     // First arc (color1)
-    final paint1 = Paint()
-      ..color = color1
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
+    final paint1 =
+        Paint()
+          ..color = color1
+          ..strokeWidth = strokeWidth
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round;
 
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
@@ -95,11 +93,12 @@ class TwoColorCircularPainter extends CustomPainter {
     );
 
     // Second arc (color2)
-    final paint2 = Paint()
-      ..color = color2
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
+    final paint2 =
+        Paint()
+          ..color = color2
+          ..strokeWidth = strokeWidth
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round;
 
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),

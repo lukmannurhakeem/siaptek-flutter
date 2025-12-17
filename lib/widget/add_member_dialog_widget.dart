@@ -1,5 +1,5 @@
-import 'package:base_app/model/personnel_model.dart';
-import 'package:base_app/providers/personnel_provider.dart';
+import 'package:INSPECT/model/personnel_model.dart';
+import 'package:INSPECT/providers/personnel_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -41,16 +41,16 @@ class _AddMemberDialogState extends State<AddMemberDialog> {
         }
 
         List<PersonnelData> filteredList =
-            provider.activePersonnel.where((p) {
-              final matchesName = p.fullName.toLowerCase().contains(_nameFilter.toLowerCase());
-              final matchesEmp = p.company.employeeNumber.toLowerCase().contains(
-                _employeeNoFilter.toLowerCase(),
-              );
-              final matchesJob = p.company.jobTitle.toLowerCase().contains(
-                _jobTitleFilter.toLowerCase(),
-              );
-              return matchesName && matchesEmp && matchesJob;
-            }).toList();
+        provider.activePersonnel.where((p) {
+          final matchesName = p.fullName.toLowerCase().contains(_nameFilter.toLowerCase());
+          final matchesEmp = p.company.employeeNumber.toLowerCase().contains(
+            _employeeNoFilter.toLowerCase(),
+          );
+          final matchesJob = p.company.jobTitle.toLowerCase().contains(
+            _jobTitleFilter.toLowerCase(),
+          );
+          return matchesName && matchesEmp && matchesJob;
+        }).toList();
 
         return AlertDialog(
           title: Text(_selectedPersonnel == null ? 'Select Team Member' : 'Configure Member Role'),
@@ -60,35 +60,35 @@ class _AddMemberDialogState extends State<AddMemberDialog> {
             width: 600,
             height: 450,
             child:
-                _selectedPersonnel == null
-                    ? _buildPersonnelSelection(filteredList)
-                    : _buildRoleSelection(),
+            _selectedPersonnel == null
+                ? _buildPersonnelSelection(filteredList)
+                : _buildRoleSelection(),
           ),
           actions:
-              _selectedPersonnel == null
-                  ? [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text("Cancel"),
-                    ),
-                  ]
-                  : [
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          _selectedPersonnel = null;
-                          _isTeamLeader = false;
-                          _isPrimaryLeader = false;
-                        });
-                      },
-                      child: const Text("Back"),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text("Cancel"),
-                    ),
-                    ElevatedButton(onPressed: _addMember, child: const Text("Add Member")),
-                  ],
+          _selectedPersonnel == null
+              ? [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Cancel"),
+            ),
+          ]
+              : [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _selectedPersonnel = null;
+                  _isTeamLeader = false;
+                  _isPrimaryLeader = false;
+                });
+              },
+              child: const Text("Back"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(onPressed: _addMember, child: const Text("Add Member")),
+          ],
         );
       },
     );
@@ -140,24 +140,24 @@ class _AddMemberDialogState extends State<AddMemberDialog> {
         // Personnel List
         Expanded(
           child:
-              filteredList.isEmpty
-                  ? const Center(child: Text('No personnel found'))
-                  : ListView.builder(
-                    itemCount: filteredList.length,
-                    itemBuilder: (context, index) {
-                      final p = filteredList[index];
-                      return ListTile(
-                        title: Text(p.fullName),
-                        subtitle: Text(p.company.jobTitle),
-                        trailing: Text(p.company.employeeNumber),
-                        onTap: () {
-                          setState(() {
-                            _selectedPersonnel = p;
-                          });
-                        },
-                      );
-                    },
-                  ),
+          filteredList.isEmpty
+              ? const Center(child: Text('No personnel found'))
+              : ListView.builder(
+            itemCount: filteredList.length,
+            itemBuilder: (context, index) {
+              final p = filteredList[index];
+              return ListTile(
+                title: Text(p.fullName),
+                subtitle: Text(p.company.jobTitle),
+                trailing: Text(p.company.employeeNumber),
+                onTap: () {
+                  setState(() {
+                    _selectedPersonnel = p;
+                  });
+                },
+              );
+            },
+          ),
         ),
       ],
     );

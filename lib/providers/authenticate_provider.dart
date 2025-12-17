@@ -1,14 +1,14 @@
 import 'dart:async';
 
-import 'package:base_app/core/service/local_storage.dart';
-import 'package:base_app/core/service/local_storage_constant.dart';
-import 'package:base_app/core/service/navigation_service.dart';
-import 'package:base_app/core/service/service_locator.dart';
-import 'package:base_app/core/service/websocket_service.dart';
-import 'package:base_app/model/user_login_model.dart';
-import 'package:base_app/repositories/user/user_repository.dart';
-import 'package:base_app/route/route.dart';
-import 'package:base_app/widget/common_snackbar.dart';
+import 'package:INSPECT/core/service/local_storage.dart';
+import 'package:INSPECT/core/service/local_storage_constant.dart';
+import 'package:INSPECT/core/service/navigation_service.dart';
+import 'package:INSPECT/core/service/service_locator.dart';
+import 'package:INSPECT/core/service/websocket_service.dart';
+import 'package:INSPECT/model/user_login_model.dart';
+import 'package:INSPECT/repositories/user/user_repository.dart';
+import 'package:INSPECT/route/route.dart';
+import 'package:INSPECT/widget/common_snackbar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 

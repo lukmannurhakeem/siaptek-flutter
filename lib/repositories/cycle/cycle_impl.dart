@@ -1,7 +1,7 @@
-import 'package:base_app/core/service/offline_http_service.dart';
-import 'package:base_app/model/cycle_model.dart';
-import 'package:base_app/repositories/cycle/cycle_repository.dart';
-import 'package:base_app/route/endpoint.dart';
+import 'package:INSPECT/core/service/offline_http_service.dart';
+import 'package:INSPECT/model/cycle_model.dart';
+import 'package:INSPECT/repositories/cycle/cycle_repository.dart';
+import 'package:INSPECT/route/endpoint.dart';
 
 class CycleImpl implements CycleRepository {
   final OfflineHttpService _api;

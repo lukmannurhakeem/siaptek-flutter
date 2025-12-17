@@ -1,6 +1,6 @@
-import 'package:base_app/core/service/local_storage.dart';
-import 'package:base_app/core/service/local_storage_constant.dart';
-import 'package:base_app/route/endpoint.dart';
+import 'package:INSPECT/core/service/local_storage.dart';
+import 'package:INSPECT/core/service/local_storage_constant.dart';
+import 'package:INSPECT/route/endpoint.dart';
 import 'package:dio/dio.dart';
 
 class AuthInterceptor extends Interceptor {

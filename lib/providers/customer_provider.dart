@@ -1,9 +1,9 @@
-import 'package:base_app/core/service/navigation_service.dart';
-import 'package:base_app/core/service/service_locator.dart';
-import 'package:base_app/model/dahboard_model.dart';
-import 'package:base_app/model/get_customer_model.dart';
-import 'package:base_app/repositories/customer/customer_repository.dart';
-import 'package:base_app/widget/common_snackbar.dart';
+import 'package:INSPECT/core/service/navigation_service.dart';
+import 'package:INSPECT/core/service/service_locator.dart';
+import 'package:INSPECT/model/dahboard_model.dart';
+import 'package:INSPECT/model/get_customer_model.dart';
+import 'package:INSPECT/repositories/customer/customer_repository.dart';
+import 'package:INSPECT/widget/common_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 

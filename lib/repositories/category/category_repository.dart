@@ -1,6 +1,7 @@
 // category_repository.dart
-import 'package:base_app/model/create_category_model.dart';
-import 'package:base_app/model/get_category_model.dart';
+
+import 'package:INSPECT/model/create_category_model.dart';
+import 'package:INSPECT/model/get_category_model.dart';
 
 abstract class CategoryRepository {
   Future<GetCategoryModel> fetchCategory();

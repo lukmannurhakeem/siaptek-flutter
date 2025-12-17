@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:base_app/core/service/service_locator.dart';
-import 'package:base_app/model/notification_model.dart';
+import 'package:INSPECT/core/service/service_locator.dart';
+import 'package:INSPECT/model/notification_model.dart';
 import 'package:flutter/material.dart';
 
 class NotificationProvider extends ChangeNotifier {

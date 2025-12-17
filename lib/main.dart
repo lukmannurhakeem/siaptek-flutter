@@ -1,23 +1,23 @@
 import 'dart:html' as html;
 
-import 'package:base_app/core/service/flavor_config.dart';
-import 'package:base_app/core/service/local_storage.dart';
-import 'package:base_app/core/service/navigation_service.dart';
-import 'package:base_app/core/service/offline_http_service.dart';
-import 'package:base_app/core/service/service_locator.dart';
-import 'package:base_app/core/service/websocket_service.dart';
-import 'package:base_app/core/theme/app_theme.dart';
-import 'package:base_app/providers/authenticate_provider.dart';
-import 'package:base_app/providers/category_provider.dart';
-import 'package:base_app/providers/customer_provider.dart';
-import 'package:base_app/providers/cycle_provider.dart';
-import 'package:base_app/providers/job_provider.dart';
-import 'package:base_app/providers/notification_provider.dart';
-import 'package:base_app/providers/personnel_provider.dart';
-import 'package:base_app/providers/planner_provider.dart';
-import 'package:base_app/providers/site_provider.dart';
-import 'package:base_app/providers/system_provider.dart';
-import 'package:base_app/route/route.dart';
+import 'package:INSPECT/core/service/flavor_config.dart';
+import 'package:INSPECT/core/service/local_storage.dart';
+import 'package:INSPECT/core/service/navigation_service.dart';
+import 'package:INSPECT/core/service/offline_http_service.dart';
+import 'package:INSPECT/core/service/service_locator.dart';
+import 'package:INSPECT/core/service/websocket_service.dart';
+import 'package:INSPECT/core/theme/app_theme.dart';
+import 'package:INSPECT/providers/authenticate_provider.dart';
+import 'package:INSPECT/providers/category_provider.dart';
+import 'package:INSPECT/providers/customer_provider.dart';
+import 'package:INSPECT/providers/cycle_provider.dart';
+import 'package:INSPECT/providers/job_provider.dart';
+import 'package:INSPECT/providers/notification_provider.dart';
+import 'package:INSPECT/providers/personnel_provider.dart';
+import 'package:INSPECT/providers/planner_provider.dart';
+import 'package:INSPECT/providers/site_provider.dart';
+import 'package:INSPECT/providers/system_provider.dart';
+import 'package:INSPECT/route/route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -27,7 +27,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Load environment variables
-  await dotenv.load(fileName: ".env.dev");
+  await dotenv.load(fileName: "env.dev");
 
   // Initialize local storage (required for offline feature)
   await LocalStorageService.init();
@@ -103,9 +103,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final navigationService = NavigationService();
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'INSPECT - NDT Inspection System',
       theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      darkTheme: AppTheme.lightTheme,
       themeMode: ThemeMode.system,
       navigatorKey: navigationService.navigatorKey,
       // Start with landing page first
@@ -138,7 +138,9 @@ class _PWALandingScreenState extends State<PWALandingScreen> {
   }
 
   void _checkInstallStatus() {
-    final isStandalone = html.window.matchMedia('(display-mode: standalone)').matches;
+    final isStandalone = html.window
+        .matchMedia('(display-mode: standalone)')
+        .matches;
     setState(() {
       _isInstalled = isStandalone;
       // If already installed, skip landing page
@@ -190,8 +192,13 @@ class _PWALandingScreenState extends State<PWALandingScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Theme.of(context).primaryColor,
-              Theme.of(context).primaryColor.withOpacity(0.7),
+              Theme
+                  .of(context)
+                  .primaryColor,
+              Theme
+                  .of(context)
+                  .primaryColor
+                  .withOpacity(0.7),
             ],
           ),
         ),
@@ -229,7 +236,9 @@ class _PWALandingScreenState extends State<PWALandingScreen> {
                       label: const Text('Install App'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        foregroundColor: Theme.of(context).primaryColor,
+                        foregroundColor: Theme
+                            .of(context)
+                            .primaryColor,
                         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                         textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),

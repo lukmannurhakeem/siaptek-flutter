@@ -1,11 +1,10 @@
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/model/job_register.dart';
-import 'package:base_app/providers/job_provider.dart';
-import 'package:base_app/screens/job/job_item_details/item_cycles_screen.dart';
-import 'package:base_app/screens/job/job_item_details/item_files_screen.dart';
-import 'package:base_app/screens/job/job_item_details/item_movements_screen.dart';
-import 'package:base_app/screens/job/job_item_details/item_overview_screen.dart';
-import 'package:base_app/screens/job/job_item_details/item_reports_screen.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/model/job_register.dart';
+import 'package:INSPECT/providers/job_provider.dart';
+import 'package:INSPECT/screens/job/job_item_details/item_cycles_screen.dart';
+import 'package:INSPECT/screens/job/job_item_details/item_files_screen.dart';
+import 'package:INSPECT/screens/job/job_item_details/item_overview_screen.dart';
+import 'package:INSPECT/screens/job/job_item_details/item_reports_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -26,7 +25,6 @@ class _JobItemDetailsScreenState extends State<JobItemDetailsScreen> with Ticker
     Tab(text: 'Files'),
     Tab(text: 'Reports'),
     Tab(text: 'Cycles'),
-    Tab(text: 'Movements'),
   ];
 
   @override
@@ -105,7 +103,7 @@ class _JobItemDetailsScreenState extends State<JobItemDetailsScreen> with Ticker
                       ItemFilesScreen(),
                       ItemReportScreen(item: widget.item),
                       ItemCyclesScreen(),
-                      ItemMovementScreen(),
+                      // ItemMovementScreen(),
                     ],
                   ),
                 ),

@@ -1,6 +1,6 @@
-import 'package:base_app/core/service/service_locator.dart';
-import 'package:base_app/model/cycle_model.dart';
-import 'package:base_app/repositories/cycle/cycle_repository.dart';
+import 'package:INSPECT/core/service/service_locator.dart';
+import 'package:INSPECT/model/cycle_model.dart';
+import 'package:INSPECT/repositories/cycle/cycle_repository.dart';
 import 'package:flutter/material.dart';
 
 class CycleProvider extends ChangeNotifier {

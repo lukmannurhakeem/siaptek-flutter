@@ -1,6 +1,6 @@
-import 'package:base_app/core/service/service_locator.dart';
-import 'package:base_app/model/inspection_plan_model.dart';
-import 'package:base_app/repositories/planner/planner_repository.dart';
+import 'package:INSPECT/core/service/service_locator.dart';
+import 'package:INSPECT/model/inspection_plan_model.dart';
+import 'package:INSPECT/repositories/planner/planner_repository.dart';
 import 'package:flutter/material.dart';
 
 enum PlannerStatus { idle, loading, success, error }

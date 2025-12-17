@@ -1,4 +1,4 @@
-import 'package:base_app/model/inspection_plan_model.dart';
+import 'package:INSPECT/model/inspection_plan_model.dart';
 
 abstract class PlannerRepository {
   /// Create a new inspection plan

@@ -1,6 +1,6 @@
-import 'package:base_app/core/theme/app_color.dart';
-import 'package:base_app/core/theme/app_spacing.dart';
-import 'package:base_app/core/theme/app_topology.dart';
+import 'package:INSPECT/core/theme/app_color.dart';
+import 'package:INSPECT/core/theme/app_spacing.dart';
+import 'package:INSPECT/core/theme/app_topology.dart';
 import 'package:flutter/material.dart';
 
 class AppTheme {
@@ -53,9 +53,7 @@ class AppTheme {
         color: _lightColors.surface,
         elevation: 2,
         margin: _spacing.paddingM,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
 
       // Elevated Button Theme
@@ -63,13 +61,8 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: _lightColors.primary,
           foregroundColor: _lightColors.onPrimary,
-          padding: EdgeInsets.symmetric(
-            horizontal: _spacing.l,
-            vertical: _spacing.m,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          padding: EdgeInsets.symmetric(horizontal: _spacing.l, vertical: _spacing.m),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           textStyle: _typography.textTheme.labelLarge,
         ),
       ),
@@ -94,11 +87,7 @@ class AppTheme {
       ),
 
       // Divider Theme
-      dividerTheme: DividerThemeData(
-        color: _lightColors.divider,
-        thickness: 1,
-        space: _spacing.m,
-      ),
+      dividerTheme: DividerThemeData(color: _lightColors.divider, thickness: 1, space: _spacing.m),
     );
   }
 
@@ -146,9 +135,7 @@ class AppTheme {
         color: _darkColors.surface,
         elevation: 2,
         margin: _spacing.paddingM,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
 
       // Elevated Button Theme
@@ -156,13 +143,8 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: _darkColors.primary,
           foregroundColor: _darkColors.onPrimary,
-          padding: EdgeInsets.symmetric(
-            horizontal: _spacing.l,
-            vertical: _spacing.m,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          padding: EdgeInsets.symmetric(horizontal: _spacing.l, vertical: _spacing.m),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           textStyle: _typography.textTheme.labelLarge,
         ),
       ),
@@ -187,11 +169,7 @@ class AppTheme {
       ),
 
       // Divider Theme
-      dividerTheme: DividerThemeData(
-        color: _darkColors.divider,
-        thickness: 1,
-        space: _spacing.m,
-      ),
+      dividerTheme: DividerThemeData(color: _darkColors.divider, thickness: 1, space: _spacing.m),
     );
   }
 }

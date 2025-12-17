@@ -1,12 +1,12 @@
-import 'package:base_app/core/service/navigation_service.dart';
-import 'package:base_app/core/service/service_locator.dart';
-import 'package:base_app/model/get_customer_model.dart';
-import 'package:base_app/model/job_model.dart';
-import 'package:base_app/model/job_register.dart';
-import 'package:base_app/model/report_approval_model.dart';
-import 'package:base_app/repositories/customer/customer_repository.dart';
-import 'package:base_app/repositories/job/job_repository.dart';
-import 'package:base_app/widget/common_snackbar.dart';
+import 'package:INSPECT/core/service/navigation_service.dart';
+import 'package:INSPECT/core/service/service_locator.dart';
+import 'package:INSPECT/model/get_customer_model.dart';
+import 'package:INSPECT/model/job_model.dart';
+import 'package:INSPECT/model/job_register.dart';
+import 'package:INSPECT/model/report_approval_model.dart';
+import 'package:INSPECT/repositories/customer/customer_repository.dart';
+import 'package:INSPECT/repositories/job/job_repository.dart';
+import 'package:INSPECT/widget/common_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -71,7 +71,8 @@ class JobProvider extends ChangeNotifier {
   // Add this property to store current item
   Item? _currentItem;
 
-  Item? get currentItem => _currentItem; // In JobProvider class
+  Item? get currentItem => _currentItem;
+
   ReportApprovalModel? _reportApprovalModel;
 
   ReportApprovalModel? get reportApprovalModel => _reportApprovalModel;
@@ -85,12 +86,23 @@ class JobProvider extends ChangeNotifier {
   String? get approvalError => _approvalError;
 
   ///////////////////////////////////////
+  // Report Approval Properties
+  ///////////////////////////////////////
   ReportApprovalModel? _pendingReportApprovals;
   ReportApprovalModel? _approvedReportApprovals;
 
   String _currentApprovalFilter = 'pending'; // 'pending', 'approved', 'all'
 
   String get currentApprovalFilter => _currentApprovalFilter;
+
+  // ✅ NEW: Track if we've attempted to fetch data
+  bool _hasAttemptedFetch = false;
+
+  bool get hasAttemptedFetch => _hasAttemptedFetch;
+
+  // Check if approval data has been loaded (models exist)
+  bool get hasLoadedApprovals =>
+      _pendingReportApprovals != null || _approvedReportApprovals != null;
 
   // Get reports based on current filter
   List<ReportApprovalData> get reportApprovals {
@@ -124,7 +136,7 @@ class JobProvider extends ChangeNotifier {
   Future<void> fetchReportApprovals(
     BuildContext context,
     String jobId, {
-    bool fetchBoth = true, // Fetch both pending and approved by default
+    bool fetchBoth = true,
   }) async {
     _isLoading = true;
     _error = null;
@@ -134,29 +146,33 @@ class JobProvider extends ChangeNotifier {
       print('📥 Fetching Report Approvals for jobId: $jobId');
 
       if (fetchBoth) {
-        // Fetch both pending and approved in parallel
         final results = await Future.wait([
           _jobRepository.fetchReportApprovals(jobId, false), // Pending
           _jobRepository.fetchReportApprovals(jobId, true), // Approved
         ]);
 
+        // ✅ FIXED: Keep the models even if data is empty
+        // The getters handle null by returning empty lists
         _pendingReportApprovals = results[0];
         _approvedReportApprovals = results[1];
 
         print('✅ Pending reports: ${_pendingReportApprovals?.data?.length ?? 0}');
         print('✅ Approved reports: ${_approvedReportApprovals?.data?.length ?? 0}');
       } else {
-        // Fetch only the current filter
         if (_currentApprovalFilter == 'pending') {
-          _pendingReportApprovals = await _jobRepository.fetchReportApprovals(jobId, false);
+          final result = await _jobRepository.fetchReportApprovals(jobId, false);
+          _pendingReportApprovals = result;
         } else if (_currentApprovalFilter == 'approved') {
-          _approvedReportApprovals = await _jobRepository.fetchReportApprovals(jobId, true);
+          final result = await _jobRepository.fetchReportApprovals(jobId, true);
+          _approvedReportApprovals = result;
         }
       }
 
+      _hasAttemptedFetch = true;
       _error = null;
     } catch (e) {
       _error = e.toString();
+      _hasAttemptedFetch = true;
       print('❌ Error fetching Report Approvals: $_error');
       if (context.mounted) {
         CommonSnackbar.showError(context, e.toString());
@@ -290,15 +306,21 @@ class JobProvider extends ChangeNotifier {
   }
 
   /// Search report approvals (searches current filtered list)
-  List<ReportApprovalData> searchReports(String query) {
-    if (query.isEmpty) return reportApprovals;
+  List<ReportApprovalData> searchReports(String query, String view) {
+    // ✅ FIX: Access the .data property to get List<ReportApprovalData>
+    List<ReportApprovalData> sourceList =
+        view == 'pending'
+            ? (_pendingReportApprovals?.data ?? [])
+            : (_approvedReportApprovals?.data ?? []);
 
-    return reportApprovals.where((report) {
-      final searchQuery = query.toLowerCase();
-      return (report.reportName?.toLowerCase().contains(searchQuery) ?? false) ||
-          (report.itemNo?.toLowerCase().contains(searchQuery) ?? false) ||
-          (report.inspectedBy?.toLowerCase().contains(searchQuery) ?? false) ||
-          (report.regulation?.toLowerCase().contains(searchQuery) ?? false);
+    if (query.isEmpty) return sourceList;
+
+    // Apply search filter
+    final searchLower = query.toLowerCase();
+    return sourceList.where((report) {
+      return (report.reportName?.toLowerCase().contains(searchLower) ?? false) ||
+          (report.itemNo?.toLowerCase().contains(searchLower) ?? false) ||
+          (report.displayInspector.toLowerCase().contains(searchLower));
     }).toList();
   }
 
@@ -307,6 +329,7 @@ class JobProvider extends ChangeNotifier {
     _pendingReportApprovals = null;
     _approvedReportApprovals = null;
     _currentApprovalFilter = 'pending';
+    _hasAttemptedFetch = false; // ✅ Reset flag
     notifyListeners();
   }
 
@@ -317,6 +340,7 @@ class JobProvider extends ChangeNotifier {
     _pendingReportApprovals = null;
     _approvedReportApprovals = null;
     _currentApprovalFilter = 'pending';
+    _hasAttemptedFetch = false; // ✅ Reset flag
     _getCustomerModel = null;
     _customers = [];
     _isLoading = false;

@@ -1,9 +1,9 @@
-import 'package:base_app/core/extension/date_time_extension.dart';
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/core/service/navigation_service.dart';
-import 'package:base_app/model/get_report_type_model.dart';
-import 'package:base_app/providers/system_provider.dart';
-import 'package:base_app/widget/common_button.dart';
+import 'package:INSPECT/core/extension/date_time_extension.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/core/service/navigation_service.dart';
+import 'package:INSPECT/model/get_report_type_model.dart';
+import 'package:INSPECT/providers/system_provider.dart';
+import 'package:INSPECT/widget/common_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

@@ -1,5 +1,5 @@
-import 'package:base_app/providers/notification_provider.dart';
-import 'package:base_app/screens/notification/notification_tile.dart';
+import 'package:INSPECT/providers/notification_provider.dart';
+import 'package:INSPECT/screens/notification/notification_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

@@ -1,11 +1,11 @@
-import 'package:base_app/core/extension/date_time_extension.dart';
-import 'package:base_app/core/extension/theme_extension.dart';
-import 'package:base_app/core/service/navigation_service.dart';
-import 'package:base_app/model/job_register.dart';
-import 'package:base_app/providers/personnel_provider.dart';
-import 'package:base_app/providers/system_provider.dart';
-import 'package:base_app/widget/common_dropdown.dart';
-import 'package:base_app/widget/common_textfield.dart';
+import 'package:INSPECT/core/extension/date_time_extension.dart';
+import 'package:INSPECT/core/extension/theme_extension.dart';
+import 'package:INSPECT/core/service/navigation_service.dart';
+import 'package:INSPECT/model/job_register.dart';
+import 'package:INSPECT/providers/personnel_provider.dart';
+import 'package:INSPECT/providers/system_provider.dart';
+import 'package:INSPECT/widget/common_dropdown.dart';
+import 'package:INSPECT/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -787,6 +787,7 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
       case 'text':
       case 'number':
         return CommonTextField(
+          style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
           controller: _controllers[field.name],
           hintText: 'Enter ${field.label.toLowerCase()}',
           keyboardType: field.type == 'number' ? TextInputType.number : TextInputType.text,
@@ -794,6 +795,7 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
 
       case 'textarea':
         return CommonTextField(
+          style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
           controller: _controllers[field.name],
           hintText: 'Enter ${field.label.toLowerCase()}',
           maxLines: 4,
@@ -830,6 +832,7 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
         [];
 
     return CommonDropdown<String>(
+      textStyle: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
       value: _fieldValues[field.name],
       items: items,
       onChanged: (value) {
@@ -853,7 +856,7 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
       child: CheckboxListTile(
         title: Text(
           field.label,
-          style: context.topology.textTheme.bodyMedium?.copyWith(color: context.colors.primary),
+          style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
         ),
         value: _fieldValues[field.name] ?? false,
         onChanged: (bool? value) {
@@ -886,7 +889,7 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
             Expanded(
               child: Text(
                 selectedDate != null ? selectedDate.formatMediumDate : 'Select date',
-                style: context.topology.textTheme.bodyMedium?.copyWith(
+                style: context.topology.textTheme.bodySmall?.copyWith(
                   color:
                       selectedDate != null
                           ? context.colors.primary
@@ -1220,10 +1223,11 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
         // Clear form after successful submission (optional)
         _clearForm();
 
-        // Navigate back after successful submission
+        // Navigate back with refresh flag to trigger reload on previous screen
         Future.delayed(const Duration(milliseconds: 1500), () {
           if (mounted) {
-            NavigationService().goBack();
+            // Pop with true to indicate success and trigger refresh
+            Navigator.pop(context, true);
           }
         });
       }

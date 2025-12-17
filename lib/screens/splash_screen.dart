@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:base_app/providers/authenticate_provider.dart';
-import 'package:base_app/route/route.dart';
+import 'package:INSPECT/providers/authenticate_provider.dart';
+import 'package:INSPECT/route/route.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
