@@ -25,6 +25,8 @@ import 'package:INSPECT/screens/planner/team_planner_screen.dart';
 import 'package:INSPECT/screens/profile/profile_screen.dart';
 import 'package:INSPECT/screens/settings/access/acccess_view_screen.dart';
 import 'package:INSPECT/screens/settings/access/accesss_create_screen.dart';
+import 'package:INSPECT/screens/settings/company/agent_create_screen.dart';
+import 'package:INSPECT/screens/settings/company/agent_screen.dart';
 import 'package:INSPECT/screens/settings/company/division_crete_screen.dart';
 import 'package:INSPECT/screens/settings/report_setup/create_cycle_screen.dart';
 import 'package:INSPECT/screens/settings/report_setup/report_create_screen.dart';
@@ -77,6 +79,9 @@ class AppRoutes {
   static const String reportFieldsScreen = '/reportFieldsScreen ';
 
   static const String createCycle = '/createCycle';
+
+  static const String agentScreen = '/agentScreen';
+  static const String agentCreateScreen = '/agentCreateScreen';
 
   // Route generator function
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -265,6 +270,10 @@ class AppRoutes {
           settings: settings,
         );
 
+  case agentScreen:
+        return MaterialPageRoute(builder: (_) => const AgentScreen(), settings: settings);
+          case agentCreateScreen:
+        return MaterialPageRoute(builder: (_) => const AgentCreateScreen(), settings: settings);
       default:
         // If the route is not defined, show an error page
         return MaterialPageRoute(

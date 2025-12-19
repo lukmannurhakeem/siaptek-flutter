@@ -6,6 +6,20 @@ import 'package:INSPECT/repositories/site/site_repository.dart';
 import 'package:INSPECT/widget/common_snackbar.dart';
 import 'package:flutter/material.dart';
 
+enum SiteStatus { Active, InActive }
+
+extension SiteStatusExtension on SiteStatus {
+  String get label {
+    switch (this) {
+      case SiteStatus.Active:
+        return 'Active';
+      case SiteStatus.InActive:
+        return 'InActive';
+    }
+  }
+}
+
+
 class SiteProvider extends ChangeNotifier {
   final SiteRepository _siteRepository = ServiceLocator().siteRepository;
 

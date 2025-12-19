@@ -15,9 +15,11 @@ class CustomerProvider extends ChangeNotifier {
   final TextEditingController siteCodeController = TextEditingController();
   final TextEditingController customerCodeController = TextEditingController();
   final TextEditingController divisionController = TextEditingController();
-  final TextEditingController statusController = TextEditingController();
   final TextEditingController customerNameController = TextEditingController();
-  final TextEditingController addressController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();  final TextEditingController accountCodeController = TextEditingController();
+  final TextEditingController agentController = TextEditingController();
+  final TextEditingController notesController = TextEditingController();
+  final TextEditingController logoController = TextEditingController();
 
   var uuid = Uuid();
 
@@ -97,25 +99,26 @@ class CustomerProvider extends ChangeNotifier {
     }
   }
 
-  // Create new customer
-  Future<void> createCustomer(BuildContext context) async {
+ Future<void> createCustomer(BuildContext context) async {
     _setCreating(true);
     _setLoading(true);
     try {
       await _customerRepository.createCustomer(
-        customerCode: customerCodeController.text,
         customerId: uuid.v4(),
         customerName: customerNameController.text,
-        division: divisionController.text,
         siteCode: siteCodeController.text,
-        status: statusController.text,
+        accountCode: accountCodeController.text,
+        divisionId: divisionController.text, // This should contain the division UUID
+        agent: agentController.text.isNotEmpty ? agentController.text : null,
+        notes: notesController.text.isNotEmpty ? notesController.text : null,
+        logo: logoController.text.isNotEmpty ? logoController.text : null,
+        address: addressController.text.isNotEmpty ? addressController.text : null,
       );
 
       await fetchCustomers(context);
       NavigationService().goBack();
       CommonSnackbar.showSuccess(context, "Customer created successfully");
 
-      // Clear controllers after successful creation
       _clearControllers();
     } catch (e) {
       CommonSnackbar.showError(context, e.toString());
@@ -218,25 +221,31 @@ class CustomerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  
   void _clearControllers() {
     customerIdController.clear();
     siteCodeController.clear();
     customerCodeController.clear();
+    accountCodeController.clear();
     divisionController.clear();
-    statusController.clear();
     customerNameController.clear();
+    agentController.clear();
+    notesController.clear();
+    logoController.clear();
     addressController.clear();
   }
 
-  // Dispose controllers
   @override
   void dispose() {
     customerIdController.dispose();
     siteCodeController.dispose();
     customerCodeController.dispose();
+    accountCodeController.dispose();
     divisionController.dispose();
-    statusController.dispose();
     customerNameController.dispose();
+    agentController.dispose();
+    notesController.dispose();
+    logoController.dispose();
     addressController.dispose();
     super.dispose();
   }

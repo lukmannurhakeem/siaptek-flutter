@@ -1,7 +1,7 @@
 import 'package:INSPECT/core/extension/theme_extension.dart';
 import 'package:INSPECT/core/service/navigation_service.dart';
-import 'package:INSPECT/model/get_customer_model.dart';
-import 'package:INSPECT/providers/customer_provider.dart';
+import 'package:INSPECT/model/get_agent_model.dart';
+import 'package:INSPECT/providers/agent_provider.dart';
 import 'package:INSPECT/route/route.dart';
 import 'package:INSPECT/widget/common_button.dart';
 import 'package:INSPECT/widget/common_dialog.dart';
@@ -10,28 +10,28 @@ import 'package:INSPECT/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-enum CustomerSearchColumn { name, code, division, status, agent }
+enum AgentSearchColumn { name, code, status }
 
-class CustomerScreen extends StatefulWidget {
-  const CustomerScreen({super.key});
+class AgentScreen extends StatefulWidget {
+  const AgentScreen({super.key});
 
   @override
-  State<CustomerScreen> createState() => _CustomerScreenState();
+  State<AgentScreen> createState() => _AgentScreenState();
 }
 
-class _CustomerScreenState extends State<CustomerScreen> {
+class _AgentScreenState extends State<AgentScreen> {
   int sortColumnIndex = 0;
   final TextEditingController _searchController = TextEditingController();
 
   // Search filters
-  CustomerSearchColumn? selectedColumn;
+  AgentSearchColumn? selectedColumn;
   dynamic selectedValue;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<CustomerProvider>(context, listen: false).fetchCustomers(context);
+      Provider.of<AgentProvider>(context, listen: false).fetchAgents(context);
     });
     _searchController.addListener(_onSearchChanged);
   }
@@ -46,81 +46,59 @@ class _CustomerScreenState extends State<CustomerScreen> {
     setState(() {});
   }
 
-  List<dynamic> _getColumnValues(List<Customer> customers, CustomerSearchColumn column) {
-    if (customers.isEmpty) return [];
+  List<dynamic> _getColumnValues(List<Agent> agents, AgentSearchColumn column) {
+    if (agents.isEmpty) return [];
 
     switch (column) {
-      case CustomerSearchColumn.name:
-        return customers
-            .map((e) => e.customername ?? '')
+      case AgentSearchColumn.name:
+        return agents
+            .map((e) => e.agentname ?? '')
             .where((name) => name.isNotEmpty)
             .toSet()
             .toList()
           ..sort();
-      case CustomerSearchColumn.code:
-        return customers
-            .map((e) => e.accountCode ?? '')
+      case AgentSearchColumn.code:
+        return agents
+            .map((e) => e.accountcode ?? '')
             .where((code) => code.isNotEmpty)
             .toSet()
             .toList()
           ..sort();
-      case CustomerSearchColumn.division:
-        return customers
-            .map((e) => e.division ?? '')
-            .where((div) => div.isNotEmpty)
-            .toSet()
-            .toList()
-          ..sort();
-      case CustomerSearchColumn.agent:
-        return customers
-            .map((e) => e.agent ?? '')
-            .where((agent) => agent.isNotEmpty)
-            .toSet()
-            .toList()
-          ..sort();
-      case CustomerSearchColumn.status:
-        return [true, false]; // Archived, Active
+      case AgentSearchColumn.status:
+        return ['active', 'inactive'];
     }
   }
 
-  List<Customer> _getFilteredCustomers(List<Customer> customers) {
-    if (customers.isEmpty) return [];
+  List<Agent> _getFilteredAgents(List<Agent> agents) {
+    if (agents.isEmpty) return [];
 
-    var filteredList = customers;
+    var filteredList = agents;
 
     // Apply text search
     if (_searchController.text.isNotEmpty) {
       final searchText = _searchController.text.toLowerCase();
-      filteredList = filteredList.where((customer) {
-        final name = (customer.customername ?? '').toLowerCase();
-        final code = (customer.accountCode ?? '').toLowerCase();
-        final division = (customer.division ?? '').toLowerCase();
-        final agent = (customer.agent ?? '').toLowerCase();
+      filteredList = filteredList.where((agent) {
+        final name = (agent.agentname ?? '').toLowerCase();
+        final code = (agent.accountcode ?? '').toLowerCase();
+        final address = (agent.address ?? '').toLowerCase();
 
         return name.contains(searchText) ||
             code.contains(searchText) ||
-            division.contains(searchText) ||
-            agent.contains(searchText);
+            address.contains(searchText);
       }).toList();
     }
 
     // Apply column filter
     if (selectedColumn != null && selectedValue != null) {
       switch (selectedColumn!) {
-        case CustomerSearchColumn.name:
-          filteredList = filteredList.where((customer) => customer.customername == selectedValue).toList();
+        case AgentSearchColumn.name:
+          filteredList = filteredList.where((agent) => agent.agentname == selectedValue).toList();
           break;
-        case CustomerSearchColumn.code:
-          filteredList = filteredList.where((customer) => customer.accountCode == selectedValue).toList();
+        case AgentSearchColumn.code:
+          filteredList = filteredList.where((agent) => agent.accountcode == selectedValue).toList();
           break;
-        case CustomerSearchColumn.division:
-          filteredList = filteredList.where((customer) => customer.division == selectedValue).toList();
-          break;
-        case CustomerSearchColumn.agent:
-          filteredList = filteredList.where((customer) => customer.agent == selectedValue).toList();
-          break;
-        case CustomerSearchColumn.status:
-          filteredList = filteredList.where((customer) => (customer.archived ?? false) == selectedValue).toList();
+        case AgentSearchColumn.status:
+          filteredList = filteredList.where((agent) => agent.status == selectedValue).toList();
           break;
       }
     }
@@ -128,37 +106,30 @@ class _CustomerScreenState extends State<CustomerScreen> {
     return filteredList;
   }
 
-  String _getColumnLabel(CustomerSearchColumn column) {
+  String _getColumnLabel(AgentSearchColumn column) {
     switch (column) {
-      case CustomerSearchColumn.name:
+      case AgentSearchColumn.name:
         return 'Name';
-      case CustomerSearchColumn.code:
+      case AgentSearchColumn.code:
         return 'Account Code';
-      case CustomerSearchColumn.division:
-        return 'Division';
-      case CustomerSearchColumn.agent:
-        return 'Agent';
-      case CustomerSearchColumn.status:
+      case AgentSearchColumn.status:
         return 'Status';
     }
   }
 
-  String _getValueLabel(CustomerSearchColumn column, dynamic value) {
-    if (column == CustomerSearchColumn.status) {
-      return value == true ? 'Archived' : 'Active';
-    }
+  String _getValueLabel(AgentSearchColumn column, dynamic value) {
     return value.toString();
   }
 
-  void _showFilterDialog(BuildContext context, List<Customer> customers) {
-    CustomerSearchColumn? tempColumn = selectedColumn;
+  void _showFilterDialog(BuildContext context, List<Agent> agents) {
+    AgentSearchColumn? tempColumn = selectedColumn;
     dynamic tempValue = selectedValue;
 
     CommonDialog.show(
       context,
       widget: StatefulBuilder(
         builder: (context, setDialogState) {
-          final columnValues = tempColumn != null ? _getColumnValues(customers, tempColumn!) : <dynamic>[];
+          final columnValues = tempColumn != null ? _getColumnValues(agents, tempColumn!) : <dynamic>[];
 
           return SizedBox(
             height: context.screenHeight / 3.5,
@@ -177,10 +148,10 @@ class _CustomerScreenState extends State<CustomerScreen> {
                     ),
                     Expanded(
                       flex: 2,
-                      child: CommonDropdown<CustomerSearchColumn>(
+                      child: CommonDropdown<AgentSearchColumn>(
                         value: tempColumn,
                         items: [
-                          DropdownMenuItem<CustomerSearchColumn>(
+                          DropdownMenuItem<AgentSearchColumn>(
                             value: null,
                             child: Text(
                               'Select Column',
@@ -189,8 +160,8 @@ class _CustomerScreenState extends State<CustomerScreen> {
                               ),
                             ),
                           ),
-                          ...CustomerSearchColumn.values.map((column) {
-                            return DropdownMenuItem<CustomerSearchColumn>(
+                          ...AgentSearchColumn.values.map((column) {
+                            return DropdownMenuItem<AgentSearchColumn>(
                               value: column,
                               child: Text(
                                 _getColumnLabel(column),
@@ -315,18 +286,18 @@ class _CustomerScreenState extends State<CustomerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<CustomerProvider>(
+    return Consumer<AgentProvider>(
       builder: (context, provider, child) {
-        final customers = provider.customers;
-        final filteredCustomers = _getFilteredCustomers(customers);
+        final agents = provider.agents;
+        final filteredAgents = _getFilteredAgents(agents);
 
-        if (customers.isEmpty) {
+        if (agents.isEmpty) {
           return _buildEmptyState(context);
         }
 
         return context.isTablet
-            ? _buildTabletLayout(context, filteredCustomers, customers)
-            : _buildMobileLayout(context, filteredCustomers, customers);
+            ? _buildTabletLayout(context, filteredAgents, agents)
+            : _buildMobileLayout(context, filteredAgents, agents);
       },
     );
   }
@@ -359,13 +330,13 @@ class _CustomerScreenState extends State<CustomerScreen> {
             children: [
               context.vXxl,
               Text(
-                'You do not have list right now',
+                'You do not have agents right now',
                 style: context.topology.textTheme.titleMedium?.copyWith(
                   color: context.colors.primary,
                 ),
               ),
               Text(
-                'Add your first customer',
+                'Add your first agent',
                 textAlign: TextAlign.center,
                 style: context.topology.textTheme.bodySmall?.copyWith(
                   color: context.colors.primary,
@@ -374,10 +345,10 @@ class _CustomerScreenState extends State<CustomerScreen> {
               context.vL,
               ElevatedButton.icon(
                 onPressed: () {
-                  NavigationService().navigateTo(AppRoutes.createCustomer);
+                  NavigationService().navigateTo(AppRoutes.agentCreateScreen);
                 },
                 icon: const Icon(Icons.add),
-                label: const Text('Create Customer'),
+                label: const Text('Create Agent'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: context.colors.primary,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -392,8 +363,8 @@ class _CustomerScreenState extends State<CustomerScreen> {
 
   Widget _buildTabletLayout(
     BuildContext context,
-    List<Customer> filteredCustomers,
-    List<Customer> allCustomers,
+    List<Agent> filteredAgents,
+    List<Agent> allAgents,
   ) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -409,7 +380,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                   alignment: Alignment.centerRight,
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      NavigationService().navigateTo(AppRoutes.createCustomer);
+                      NavigationService().navigateTo(AppRoutes.agentCreateScreen);
                     },
                     icon: const Icon(Icons.add),
                     label: const Text('Create New'),
@@ -419,7 +390,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                 const SizedBox(height: 16),
                 CommonTextField(
                   controller: _searchController,
-                  hintText: 'Search by name, code, division, or agent...',
+                  hintText: 'Search by name, code, or address...',
                   style: context.topology.textTheme.bodySmall?.copyWith(
                     color: context.colors.primary,
                   ),
@@ -440,7 +411,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                               ? context.colors.primary
                               : context.colors.primary.withOpacity(0.5),
                         ),
-                        onPressed: () => _showFilterDialog(context, allCustomers),
+                        onPressed: () => _showFilterDialog(context, allAgents),
                       ),
                     ],
                   ),
@@ -452,7 +423,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${filteredCustomers.length} customer${filteredCustomers.length != 1 ? 's' : ''} found',
+                        '${filteredAgents.length} agent${filteredAgents.length != 1 ? 's' : ''} found',
                         style: context.topology.textTheme.bodySmall?.copyWith(
                           color: context.colors.primary,
                         ),
@@ -491,7 +462,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                   ),
                 ),
                 Expanded(
-                  child: filteredCustomers.isEmpty
+                  child: filteredAgents.isEmpty
                       ? Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -503,7 +474,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'No customers found',
+                                'No agents found',
                                 style: context.topology.textTheme.titleMedium?.copyWith(
                                   color: context.colors.primary,
                                 ),
@@ -520,10 +491,10 @@ class _CustomerScreenState extends State<CustomerScreen> {
                         )
                       : RefreshIndicator(
                           onRefresh: () async {
-                            await Provider.of<CustomerProvider>(
+                            await Provider.of<AgentProvider>(
                               context,
                               listen: false,
-                            ).fetchCustomers(context);
+                            ).fetchAgents(context);
                           },
                           child: ListView(
                             children: [
@@ -538,8 +509,8 @@ class _CustomerScreenState extends State<CustomerScreen> {
                                     dataRowMinHeight: 56,
                                     dataRowMaxHeight: 56,
                                     columns: _buildColumns(context),
-                                    rows: List.generate(filteredCustomers.length, (index) {
-                                      final data = filteredCustomers[index];
+                                    rows: List.generate(filteredAgents.length, (index) {
+                                      final data = filteredAgents[index];
                                       final isEven = index % 2 == 0;
                                       return _buildRow(context, data, isEven);
                                     }),
@@ -560,8 +531,8 @@ class _CustomerScreenState extends State<CustomerScreen> {
 
   Widget _buildMobileLayout(
     BuildContext context,
-    List<Customer> filteredCustomers,
-    List<Customer> allCustomers,
+    List<Agent> filteredAgents,
+    List<Agent> allAgents,
   ) {
     return SizedBox(
       width: context.screenWidth,
@@ -576,7 +547,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                   alignment: Alignment.centerRight,
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      NavigationService().navigateTo(AppRoutes.createCustomer);
+                      NavigationService().navigateTo(AppRoutes.agentCreateScreen);
                     },
                     icon: const Icon(Icons.add),
                     label: const Text('Create New'),
@@ -586,7 +557,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                 const SizedBox(height: 16),
                 CommonTextField(
                   controller: _searchController,
-                  hintText: 'Search by name, code, division, or agent...',
+                  hintText: 'Search by name, code, or address...',
                   style: context.topology.textTheme.bodySmall?.copyWith(
                     color: context.colors.primary,
                   ),
@@ -607,7 +578,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                               ? context.colors.primary
                               : context.colors.primary.withOpacity(0.5),
                         ),
-                        onPressed: () => _showFilterDialog(context, allCustomers),
+                        onPressed: () => _showFilterDialog(context, allAgents),
                       ),
                     ],
                   ),
@@ -619,7 +590,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${filteredCustomers.length} customer${filteredCustomers.length != 1 ? 's' : ''} found',
+                        '${filteredAgents.length} agent${filteredAgents.length != 1 ? 's' : ''} found',
                         style: context.topology.textTheme.bodySmall?.copyWith(
                           color: context.colors.primary,
                         ),
@@ -658,7 +629,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                   ),
                 ),
                 Expanded(
-                  child: filteredCustomers.isEmpty
+                  child: filteredAgents.isEmpty
                       ? Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -670,7 +641,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'No customers found',
+                                'No agents found',
                                 style: context.topology.textTheme.titleMedium?.copyWith(
                                   color: context.colors.primary,
                                 ),
@@ -686,10 +657,10 @@ class _CustomerScreenState extends State<CustomerScreen> {
                           ),
                         )
                       : RefreshIndicator(
-                          onRefresh: () => Provider.of<CustomerProvider>(
+                          onRefresh: () => Provider.of<AgentProvider>(
                             context,
                             listen: false,
-                          ).fetchCustomers(context),
+                          ).fetchAgents(context),
                           child: SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: DataTable(
@@ -699,8 +670,8 @@ class _CustomerScreenState extends State<CustomerScreen> {
                               dataRowMinHeight: 56,
                               dataRowMaxHeight: 56,
                               columns: _buildColumns(context),
-                              rows: List.generate(filteredCustomers.length, (index) {
-                                final data = filteredCustomers[index];
+                              rows: List.generate(filteredAgents.length, (index) {
+                                final data = filteredAgents[index];
                                 final isEven = index % 2 == 0;
                                 return _buildRow(context, data, isEven);
                               }),
@@ -711,13 +682,13 @@ class _CustomerScreenState extends State<CustomerScreen> {
               ],
             ),
           ),
-          if (filteredCustomers.isNotEmpty)
+          if (filteredAgents.isNotEmpty)
             Positioned(
               bottom: 50,
               right: 30,
               child: FloatingActionButton(
                 onPressed: () {
-                  NavigationService().navigateTo(AppRoutes.createCustomer);
+                  NavigationService().navigateTo(AppRoutes.agentCreateScreen);
                 },
                 tooltip: 'Add New',
                 backgroundColor: context.colors.primary,
@@ -760,20 +731,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
       DataColumn(
         label: Expanded(
           child: Text(
-            'Division',
-            style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
-          ),
-        ),
-        onSort: (columnIndex, _) {
-          setState(() {
-            sortColumnIndex = columnIndex;
-          });
-        },
-      ),
-      DataColumn(
-        label: Expanded(
-          child: Text(
-            'Agent',
+            'Address',
             style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
           ),
         ),
@@ -799,7 +757,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
     ];
   }
 
-  DataRow _buildRow(BuildContext context, Customer data, bool isEven) {
+  DataRow _buildRow(BuildContext context, Agent data, bool isEven) {
     return DataRow(
       color: MaterialStateProperty.resolveWith<Color?>(
         (_) => isEven ? context.colors.primary.withOpacity(0.05) : null,
@@ -807,32 +765,41 @@ class _CustomerScreenState extends State<CustomerScreen> {
       cells: [
         DataCell(
           Text(
-            data.customername ?? '',
+            data.agentname ?? '',
             style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
           ),
         ),
         DataCell(
           Text(
-            data.accountCode ?? '',
+            data.accountcode ?? '',
             style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
           ),
         ),
         DataCell(
           Text(
-            data.division ?? '',
+            data.address ?? '-',
             style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
           ),
         ),
         DataCell(
-          Text(
-            data.agent ?? '-',
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-          ),
-        ),
-        DataCell(
-          Text(
-            data.archived == true ? 'Archived' : 'Active',
-            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: data.status == 'active'
+                  ? Colors.green.withOpacity(0.1)
+                  : Colors.grey.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: data.status == 'active' ? Colors.green : Colors.grey,
+              ),
+            ),
+            child: Text(
+              data.status ?? 'unknown',
+              style: context.topology.textTheme.bodySmall?.copyWith(
+                color: data.status == 'active' ? Colors.green : Colors.grey,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ),
       ],

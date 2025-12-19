@@ -421,7 +421,6 @@ class _CycleScreenState extends State<CycleScreen> {
                       children: [
                         Text(
                           '${data.minLength} ${data.unit}',
-
                           style: context.topology.textTheme.bodySmall?.copyWith(
                             color: context.colors.primary,
                             fontWeight: FontWeight.bold,
@@ -476,15 +475,15 @@ class _CycleScreenState extends State<CycleScreen> {
                         IconButton(
                           icon: Icon(Icons.edit, color: context.colors.primary, size: 20),
                           onPressed: () {
-                            // NavigationService().navigateTo(
-                            //   AppRoutes.cycleEdit,
-                            //   arguments: {'cycleId': data.cycleId},
-                            // );
+                            NavigationService().navigateTo(
+                              AppRoutes.createCycle,
+                              arguments: {'cycleId': data.cycleId},
+                            );
                           },
                           tooltip: 'Edit',
                         ),
                         IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red, size: 20),
+                          icon: const Icon(Icons.delete, color: Colors.red, size: 20),
                           onPressed: () {
                             _showDeleteDialog(context, data.cycleId);
                           },
@@ -602,60 +601,63 @@ class _CycleScreenState extends State<CycleScreen> {
     );
   }
 
+  // Updated empty state to match report type screen
   Widget _buildEmptyState(BuildContext context) {
-    final hasSearchOrFilter =
-        _searchController.text.isNotEmpty || (selectedColumn != null && selectedValue != null);
-
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      color: Colors.white, // Add white background
-      child: Stack(
-        children: [
-          Padding(
-            padding: context.paddingAll,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 100),
-                Text(
-                  hasSearchOrFilter ? 'No cycles found' : 'You have no cycle created',
-                  textAlign: TextAlign.center,
-                  style: context.topology.textTheme.titleMedium?.copyWith(
-                    color: context.colors.primary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  hasSearchOrFilter
-                      ? 'Try adjusting your search or filter'
-                      : 'Add your first cycle',
-                  textAlign: TextAlign.center,
-                  style: context.topology.textTheme.bodySmall?.copyWith(
-                    color: context.colors.primary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            bottom: -200,
-            right: 0,
+    return Stack(
+      children: [
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: IgnorePointer(
             child: Opacity(
               opacity: 0.15,
               child: Image.asset(
-                'assets/images/bg_2.png',
+                'assets/images/bg_4.png',
                 fit: BoxFit.contain,
                 alignment: Alignment.bottomRight,
-                height: context.screenHeight * 0.70,
                 errorBuilder: (context, error, stackTrace) {
                   return const SizedBox.shrink();
                 },
               ),
             ),
           ),
-        ],
-      ),
+        ),
+        SizedBox(
+          width: double.infinity,
+          height: context.screenHeight - kToolbarHeight * 2,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              context.vXxl,
+              Text(
+                'You do not have any cycles right now',
+                style: context.topology.textTheme.titleMedium?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
+              Text(
+                'Add your first cycle',
+                textAlign: TextAlign.center,
+                style: context.topology.textTheme.bodySmall?.copyWith(
+                  color: context.colors.primary,
+                ),
+              ),
+              context.vL,
+              ElevatedButton.icon(
+                onPressed: () {
+                  NavigationService().navigateTo(AppRoutes.createCycle);
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Create Cycle'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: context.colors.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -710,10 +712,11 @@ class _CycleScreenState extends State<CycleScreen> {
   Widget build(BuildContext context) {
     return Consumer<CycleProvider>(
       builder: (context, cycleProvider, child) {
+        final allCycles = cycleProvider.cycleModel?.data ?? [];
         final filteredCycles = _getFilteredCycles(cycleProvider);
 
-        // Show empty state
-        if (cycleProvider.cycleModel?.data?.isEmpty == true) {
+        // Show empty state when no data
+        if (allCycles.isEmpty) {
           return _buildEmptyState(context);
         }
 
@@ -721,143 +724,166 @@ class _CycleScreenState extends State<CycleScreen> {
         final screenWidth = context.screenWidth;
 
         // Show cycle data
-        return Container(
+        return SizedBox(
           width: screenWidth,
           height: screenHeight,
-          color: Colors.white, // Add white background
-          child: Padding(
-            padding: context.paddingAll,
-            child: Column(
-              children: [
-                // Create New button (like SiteScreen)
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      NavigationService().navigateTo(AppRoutes.createCycle);
-                    },
-                    icon: const Icon(Icons.add),
-                    label: const Text('Create New'),
-                    style: ElevatedButton.styleFrom(backgroundColor: context.colors.primary),
+          child: Stack(
+            children: [
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: IgnorePointer(
+                  child: Opacity(
+                    opacity: 0.15,
+                    child: Image.asset(
+                      'assets/images/bg_4.png',
+                      fit: BoxFit.contain,
+                      alignment: Alignment.bottomRight,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const SizedBox.shrink();
+                      },
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                // Search bar
-                CommonTextField(
-                  controller: _searchController,
-                  hintText: 'Search by cycle length, category, customer/site, or data type...',
-                  style: context.topology.textTheme.bodySmall?.copyWith(
-                    color: context.colors.primary,
-                  ),
-                  suffixIcon: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (_searchController.text.isNotEmpty)
-                        IconButton(
-                          icon: Icon(Icons.clear, color: context.colors.primary),
-                          onPressed: () {
-                            _searchController.clear();
-                          },
-                        ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.filter_list,
-                          color:
-                              (selectedColumn != null && selectedValue != null)
-                                  ? context.colors.primary
-                                  : context.colors.primary.withOpacity(0.5),
-                        ),
-                        onPressed: () => _showFilterDialog(context, cycleProvider),
-                      ),
-                    ],
-                  ),
-                ),
-                context.vM,
-                // Result count and active filter indicator
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${filteredCycles.length} cycle${filteredCycles.length != 1 ? 's' : ''} found',
-                        style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary,
+              ),
+              Padding(
+                padding: context.paddingAll,
+                child: Column(
+                  children: [
+                    // Create New button
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          NavigationService().navigateTo(AppRoutes.createCycle);
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text('Create New'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: context.colors.primary,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                         ),
                       ),
-                      if (selectedColumn != null && selectedValue != null)
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedColumn = null;
-                              selectedValue = null;
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: context.colors.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(4),
+                    ),
+                    const SizedBox(height: 16),
+                    // Search bar
+                    CommonTextField(
+                      controller: _searchController,
+                      hintText: 'Search by cycle length, category, customer/site, or data type...',
+                      style: context.topology.textTheme.bodySmall?.copyWith(
+                        color: context.colors.primary,
+                      ),
+                      suffixIcon: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (_searchController.text.isNotEmpty)
+                            IconButton(
+                              icon: Icon(Icons.clear, color: context.colors.primary),
+                              onPressed: () {
+                                _searchController.clear();
+                              },
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Filter: ${_getColumnLabel(selectedColumn!)}: $selectedValue',
-                                  style: context.topology.textTheme.bodySmall?.copyWith(
-                                    color: context.colors.primary,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(Icons.close, size: 14, color: context.colors.primary),
-                              ],
+                          IconButton(
+                            icon: Icon(
+                              Icons.filter_list,
+                              color:
+                                  (selectedColumn != null && selectedValue != null)
+                                      ? context.colors.primary
+                                      : context.colors.primary.withOpacity(0.5),
+                            ),
+                            onPressed: () => _showFilterDialog(context, cycleProvider),
+                          ),
+                        ],
+                      ),
+                    ),
+                    context.vM,
+                    // Result count and active filter indicator
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${filteredCycles.length} cycle${filteredCycles.length != 1 ? 's' : ''} found',
+                            style: context.topology.textTheme.bodySmall?.copyWith(
+                              color: context.colors.primary,
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                ),
-                // Cycle list or table
-                Expanded(
-                  child:
-                      filteredCycles.isEmpty
-                          ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.search_off,
-                                  size: 64,
-                                  color: context.colors.primary.withOpacity(0.3),
+                          if (selectedColumn != null && selectedValue != null)
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  selectedColumn = null;
+                                  selectedValue = null;
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: context.colors.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(4),
                                 ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'No cycles found',
-                                  style: context.topology.textTheme.titleMedium?.copyWith(
-                                    color: context.colors.primary,
-                                  ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'Filter: ${_getColumnLabel(selectedColumn!)}: $selectedValue',
+                                      style: context.topology.textTheme.bodySmall?.copyWith(
+                                        color: context.colors.primary,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Icon(Icons.close, size: 14, color: context.colors.primary),
+                                  ],
                                 ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Try adjusting your search or filter',
-                                  style: context.topology.textTheme.bodySmall?.copyWith(
-                                    color: context.colors.primary.withOpacity(0.7),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          )
-                          : RefreshIndicator(
-                            onRefresh: () => cycleProvider.fetchCycles(context),
-                            child:
-                                context.isTablet
-                                    ? _buildDataTable(context, cycleProvider, filteredCycles)
-                                    : _buildMobileList(context, cycleProvider, filteredCycles),
-                          ),
+                        ],
+                      ),
+                    ),
+                    // Cycle list or table
+                    Expanded(
+                      child:
+                          filteredCycles.isEmpty
+                              ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.search_off,
+                                      size: 64,
+                                      color: context.colors.primary.withOpacity(0.3),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'No cycles found',
+                                      style: context.topology.textTheme.titleMedium?.copyWith(
+                                        color: context.colors.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Try adjusting your search or filter',
+                                      style: context.topology.textTheme.bodySmall?.copyWith(
+                                        color: context.colors.primary.withOpacity(0.7),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                              : RefreshIndicator(
+                                onRefresh: () => cycleProvider.fetchCycles(context),
+                                child:
+                                    context.isTablet
+                                        ? _buildDataTable(context, cycleProvider, filteredCycles)
+                                        : _buildMobileList(context, cycleProvider, filteredCycles),
+                              ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },

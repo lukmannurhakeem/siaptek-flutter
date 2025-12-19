@@ -17,13 +17,15 @@ class JobProvider extends ChangeNotifier {
   final CustomerRepository _customerRepository = ServiceLocator().customerRepository;
   final JobRepository _jobRepository = ServiceLocator().jobRepository;
 
-  // TextEditingControllers
+  // TextEditingControllers - UPDATED to match new API
   final TextEditingController customerIdController = TextEditingController();
   final TextEditingController siteCodeController = TextEditingController();
-  final TextEditingController customerCodeController = TextEditingController();
+  final TextEditingController accountCodeController = TextEditingController(); // Changed from customerCodeController
   final TextEditingController divisionController = TextEditingController();
-  final TextEditingController statusController = TextEditingController();
   final TextEditingController customerNameController = TextEditingController();
+  final TextEditingController agentController = TextEditingController(); // New
+  final TextEditingController notesController = TextEditingController(); // New
+  final TextEditingController logoController = TextEditingController(); // New
   final TextEditingController addressController = TextEditingController();
 
   var uuid = const Uuid();
@@ -669,19 +671,22 @@ class JobProvider extends ChangeNotifier {
     }).toList();
   }
 
-  /// Create a new customer
+  /// Create a new customer - UPDATED to match new API structure
   Future<void> createCustomer(BuildContext context) async {
     try {
       _isLoading = true;
       notifyListeners();
 
       await _customerRepository.createCustomer(
-        customerCode: customerCodeController.text,
         customerId: uuid.v4(),
         customerName: customerNameController.text,
-        division: divisionController.text,
         siteCode: siteCodeController.text,
-        status: statusController.text,
+        accountCode: accountCodeController.text, // Changed from customerCode
+        divisionId: divisionController.text, // Now expects UUID
+        agent: agentController.text.isNotEmpty ? agentController.text : null,
+        notes: notesController.text.isNotEmpty ? notesController.text : null,
+        logo: logoController.text.isNotEmpty ? logoController.text : null,
+        address: addressController.text.isNotEmpty ? addressController.text : null,
       );
 
       await fetchCustomers(context);
@@ -692,11 +697,7 @@ class JobProvider extends ChangeNotifier {
       }
 
       // Clear controllers after successful creation
-      customerCodeController.clear();
-      customerNameController.clear();
-      divisionController.clear();
-      siteCodeController.clear();
-      statusController.clear();
+      _clearCustomerControllers();
     } catch (e) {
       if (context.mounted) {
         CommonSnackbar.showError(context, e.toString());
@@ -705,6 +706,19 @@ class JobProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Helper method to clear customer controllers
+  void _clearCustomerControllers() {
+    customerIdController.clear();
+    siteCodeController.clear();
+    accountCodeController.clear();
+    divisionController.clear();
+    customerNameController.clear();
+    agentController.clear();
+    notesController.clear();
+    logoController.clear();
+    addressController.clear();
   }
 
   /// Create a new job item
@@ -748,10 +762,12 @@ class JobProvider extends ChangeNotifier {
   void dispose() {
     customerIdController.dispose();
     siteCodeController.dispose();
-    customerCodeController.dispose();
+    accountCodeController.dispose(); // Changed from customerCodeController
     divisionController.dispose();
-    statusController.dispose();
     customerNameController.dispose();
+    agentController.dispose(); // New
+    notesController.dispose(); // New
+    logoController.dispose(); // New
     addressController.dispose();
     super.dispose();
   }

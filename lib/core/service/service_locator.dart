@@ -1,5 +1,7 @@
 import 'package:INSPECT/core/service/offline_http_service.dart';
 import 'package:INSPECT/core/service/websocket_service.dart';
+import 'package:INSPECT/repositories/agent/agent_impl.dart';
+import 'package:INSPECT/repositories/agent/agent_repository.dart';
 import 'package:INSPECT/repositories/category/category_impl.dart';
 import 'package:INSPECT/repositories/category/category_repository.dart';
 import 'package:INSPECT/repositories/customer/customer_impl.dart';
@@ -43,6 +45,7 @@ class ServiceLocator {
   PersonnelRepository? _personnelRepository;
   UserRepository? _userRepository;
   CycleRepository? _cycleRepository;
+  AgentRepository? _agentRepository;
 
   // Register HTTP Service (called from main.dart)
   void registerHttpService(OfflineHttpService service) {
@@ -123,6 +126,11 @@ class ServiceLocator {
   CycleRepository get cycleRepository {
     _cycleRepository ??= CycleImpl(httpService);
     return _cycleRepository!;
+  }
+
+    AgentRepository get agentRepository {
+    _agentRepository ??= AgentImpl(httpService);
+    return _agentRepository!;
   }
 
   // Reset all instances (useful for testing or logout)

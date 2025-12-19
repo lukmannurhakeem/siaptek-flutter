@@ -11,6 +11,7 @@ import 'package:INSPECT/screens/personnel/personnel_team_screen.dart';
 import 'package:INSPECT/screens/planner/planner_screen.dart';
 import 'package:INSPECT/screens/planner/team_planner_screen.dart';
 import 'package:INSPECT/screens/settings/access/acccess_view_screen.dart';
+import 'package:INSPECT/screens/settings/company/agent_screen.dart';
 import 'package:INSPECT/screens/settings/company/division_screen.dart';
 import 'package:INSPECT/screens/settings/report_setup/cycle_screen.dart';
 import 'package:INSPECT/screens/settings/report_setup/report_types_screen.dart';
@@ -105,6 +106,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               icon: Icons.view_array,
               index: 24,
               screen: ReportTypeScreen(),
+            ),
+                MenuItem(
+              title: 'Agent',
+              icon: Icons.view_array,
+              index: 26,
+              screen: AgentScreen(),
             ),
           ],
         ),

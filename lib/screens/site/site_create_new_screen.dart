@@ -330,16 +330,45 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
             icon: Icons.map_outlined,
           ),
           context.vS,
-          _buildRow(
-            context,
-            'Status',
-            CommonTextField(
-              hintText: 'Enter Status',
-              controller: siteProvider.statusController,
-              style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-            ),
-            icon: Icons.info_outline,
+        _buildRow(
+  context,
+  'Status',
+  Consumer<SiteProvider>(
+    builder: (context, siteProvider, _) {
+      return DropdownButtonFormField<String>(
+        value: siteProvider.statusController.text.isEmpty
+            ? null
+            : siteProvider.statusController.text,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: context.colors.primary),
           ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: context.colors.primary.withOpacity(0.3)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: context.colors.primary, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        ),
+        items: SiteStatus.values.map((status) {
+          return DropdownMenuItem<String>(
+            value: status.label,
+            child: Text(status.label, style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary)),
+          );
+        }).toList(),
+        onChanged: (value) {
+          siteProvider.statusController.text = value ?? '';
+        },
+      );
+    },
+  ),
+  icon: Icons.info_outline,
+),
+
           context.vL,
           _buildSectionHeader(context, 'Location & Organization', Icons.location_on_outlined),
           context.vM,
@@ -456,18 +485,45 @@ class _SiteCreateNewScreenState extends State<SiteCreateNewScreen> {
                           icon: Icons.map_outlined,
                         ),
                         context.vS,
-                        _buildRow(
-                          context,
-                          'Status',
-                          CommonTextField(
-                            hintText: 'Enter Status',
-                            controller: siteProvider.statusController,
-                            style: context.topology.textTheme.bodySmall?.copyWith(
-                              color: context.colors.primary,
-                            ),
-                          ),
-                          icon: Icons.info_outline,
-                        ),
+                    _buildRow(
+  context,
+  'Status',
+  Consumer<SiteProvider>(
+    builder: (context, siteProvider, _) {
+      return DropdownButtonFormField<String>(
+        value: siteProvider.statusController.text.isEmpty
+            ? null
+            : siteProvider.statusController.text,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: context.colors.primary),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: context.colors.primary.withOpacity(0.3)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: context.colors.primary, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        ),
+        items: SiteStatus.values.map((status) {
+          return DropdownMenuItem<String>(
+            value: status.label,
+            child: Text(status.label, style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary)),
+          );
+        }).toList(),
+        onChanged: (value) {
+          siteProvider.statusController.text = value ?? '';
+        },
+      );
+    },
+  ),
+  icon: Icons.info_outline,
+),
+
                         context.vL,
                         _buildSectionHeader(
                           context,

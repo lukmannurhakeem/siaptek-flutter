@@ -7,6 +7,7 @@ import 'package:INSPECT/core/service/offline_http_service.dart';
 import 'package:INSPECT/core/service/service_locator.dart';
 import 'package:INSPECT/core/service/websocket_service.dart';
 import 'package:INSPECT/core/theme/app_theme.dart';
+import 'package:INSPECT/providers/agent_provider.dart';
 import 'package:INSPECT/providers/authenticate_provider.dart';
 import 'package:INSPECT/providers/category_provider.dart';
 import 'package:INSPECT/providers/customer_provider.dart';
@@ -57,6 +58,7 @@ void mainCommon(FlavorType flavor) async {
         ChangeNotifierProvider(create: (_) => JobProvider()),
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
         ChangeNotifierProvider(create: (_) => PersonnelProvider()),
+        ChangeNotifierProvider(create: (_) => AgentProvider())
       ],
       child: const MyApp(),
     ),

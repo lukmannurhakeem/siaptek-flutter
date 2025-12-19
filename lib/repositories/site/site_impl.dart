@@ -31,7 +31,7 @@ class SiteImpl implements SiteRepository {
       data: {
         'sitecode': siteCode,
         'sitename': siteName,
-        'division': division,
+        'divisionId': division,
         'customercode': customerCode,
         'customerid': customerId,
         'address': address,

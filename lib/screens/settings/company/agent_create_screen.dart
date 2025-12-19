@@ -1,51 +1,23 @@
 import 'package:INSPECT/core/extension/theme_extension.dart';
 import 'package:INSPECT/core/service/navigation_service.dart';
 import 'package:INSPECT/providers/agent_provider.dart';
-import 'package:INSPECT/providers/customer_provider.dart';
-import 'package:INSPECT/providers/personnel_provider.dart';
-import 'package:INSPECT/providers/system_provider.dart';
 import 'package:INSPECT/widget/common_button.dart';
-import 'package:INSPECT/widget/common_dropdown.dart';
-import 'package:INSPECT/widget/common_file_upload_input.dart';
 import 'package:INSPECT/widget/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class CustomerCreateNewScreen extends StatefulWidget {
-  const CustomerCreateNewScreen({super.key});
+class AgentCreateScreen extends StatefulWidget {
+  const AgentCreateScreen({super.key});
 
   @override
-  State<CustomerCreateNewScreen> createState() => _CustomerCreateNewScreenState();
+  State<AgentCreateScreen> createState() => _AgentCreateScreenState();
 }
 
-class _CustomerCreateNewScreenState extends State<CustomerCreateNewScreen> {
-  String? selectedAgentId;
-  String? selectedDivisionId;
-  final TextEditingController notesController = TextEditingController();
-  final TextEditingController agentController = TextEditingController();
+class _AgentCreateScreenState extends State<AgentCreateScreen> {
   bool _isLoading = false;
-
- @override
-void initState() {
-  super.initState();
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    final agentProvider = Provider.of<AgentProvider>(context, listen: false);
-    final systemProvider = Provider.of<SystemProvider>(context, listen: false);
-
-    if (agentProvider.agents.isEmpty) {
-      agentProvider.fetchAgents(context);
-    }
-
-    if (systemProvider.divisions.isEmpty) {
-      systemProvider.fetchDivision();
-    }
-  });
-}
 
   @override
   void dispose() {
-    notesController.dispose();
-    agentController.dispose();
     super.dispose();
   }
 
@@ -112,163 +84,21 @@ void initState() {
     );
   }
 
-  Widget _buildAgentDropdown(BuildContext context, {IconData? icon}) {
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Expanded(
-        flex: 2,
-        child: Row(
-          children: [
-            if (icon != null) ...[
-              Icon(icon, size: 16, color: context.colors.primary.withOpacity(0.7)),
-              const SizedBox(width: 6),
-            ],
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 12.0),
-                child: Text(
-                  'Agent',
-                  style: context.topology.textTheme.titleSmall?.copyWith(
-                    color: context.colors.primary,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      context.hS,
-      Expanded(
-        flex: 3,
-        child: Consumer<AgentProvider>(
-          builder: (context, agentProvider, child) {
-            if (agentProvider.isLoading) {
-              return Center(
-                child: SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              );
-            }
-
-            return CommonDropdown<String>(
-              value: selectedAgentId,
-              items: agentProvider.agents.map((agent) {
-                return DropdownMenuItem<String>(
-                  value: agent.agentid,
-                  child: Text(
-                    agent.agentname ?? 'Unknown',
-                    style: context.topology.textTheme.bodySmall,
-                  ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedAgentId = value;
-                  agentController.text = value ?? '';
-                });
-              },
-              borderColor: context.colors.primary,
-              textStyle: context.topology.textTheme.bodySmall?.copyWith(
-                color: context.colors.primary,
-              ),
-            );
-          },
-        ),
-      ),
-    ],
-  );
-}
-
-  Widget _buildDivisionDropdown(BuildContext context, {IconData? icon}) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          flex: 2,
-          child: Row(
-            children: [
-              if (icon != null) ...[
-                Icon(icon, size: 16, color: context.colors.primary.withOpacity(0.7)),
-                const SizedBox(width: 6),
-              ],
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 12.0),
-                  child: Text(
-                    'Division',
-                    style: context.topology.textTheme.titleSmall?.copyWith(
-                      color: context.colors.primary,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        context.hS,
-        Expanded(
-          flex: 3,
-          child: Consumer<SystemProvider>(
-            builder: (context, systemProvider, child) {
-              if (systemProvider.isLoading) {
-                return Center(
-                  child: SizedBox(
-                    height: 24,
-                    width: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                );
-              }
-
-              return CommonDropdown<String>(
-                value: selectedDivisionId,
-                items:
-                    systemProvider.divisions.map((division) {
-                      return DropdownMenuItem<String>(
-                        value: division.divisionid,
-                        child: Text(
-                          division.divisionname ?? 'Unknown',
-                          style: context.topology.textTheme.bodySmall,
-                        ),
-                      );
-                    }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedDivisionId = value;
-                    final customerProvider = Provider.of<CustomerProvider>(context, listen: false);
-                    customerProvider.divisionController.text = value ?? '';
-                  });
-                },
-                borderColor: context.colors.primary,
-                textStyle: context.topology.textTheme.bodySmall?.copyWith(
-                  color: context.colors.primary,
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMobileLayout(BuildContext context, CustomerProvider customerProvider) {
+  Widget _buildMobileLayout(BuildContext context, AgentProvider agentProvider) {
     return SingleChildScrollView(
       padding: context.paddingHorizontal,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           context.vM,
-          _buildSectionHeader(context, 'Basic Information', Icons.business_outlined),
+          _buildSectionHeader(context, 'Basic Information', Icons.person_outlined),
           context.vM,
           _buildRow(
             context,
-            'Customer Name',
+            'Agent Name',
             CommonTextField(
-              hintText: 'Enter Customer Name',
-              controller: customerProvider.customerNameController,
+              hintText: 'Enter Agent Name',
+              controller: agentProvider.agentnameController,
               style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
             ),
             isRequired: true,
@@ -280,17 +110,12 @@ void initState() {
             'Account Code',
             CommonTextField(
               hintText: 'Enter Account Code',
-              controller: customerProvider.customerCodeController,
+              controller: agentProvider.accountcodeController,
               style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
             ),
+            isRequired: true,
             icon: Icons.tag,
           ),
-          context.vL,
-          _buildSectionHeader(context, 'Assignment & Organization', Icons.group_outlined),
-          context.vM,
-          _buildAgentDropdown(context, icon: Icons.person),
-          context.vS,
-          _buildDivisionDropdown(context, icon: Icons.business),
           context.vL,
           _buildSectionHeader(context, 'Additional Details', Icons.description_outlined),
           context.vM,
@@ -299,7 +124,7 @@ void initState() {
             'Notes',
             CommonTextField(
               hintText: 'Enter Notes',
-              controller: notesController,
+              controller: agentProvider.notesController,
               maxLines: 3,
               style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
             ),
@@ -311,18 +136,16 @@ void initState() {
             'Address',
             CommonTextField(
               hintText: 'Enter Address',
-              controller: customerProvider.addressController,
+              controller: agentProvider.addressController,
               maxLines: 2,
               style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
             ),
             icon: Icons.location_on_outlined,
           ),
-          context.vS,
-          _buildRow(context, 'Logo', CommonFileUploadInput(), icon: Icons.image_outlined),
           context.vL,
           CommonButton(
-            text: _isLoading ? 'Saving...' : 'Save Customer',
-            onPressed: _isLoading ? null : () => _saveCustomer(customerProvider),
+            text: _isLoading ? 'Saving...' : 'Save Agent',
+            onPressed: _isLoading ? null : () => _saveAgent(agentProvider),
           ),
           context.vL,
         ],
@@ -330,7 +153,7 @@ void initState() {
     );
   }
 
-  Widget _buildTabletLayout(BuildContext context, CustomerProvider customerProvider) {
+  Widget _buildTabletLayout(BuildContext context, AgentProvider agentProvider) {
     return Padding(
       padding: context.paddingHorizontal,
       child: Column(
@@ -344,14 +167,14 @@ void initState() {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSectionHeader(context, 'Basic Information', Icons.business_outlined),
+                        _buildSectionHeader(context, 'Basic Information', Icons.person_outlined),
                         context.vM,
                         _buildRow(
                           context,
-                          'Customer Name',
+                          'Agent Name',
                           CommonTextField(
-                            hintText: 'Enter Customer Name',
-                            controller: customerProvider.customerNameController,
+                            hintText: 'Enter Agent Name',
+                            controller: agentProvider.agentnameController,
                             style: context.topology.textTheme.bodySmall?.copyWith(
                               color: context.colors.primary,
                             ),
@@ -365,23 +188,14 @@ void initState() {
                           'Account Code',
                           CommonTextField(
                             hintText: 'Enter Account Code',
-                            controller: customerProvider.customerCodeController,
+                            controller: agentProvider.accountcodeController,
                             style: context.topology.textTheme.bodySmall?.copyWith(
                               color: context.colors.primary,
                             ),
                           ),
+                          isRequired: true,
                           icon: Icons.tag,
-                        ),   
-                        context.vL,
-                        _buildSectionHeader(
-                          context,
-                          'Assignment & Organization',
-                          Icons.group_outlined,
                         ),
-                        context.vM,
-                        _buildAgentDropdown(context, icon: Icons.person),
-                        context.vS,
-                        _buildDivisionDropdown(context, icon: Icons.business),
                         context.vS,
                       ],
                     ),
@@ -404,7 +218,7 @@ void initState() {
                           'Notes',
                           CommonTextField(
                             hintText: 'Enter Notes',
-                            controller: notesController,
+                            controller: agentProvider.notesController,
                             maxLines: 3,
                             style: context.topology.textTheme.bodySmall?.copyWith(
                               color: context.colors.primary,
@@ -418,20 +232,13 @@ void initState() {
                           'Address',
                           CommonTextField(
                             hintText: 'Enter Address',
-                            controller: customerProvider.addressController,
+                            controller: agentProvider.addressController,
                             maxLines: 2,
                             style: context.topology.textTheme.bodySmall?.copyWith(
                               color: context.colors.primary,
                             ),
                           ),
                           icon: Icons.location_on_outlined,
-                        ),
-                        context.vS,
-                        _buildRow(
-                          context,
-                          'Logo',
-                          CommonFileUploadInput(),
-                          icon: Icons.image_outlined,
                         ),
                         context.vS,
                       ],
@@ -448,8 +255,8 @@ void initState() {
               SizedBox(
                 width: 200,
                 child: CommonButton(
-                  text: _isLoading ? 'Saving...' : 'Save Customer',
-                  onPressed: _isLoading ? null : () => _saveCustomer(customerProvider),
+                  text: _isLoading ? 'Saving...' : 'Save Agent',
+                  onPressed: _isLoading ? null : () => _saveAgent(agentProvider),
                 ),
               ),
             ],
@@ -460,16 +267,35 @@ void initState() {
     );
   }
 
-  void _saveCustomer(CustomerProvider customerProvider) {
+  void _saveAgent(AgentProvider agentProvider) {
     // Validate required fields
-    if (customerProvider.customerNameController.text.trim().isEmpty) {
+    if (agentProvider.agentnameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
               const Icon(Icons.error_outline, color: Colors.white),
               const SizedBox(width: 8),
-              const Expanded(child: Text('Please enter customer name')),
+              const Expanded(child: Text('Please enter agent name')),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    if (agentProvider.accountcodeController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 8),
+              const Expanded(child: Text('Please enter account code')),
             ],
           ),
           backgroundColor: Colors.red,
@@ -485,8 +311,8 @@ void initState() {
       _isLoading = true;
     });
 
-    customerProvider
-        .createCustomer(context)
+    agentProvider
+        .createAgent(context)
         .then((_) {
           if (mounted) {
             setState(() {
@@ -520,7 +346,7 @@ void initState() {
 
   @override
   Widget build(BuildContext context) {
-    final customerProvider = Provider.of<CustomerProvider>(context, listen: false);
+    final agentProvider = Provider.of<AgentProvider>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -530,7 +356,7 @@ void initState() {
             Icon(Icons.person_add, color: context.colors.primary, size: 22),
             const SizedBox(width: 8),
             Text(
-              'Create Customer',
+              'Create Agent',
               style: context.topology.textTheme.titleMedium?.copyWith(
                 color: context.colors.primary,
                 fontWeight: FontWeight.bold,
@@ -550,26 +376,25 @@ void initState() {
         ),
       ),
       body: SafeArea(
-        child:
-            _isLoading
-                ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(color: context.colors.primary),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Saving customer...',
-                        style: context.topology.textTheme.bodyMedium?.copyWith(
-                          color: context.colors.primary,
-                        ),
+        child: _isLoading
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: context.colors.primary),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Saving agent...',
+                      style: context.topology.textTheme.bodyMedium?.copyWith(
+                        color: context.colors.primary,
                       ),
-                    ],
-                  ),
-                )
-                : (context.isTablet
-                    ? _buildTabletLayout(context, customerProvider)
-                    : _buildMobileLayout(context, customerProvider)),
+                    ),
+                  ],
+                ),
+              )
+            : (context.isTablet
+                ? _buildTabletLayout(context, agentProvider)
+                : _buildMobileLayout(context, agentProvider)),
       ),
     );
   }

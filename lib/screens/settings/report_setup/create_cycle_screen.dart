@@ -733,30 +733,10 @@ class _CreateCycleScreenState extends State<CreateCycleScreen> {
               icon: Icons.arrow_upward,
             ),
             context.vXl,
-            Row(
-              children: [
-                Expanded(
-                  child: CommonButton(
-                    icon: Icons.save,
-                    text: _isLoading ? 'Saving...' : 'Save',
-                    onPressed: _isLoading ? null : _handleSave,
-                  ),
-                ),
-              ],
-            ),
-            context.vM,
-            Center(
-              child: TextButton.icon(
-                onPressed: () => NavigationService().goBack(),
-                icon: Icon(Icons.arrow_back, color: context.colors.primary),
-                label: Text(
-                  'Back to List',
-                  style: context.topology.textTheme.bodyMedium?.copyWith(
-                    color: context.colors.primary,
-                  ),
-                ),
-              ),
-            ),
+              CommonButton(
+            text: _isLoading ? 'Saving...' : 'Save Cycle',
+        onPressed: _isLoading ? null : _handleSave,
+          ),
             context.vL,
           ],
         ),

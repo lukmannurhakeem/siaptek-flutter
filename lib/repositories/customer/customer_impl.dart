@@ -15,32 +15,39 @@ class CustomerImpl implements CustomerRepository {
   }
 
   @override
-  Future<void> createCustomer({
-    required String customerId,
-    required String siteCode,
-    required String customerCode,
-    required String division,
-    required String status,
-    required String customerName,
-  }) async {
-    final response = await _api.post(
-      Endpoint.createCustomer,
-      requiresAuth: true,
-      data: {
-        'customerid': customerId,
-        'sitecode': siteCode,
-        'customercode': customerCode,
-        'division': division,
-        'status': status,
-        'customername': customerName,
-      },
-    );
+  @override
+Future<void> createCustomer({
+  required String customerId,
+  required String customerName,
+  required String siteCode,
+  required String accountCode,
+  required String divisionId,
+  String? agent,
+  String? notes,
+  String? logo,
+  String? address,
+}) async {
+  final response = await _api.post(
+    Endpoint.createCustomer,
+    requiresAuth: true,
+    data: {
+      'customerid': customerId,
+      'customername': customerName,
+      'sitecode': siteCode,
+      'account_code': accountCode,
+      'divisionid': divisionId,
+      if (agent != null) 'agent': agent,
+      if (notes != null) 'notes': notes,
+      if (logo != null) 'logo': logo,
+      if (address != null) 'address': address,
+    },
+  );
 
-    // Check if queued
-    if (response.statusCode == 202 && response.data['queued'] == true) {
-      throw Exception('Customer saved locally. Will sync when online.');
-    }
+  // Check if queued
+  if (response.statusCode == 202 && response.data['queued'] == true) {
+    throw Exception('Customer saved locally. Will sync when online.');
   }
+}
 
   @override
   Future<Map<String, dynamic>> getDashboardCustomer(String customerId) async {
