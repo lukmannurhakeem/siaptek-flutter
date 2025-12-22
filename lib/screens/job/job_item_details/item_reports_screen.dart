@@ -1185,7 +1185,7 @@ class _ItemReportScreenState extends State<ItemReportScreen> {
 
     try {
       if (context.isTablet) {
-        final url = 'http://localhost:4000/api/v1/reportData/$reportId/view-pdf';
+        final url = 'https://api.inspectdev.com/api/v1/reportData/$reportId/view-pdf';
         html.window.open(url, '_blank');
       } else {
         final pdfBytes = await systemProvider.fetchPdfReportById(reportId);

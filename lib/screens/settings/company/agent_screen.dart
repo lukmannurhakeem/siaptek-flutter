@@ -727,6 +727,18 @@ class _AgentScreenState extends State<AgentScreen> {
             sortColumnIndex = columnIndex;
           });
         },
+      ), DataColumn(
+        label: Expanded(
+          child: Text(
+            'Agent Id',
+            style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
+          ),
+        ),
+        onSort: (columnIndex, _) {
+          setState(() {
+            sortColumnIndex = columnIndex;
+          });
+        },
       ),
       DataColumn(
         label: Expanded(
@@ -741,19 +753,7 @@ class _AgentScreenState extends State<AgentScreen> {
           });
         },
       ),
-      DataColumn(
-        label: Expanded(
-          child: Text(
-            'Status',
-            style: context.topology.textTheme.titleSmall?.copyWith(color: context.colors.primary),
-          ),
-        ),
-        onSort: (columnIndex, _) {
-          setState(() {
-            sortColumnIndex = columnIndex;
-          });
-        },
-      ),
+     
     ];
   }
 
@@ -775,33 +775,19 @@ class _AgentScreenState extends State<AgentScreen> {
             style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
           ),
         ),
+            DataCell(
+          Text(
+            data.agentid ?? '-',
+            style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
+          ),
+        ),
         DataCell(
           Text(
             data.address ?? '-',
             style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
           ),
         ),
-        DataCell(
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: data.status == 'active'
-                  ? Colors.green.withOpacity(0.1)
-                  : Colors.grey.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(
-                color: data.status == 'active' ? Colors.green : Colors.grey,
-              ),
-            ),
-            child: Text(
-              data.status ?? 'unknown',
-              style: context.topology.textTheme.bodySmall?.copyWith(
-                color: data.status == 'active' ? Colors.green : Colors.grey,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ),
+        
       ],
     );
   }

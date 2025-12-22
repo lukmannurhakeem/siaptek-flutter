@@ -72,7 +72,7 @@ class Endpoint {
   static const String personnelTeamCreate = '/teampersonnel/create';
 
   //Agent
-  static const String agent = '/agent';
+  static const String agent = '/agent/view';
   static const String createAgent = '/agent/create';
 
   static String categoryViewById({String? categoryId}) {
