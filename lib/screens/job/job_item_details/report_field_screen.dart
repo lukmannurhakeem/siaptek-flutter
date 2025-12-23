@@ -68,17 +68,17 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
   @override
   void initState() {
     super.initState();
-
-    // Pre-fill item data if available
     _itemIdController.text = widget.item.itemId ?? '';
     _itemNoController.text = widget.item.itemNo ?? '';
-
     _fetchReportFields();
-
-    // Fetch personnel data for the dropdown
     Future.microtask(() {
       context.read<PersonnelProvider>().fetchPersonnel();
     });
+  }
+
+  // Helper method to generate unique keys
+  String _getUniqueFieldKey(FieldConfig field, int index) {
+    return '${field.name}_${field.section ?? 'default'}_$index';
   }
 
   Future<void> _fetchReportFields() async {
@@ -100,17 +100,13 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
       }
 
       final dynamic data = result['data'];
-
-      // Parse field configurations
       List<FieldConfig> parsedFields = [];
 
       if (data is List) {
         for (var item in data) {
           if (item is Map<String, dynamic>) {
-            // Parse structured field configuration
             parsedFields.add(_parseFieldConfig(item));
           } else if (item is String && item.isNotEmpty) {
-            // Legacy: simple text field
             parsedFields.add(FieldConfig(name: item.trim(), label: item.trim(), type: 'text'));
           }
         }
@@ -118,25 +114,27 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
 
       setState(() {
         _fields = parsedFields;
-        // Initialize controllers and values for each field
-        for (var field in _fields) {
+        // Initialize with unique keys
+        for (int i = 0; i < _fields.length; i++) {
+          final field = _fields[i];
+          final uniqueKey = _getUniqueFieldKey(field, i);
+
           if (field.type == 'text' || field.type == 'textarea' || field.type == 'number') {
-            _controllers[field.name] = TextEditingController(text: field.defaultValue);
+            _controllers[uniqueKey] = TextEditingController(text: field.defaultValue);
           } else if (field.type == 'dropdown') {
-            _fieldValues[field.name] = field.defaultValue;
+            _fieldValues[uniqueKey] = field.defaultValue;
           } else if (field.type == 'checkbox') {
-            _fieldValues[field.name] = field.defaultValue == 'true';
+            _fieldValues[uniqueKey] = field.defaultValue == 'true';
           } else if (field.type == 'date') {
-            _fieldValues[field.name] = null;
+            _fieldValues[uniqueKey] = null;
           } else if (field.type == 'file') {
-            _fieldValues[field.name] = null;
+            _fieldValues[uniqueKey] = null;
           }
         }
         _isLoading = false;
       });
     } catch (e) {
       final errorMessage = e.toString().toLowerCase();
-
       if (errorMessage.contains('not found') ||
           errorMessage.contains('no data') ||
           errorMessage.contains('404')) {
@@ -193,9 +191,7 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
         iconTheme: IconThemeData(color: context.colors.primary),
         backgroundColor: context.colors.onPrimary,
         leading: IconButton(
-          onPressed: () {
-            NavigationService().goBack();
-          },
+          onPressed: () => NavigationService().goBack(),
           icon: const Icon(Icons.chevron_left),
         ),
       ),
@@ -337,9 +333,7 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
               }).toList(),
           onChanged: (String? newValue) {
             if (newValue != null) {
-              setState(() {
-                _selectedStatus = newValue;
-              });
+              setState(() => _selectedStatus = newValue);
             }
           },
         ),
@@ -368,9 +362,7 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
     );
 
     if (picked != null && picked != _selectedReportDate) {
-      setState(() {
-        _selectedReportDate = picked;
-      });
+      setState(() => _selectedReportDate = picked);
     }
   }
 
@@ -446,8 +438,6 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
           _buildInspectedByDropdown(),
           const SizedBox(height: 12),
           _buildRequiredField('Regulation', _regulationController, 'Enter regulation'),
-
-          // BEAUTIFIED REPORT FIELDS SECTION
           if (_fields.isNotEmpty) ...[
             const SizedBox(height: 32),
             Container(
@@ -475,11 +465,7 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
                           color: context.colors.primary.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Icon(
-                          Icons.article_outlined,
-                          color: context.colors.primary,
-                          size: 24,
-                        ),
+                        child: Icon(Icons.article_outlined, color: context.colors.primary, size: 24),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -513,7 +499,6 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
               ),
             ),
           ],
-
           if (_fields.isEmpty) ...[
             context.vL,
             Container(
@@ -530,16 +515,13 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
                   Expanded(
                     child: Text(
                       'No custom fields defined for this report type. You can submit with the required information above.',
-                      style: context.topology.textTheme.bodySmall?.copyWith(
-                        color: Colors.blue[700],
-                      ),
+                      style: context.topology.textTheme.bodySmall?.copyWith(color: Colors.blue[700]),
                     ),
                   ),
                 ],
               ),
             ),
           ],
-
           context.vL,
           _buildSubmitButton(),
         ],
@@ -599,9 +581,7 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
                     Expanded(
                       child: Text(
                         'No personnel available. Please add personnel first.',
-                        style: context.topology.textTheme.bodySmall?.copyWith(
-                          color: Colors.orange[700],
-                        ),
+                        style: context.topology.textTheme.bodySmall?.copyWith(color: Colors.orange[700]),
                       ),
                     ),
                   ],
@@ -611,16 +591,13 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
           );
         }
 
-        final items =
-            personnelList.map((personnel) {
-              final displayName =
-                  personnel.displayName?.isNotEmpty == true
-                      ? personnel.displayName!
-                      : personnel.fullName ?? 'Unknown';
-              final id = personnel.personnel?.personnelID ?? '';
-
-              return DropdownMenuItem<String>(value: id, child: Text(displayName));
-            }).toList();
+        final items = personnelList.map((personnel) {
+          final displayName = personnel.displayName?.isNotEmpty == true
+              ? personnel.displayName!
+              : personnel.fullName ?? 'Unknown';
+          final id = personnel.personnel?.personnelID ?? '';
+          return DropdownMenuItem<String>(value: id, child: Text(displayName));
+        }).toList();
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -636,11 +613,7 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
             CommonDropdown<String>(
               value: _selectedInspectedById,
               items: items,
-              onChanged: (value) {
-                setState(() {
-                  _selectedInspectedById = value;
-                });
-              },
+              onChanged: (value) => setState(() => _selectedInspectedById = value),
               borderColor: context.colors.primary.withOpacity(0.3),
               backgroundColor: context.colors.onPrimary,
               label: null,
@@ -651,17 +624,17 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
     );
   }
 
-  // BEAUTIFIED DYNAMIC FIELDS BUILDER
   List<Widget> _buildDynamicFields() {
     List<Widget> widgets = [];
 
-    for (var field in _fields) {
-      // Handle section headers
+    for (int i = 0; i < _fields.length; i++) {
+      final field = _fields[i];
+      final uniqueKey = _getUniqueFieldKey(field, i);
+
       if (field.type.toLowerCase() == 'section') {
         if (widgets.isNotEmpty) {
-          widgets.add(const SizedBox(height: 24)); // Space before new section
+          widgets.add(const SizedBox(height: 24));
         }
-
         widgets.add(
           Container(
             width: double.infinity,
@@ -700,7 +673,6 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
         continue;
       }
 
-      // Regular fields with card-like appearance
       widgets.add(
         Container(
           margin: const EdgeInsets.only(bottom: 16),
@@ -720,7 +692,6 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Field label with required indicator
               Row(
                 children: [
                   Expanded(
@@ -772,7 +743,7 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
                 ),
               ],
               const SizedBox(height: 12),
-              _buildFieldWidget(field),
+              _buildFieldWidget(field, uniqueKey),
             ],
           ),
         ),
@@ -782,71 +753,59 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
     return widgets;
   }
 
-  Widget _buildFieldWidget(FieldConfig field) {
+  Widget _buildFieldWidget(FieldConfig field, String uniqueKey) {
     switch (field.type.toLowerCase()) {
       case 'text':
       case 'number':
         return CommonTextField(
           style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-          controller: _controllers[field.name],
+          controller: _controllers[uniqueKey],
           hintText: 'Enter ${field.label.toLowerCase()}',
           keyboardType: field.type == 'number' ? TextInputType.number : TextInputType.text,
         );
-
       case 'textarea':
         return CommonTextField(
           style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-          controller: _controllers[field.name],
+          controller: _controllers[uniqueKey],
           hintText: 'Enter ${field.label.toLowerCase()}',
           maxLines: 4,
         );
-
       case 'dropdown':
-        return _buildCustomDropdown(field);
-
+        return _buildCustomDropdown(field, uniqueKey);
       case 'checkbox':
-        return _buildCheckbox(field);
-
+        return _buildCheckbox(field, uniqueKey);
       case 'date':
-        return _buildDateField(field);
-
+        return _buildDateField(field, uniqueKey);
       case 'file':
-        return _buildFileField(field);
-
+        return _buildFileField(field, uniqueKey);
       case 'label':
         return _buildLabelField(field);
-
       default:
         return CommonTextField(
-          controller: _controllers[field.name],
+          controller: _controllers[uniqueKey],
           hintText: 'Enter ${field.label.toLowerCase()}',
         );
     }
   }
 
-  Widget _buildCustomDropdown(FieldConfig field) {
-    final items =
-        field.options
+  Widget _buildCustomDropdown(FieldConfig field, String uniqueKey) {
+    final items = field.options
             ?.map((option) => DropdownMenuItem<String>(value: option, child: Text(option)))
             .toList() ??
         [];
 
     return CommonDropdown<String>(
       textStyle: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
-      value: _fieldValues[field.name],
+      value: _fieldValues[uniqueKey],
       items: items,
-      onChanged: (value) {
-        setState(() {
-          _fieldValues[field.name] = value;
-        });
-      },
+      onChanged: (value) => setState(() => _fieldValues[uniqueKey] = value),
       borderColor: context.colors.primary.withOpacity(0.3),
       backgroundColor: context.colors.onPrimary,
       label: null,
     );
   }
 
-  Widget _buildCheckbox(FieldConfig field) {
+  Widget _buildCheckbox(FieldConfig field, String uniqueKey) {
     return Container(
       decoration: BoxDecoration(
         color: context.colors.onPrimary,
@@ -858,23 +817,19 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
           field.label,
           style: context.topology.textTheme.bodySmall?.copyWith(color: context.colors.primary),
         ),
-        value: _fieldValues[field.name] ?? false,
-        onChanged: (bool? value) {
-          setState(() {
-            _fieldValues[field.name] = value ?? false;
-          });
-        },
+        value: _fieldValues[uniqueKey] ?? false,
+        onChanged: (bool? value) => setState(() => _fieldValues[uniqueKey] = value ?? false),
         activeColor: context.colors.primary,
         controlAffinity: ListTileControlAffinity.leading,
       ),
     );
   }
 
-  Widget _buildDateField(FieldConfig field) {
-    DateTime? selectedDate = _fieldValues[field.name];
+  Widget _buildDateField(FieldConfig field, String uniqueKey) {
+    DateTime? selectedDate = _fieldValues[uniqueKey];
 
     return InkWell(
-      onTap: () => _selectFieldDate(context, field),
+      onTap: () => _selectFieldDate(context, field, uniqueKey),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
@@ -890,10 +845,9 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
               child: Text(
                 selectedDate != null ? selectedDate.formatMediumDate : 'Select date',
                 style: context.topology.textTheme.bodySmall?.copyWith(
-                  color:
-                      selectedDate != null
-                          ? context.colors.primary
-                          : context.colors.primary.withOpacity(0.5),
+                  color: selectedDate != null
+                      ? context.colors.primary
+                      : context.colors.primary.withOpacity(0.5),
                 ),
               ),
             ),
@@ -904,10 +858,10 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
     );
   }
 
-  Future<void> _selectFieldDate(BuildContext context, FieldConfig field) async {
+  Future<void> _selectFieldDate(BuildContext context, FieldConfig field, String uniqueKey) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _fieldValues[field.name] ?? DateTime.now(),
+      initialDate: _fieldValues[uniqueKey] ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
       builder: (context, child) {
@@ -925,15 +879,13 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
     );
 
     if (picked != null) {
-      setState(() {
-        _fieldValues[field.name] = picked;
-      });
+      setState(() => _fieldValues[uniqueKey] = picked);
     }
   }
 
-  Widget _buildFileField(FieldConfig field) {
+  Widget _buildFileField(FieldConfig field, String uniqueKey) {
     return InkWell(
-      onTap: () => _selectFile(field),
+      onTap: () => _selectFile(field, uniqueKey),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
@@ -947,14 +899,13 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                _fieldValues[field.name] != null
-                    ? 'File selected: ${_fieldValues[field.name]}'
+                _fieldValues[uniqueKey] != null
+                    ? 'File selected: ${_fieldValues[uniqueKey]}'
                     : 'Choose file',
                 style: context.topology.textTheme.bodyMedium?.copyWith(
-                  color:
-                      _fieldValues[field.name] != null
-                          ? context.colors.primary
-                          : context.colors.primary.withOpacity(0.5),
+                  color: _fieldValues[uniqueKey] != null
+                      ? context.colors.primary
+                      : context.colors.primary.withOpacity(0.5),
                 ),
               ),
             ),
@@ -965,12 +916,9 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
     );
   }
 
-  void _selectFile(FieldConfig field) {
-    // Implement file picker logic here
-    // For now, just a placeholder
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('File picker not implemented yet')));
+  void _selectFile(FieldConfig field, String uniqueKey) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('File picker not implemented yet')));
   }
 
   Widget _buildLabelField(FieldConfig field) {
@@ -1018,47 +966,45 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
   }
 
   void _handleSubmit() {
-    // Validate required fixed fields
     if (_selectedReportDate == null) {
       _showErrorSnackBar('Please select a report date');
       return;
     }
-
     if (_itemIdController.text.trim().isEmpty) {
       _showErrorSnackBar('Please enter Item ID');
       return;
     }
-
     if (_itemNoController.text.trim().isEmpty) {
       _showErrorSnackBar('Please enter Item No');
       return;
     }
-
     if (_selectedInspectedById == null || _selectedInspectedById!.isEmpty) {
       _showErrorSnackBar('Please select an inspector');
       return;
     }
-
     if (_regulationController.text.trim().isEmpty) {
       _showErrorSnackBar('Please enter Regulation');
       return;
     }
 
-    // Validate required dynamic fields
-    for (var field in _fields) {
+    // Validate required dynamic fields with unique keys
+    for (int i = 0; i < _fields.length; i++) {
+      final field = _fields[i];
+      final uniqueKey = _getUniqueFieldKey(field, i);
+
       if (field.required) {
         if (field.type == 'text' || field.type == 'textarea' || field.type == 'number') {
-          if (_controllers[field.name]?.text.trim().isEmpty ?? true) {
+          if (_controllers[uniqueKey]?.text.trim().isEmpty ?? true) {
             _showErrorSnackBar('Please enter ${field.label}');
             return;
           }
         } else if (field.type == 'dropdown') {
-          if (_fieldValues[field.name] == null) {
+          if (_fieldValues[uniqueKey] == null) {
             _showErrorSnackBar('Please select ${field.label}');
             return;
           }
         } else if (field.type == 'date') {
-          if (_fieldValues[field.name] == null) {
+          if (_fieldValues[uniqueKey] == null) {
             _showErrorSnackBar('Please select ${field.label}');
             return;
           }
@@ -1066,77 +1012,75 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
       }
     }
 
-    // Collect all field values
+    // Collect all field values with unique keys
     Map<String, String> fieldValues = {};
-    for (var field in _fields) {
+    for (int i = 0; i < _fields.length; i++) {
+      final field = _fields[i];
+      final uniqueKey = _getUniqueFieldKey(field, i);
+
       if (field.type == 'text' || field.type == 'textarea' || field.type == 'number') {
-        fieldValues[field.name] = _controllers[field.name]?.text ?? '';
+        fieldValues[field.name] = _controllers[uniqueKey]?.text ?? '';
       } else if (field.type == 'dropdown') {
-        fieldValues[field.name] = _fieldValues[field.name]?.toString() ?? '';
+        fieldValues[field.name] = _fieldValues[uniqueKey]?.toString() ?? '';
       } else if (field.type == 'checkbox') {
-        fieldValues[field.name] = (_fieldValues[field.name] ?? false).toString();
+        fieldValues[field.name] = (_fieldValues[uniqueKey] ?? false).toString();
       } else if (field.type == 'date') {
-        final date = _fieldValues[field.name] as DateTime?;
+        final date = _fieldValues[uniqueKey] as DateTime?;
         fieldValues[field.name] = date?.toIso8601String() ?? '';
       } else if (field.type == 'file') {
-        fieldValues[field.name] = _fieldValues[field.name]?.toString() ?? '';
+        fieldValues[field.name] = _fieldValues[uniqueKey]?.toString() ?? '';
       }
     }
 
-    // Get the selected inspector name
     final personnelProvider = context.read<PersonnelProvider>();
     final selectedPersonnel = personnelProvider.getPersonnelById(_selectedInspectedById!);
-    final inspectedByName =
-        selectedPersonnel?.displayName?.isNotEmpty == true
-            ? selectedPersonnel!.displayName!
-            : selectedPersonnel?.fullName ?? 'Unknown';
+    final inspectedByName = selectedPersonnel?.displayName?.isNotEmpty == true
+        ? selectedPersonnel!.displayName!
+        : selectedPersonnel?.fullName ?? 'Unknown';
 
-    // Show confirmation dialog
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Confirm Submission'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildConfirmationRow('Report Date:', _selectedReportDate!.formatMediumDate),
-                  _buildConfirmationRow('Status:', _selectedStatus.toUpperCase()),
-                  _buildConfirmationRow('Item ID:', _itemIdController.text),
-                  _buildConfirmationRow('Item No:', _itemNoController.text),
-                  _buildConfirmationRow('Inspected By:', inspectedByName),
-                  _buildConfirmationRow('Regulation:', _regulationController.text),
-
-                  if (fieldValues.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      'Field Values:',
-                      style: TextStyle(fontWeight: FontWeight.bold, color: context.colors.primary),
-                    ),
-                    const SizedBox(height: 8),
-                    ...fieldValues.entries.map(
-                      (e) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Text('${e.key}: ${e.value.isEmpty ? "(empty)" : e.value}'),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _submitReportData(fieldValues);
-                },
-                child: const Text('Submit'),
-              ),
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Submission'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildConfirmationRow('Report Date:', _selectedReportDate!.formatMediumDate),
+              _buildConfirmationRow('Status:', _selectedStatus.toUpperCase()),
+              _buildConfirmationRow('Item ID:', _itemIdController.text),
+              _buildConfirmationRow('Item No:', _itemNoController.text),
+              _buildConfirmationRow('Inspected By:', inspectedByName),
+              _buildConfirmationRow('Regulation:', _regulationController.text),
+              if (fieldValues.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'Field Values:',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: context.colors.primary),
+                ),
+                const SizedBox(height: 8),
+                ...fieldValues.entries.map(
+                  (e) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text('${e.key}: ${e.value.isEmpty ? "(empty)" : e.value}'),
+                  ),
+                ),
+              ],
             ],
           ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _submitReportData(fieldValues);
+            },
+            child: const Text('Submit'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1165,31 +1109,23 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
   }
 
   Future<void> _submitReportData(Map<String, String> fieldValues) async {
-    setState(() {
-      _isSubmitting = true;
-    });
+    setState(() => _isSubmitting = true);
 
     try {
       final provider = context.read<SystemProvider>();
-
-      // Format the report date to ISO 8601 format with timezone
       final reportDateISO = _selectedReportDate!.toUtc().toIso8601String();
 
-      // Transform field values to match API structure
       Map<String, Map<String, String>> reportData = {};
       fieldValues.forEach((key, value) {
         reportData[key] = {"value": value};
       });
 
-      // Get the selected inspector name
       final personnelProvider = context.read<PersonnelProvider>();
       final selectedPersonnel = personnelProvider.getPersonnelById(_selectedInspectedById!);
-      final inspectedByName =
-          selectedPersonnel?.displayName?.isNotEmpty == true
-              ? selectedPersonnel!.displayName!
-              : selectedPersonnel?.fullName ?? 'Unknown';
+      final inspectedByName = selectedPersonnel?.displayName?.isNotEmpty == true
+          ? selectedPersonnel!.displayName!
+          : selectedPersonnel?.fullName ?? 'Unknown';
 
-      // Call the createReportData method from SystemProvider
       final result = await provider.createReportData(
         reportTypeId: widget.reportTypeId,
         itemId: widget.item.itemId ?? '',
@@ -1202,15 +1138,11 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
       );
 
       if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
+        setState(() => _isSubmitting = false);
 
-        // Show success message with result info if available
-        final message =
-            result != null && result['message'] != null
-                ? result['message']
-                : 'Report submitted successfully for ${_selectedReportDate!.formatMediumDate}';
+        final message = result != null && result['message'] != null
+            ? result['message']
+            : 'Report submitted successfully for ${_selectedReportDate!.formatMediumDate}';
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1220,24 +1152,18 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
           ),
         );
 
-        // Clear form after successful submission (optional)
         _clearForm();
 
-        // Navigate back with refresh flag to trigger reload on previous screen
         Future.delayed(const Duration(milliseconds: 1500), () {
           if (mounted) {
-            // Pop with true to indicate success and trigger refresh
             Navigator.pop(context, true);
           }
         });
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
+        setState(() => _isSubmitting = false);
 
-        // Extract meaningful error message
         String errorMessage = e.toString();
         if (errorMessage.contains('Exception: ')) {
           errorMessage = errorMessage.replaceFirst('Exception: ', '');
@@ -1263,7 +1189,6 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
   }
 
   void _clearForm() {
-    // Clear all text controllers except pre-filled ones
     _regulationController.clear();
 
     for (var controller in _controllers.values) {
@@ -1279,8 +1204,7 @@ class _ReportFieldsScreenState extends State<ReportFieldsScreen> {
   }
 
   void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.orange));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.orange));
   }
 }
